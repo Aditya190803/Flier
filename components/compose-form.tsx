@@ -26,6 +26,7 @@ import {
 } from "@/components/compose/attachment-upload";
 import { ComposeStep } from "@/components/compose/compose-step";
 import type { ComposeAttachment } from "@/components/compose/compose-types";
+import type { DeliveryMode } from "@/components/compose/delivery-options";
 import { DraftRecoveryDialog } from "@/components/compose/draft-recovery-dialog";
 import { PreviewStep } from "@/components/compose/preview-step";
 import { RecipientsStep } from "@/components/compose/recipients-step";
@@ -66,8 +67,15 @@ export function ComposeForm() {
   const [attachments, setAttachments] = useState<ComposeAttachment[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Draft state (toggle to save as draft instead of sending immediately)
-  const [saveAsDraft, setSaveAsDraft] = useState(false);
+  // How this campaign leaves the composer: immediately, at a chosen time, or
+  // parked as a draft. `saveAsDraft` stays derived from it so draft recovery
+  // (which only knows about the boolean) keeps working unchanged.
+  const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("now");
+  const [scheduledAt, setScheduledAt] = useState("");
+  const saveAsDraft = deliveryMode === "draft";
+  const setSaveAsDraft = useCallback((value: boolean) => {
+    setDeliveryMode(value ? "draft" : "now");
+  }, []);
 
   // Marketing vs Transactional state
   const [isMarketing, setIsMarketing] = useState(false);
@@ -260,7 +268,8 @@ export function ComposeForm() {
     trackingEnabled,
     selectedSignature,
     signatures,
-    saveAsDraft,
+    deliveryMode,
+    scheduledAt,
     editingDraftId,
     pdfColumn,
     showPersonalizedAttachments,
@@ -755,7 +764,8 @@ export function ComposeForm() {
                 signatures={signatures}
                 selectedSignature={selectedSignature}
                 isMarketing={isMarketing}
-                saveAsDraft={saveAsDraft}
+                deliveryMode={deliveryMode}
+                scheduledAt={scheduledAt}
                 hasAbTestId={Boolean(searchParams.get("abTestId"))}
                 router={router}
                 setShowHtmlImport={setShowHtmlImport}
@@ -776,7 +786,8 @@ export function ComposeForm() {
                 setPdfColumn={setPdfColumn}
                 setSelectedSignature={setSelectedSignature}
                 setIsMarketing={setIsMarketing}
-                setSaveAsDraft={setSaveAsDraft}
+                setDeliveryMode={setDeliveryMode}
+                setScheduledAt={setScheduledAt}
                 applyTemplate={applyTemplate}
                 loadTemplates={loadTemplates}
               />
@@ -842,6 +853,7 @@ export function ComposeForm() {
         }}
         onDispatch={handleSend}
         isDispatching={isPreparingSend || isSending}
+        deliveryMode={deliveryMode}
         dispatchDisabled={
           isSending ||
           isPreparingSend ||

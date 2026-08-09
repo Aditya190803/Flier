@@ -12,7 +12,6 @@ import {
   Paperclip,
   Pen,
   RefreshCw,
-  Save,
   Settings,
   Send,
   Upload,
@@ -38,6 +37,7 @@ import type { EmailSignature, EmailTemplate } from "@/lib/appwrite";
 import { detectPdfColumn, isPdfUrl } from "@/lib/attachment-fetcher";
 import { LARGE_FILE_THRESHOLD } from "@/lib/attachments/client";
 
+import { DeliveryOptions, type DeliveryMode } from "./delivery-options";
 import { EmailChipInput } from "./email-chip-input";
 import { TemplatePickerDialog } from "./template-picker-dialog";
 
@@ -65,7 +65,9 @@ interface ComposeStepProps {
   signatures: EmailSignature[];
   selectedSignature: string | null;
   isMarketing: boolean;
-  saveAsDraft: boolean;
+  deliveryMode: DeliveryMode;
+  /** `datetime-local` value; only meaningful when `deliveryMode` is "schedule" */
+  scheduledAt: string;
   hasAbTestId: boolean;
   router: AppRouterInstance;
   setShowHtmlImport: (open: boolean) => void;
@@ -86,7 +88,8 @@ interface ComposeStepProps {
   setPdfColumn: (value: string | null) => void;
   setSelectedSignature: (value: string | null) => void;
   setIsMarketing: (value: boolean) => void;
-  setSaveAsDraft: (value: boolean) => void;
+  setDeliveryMode: (value: DeliveryMode) => void;
+  setScheduledAt: (value: string) => void;
   applyTemplate: (template: EmailTemplate) => void;
   loadTemplates: () => void | Promise<void>;
 }
@@ -138,7 +141,8 @@ export function ComposeStep({
   signatures,
   selectedSignature,
   isMarketing,
-  saveAsDraft,
+  deliveryMode,
+  scheduledAt,
   hasAbTestId,
   router,
   setShowHtmlImport,
@@ -159,7 +163,8 @@ export function ComposeStep({
   setPdfColumn,
   setSelectedSignature,
   setIsMarketing,
-  setSaveAsDraft,
+  setDeliveryMode,
+  setScheduledAt,
   applyTemplate,
   loadTemplates,
 }: ComposeStepProps) {
@@ -630,33 +635,12 @@ export function ComposeStep({
 
           <div className="border-t" />
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`p-2 rounded-lg ${saveAsDraft ? "bg-primary/10" : "bg-muted"}`}
-                >
-                  <Save className="h-4 w-4" />
-                </div>
-                <div>
-                  <Label
-                    htmlFor="draft-toggle"
-                    className="font-medium cursor-pointer"
-                  >
-                    Save as Draft
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    Save without sending — send later from Drafts
-                  </p>
-                </div>
-              </div>
-              <Switch
-                id="draft-toggle"
-                checked={saveAsDraft}
-                onCheckedChange={setSaveAsDraft}
-              />
-            </div>
-          </div>
+          <DeliveryOptions
+            deliveryMode={deliveryMode}
+            setDeliveryMode={setDeliveryMode}
+            scheduledAt={scheduledAt}
+            setScheduledAt={setScheduledAt}
+          />
         </div>
       </div>
     </div>
