@@ -1,6 +1,7 @@
 import type { DraftEmail } from "@/types/appwrite-client";
 
 import { apiRequest } from "../api-request";
+import { pollForUpdates } from "../poll";
 import { createCrudService } from "../service-factory";
 
 // ============================================
@@ -31,10 +32,11 @@ export const draftEmailsService = {
     return this.updateStatus(emailId, "cancelled");
   },
 
+  /** Refresh drafts periodically. See {@link pollForUpdates} — not realtime. */
   subscribeToUserDraftEmails(
     _userEmail: string,
-    _callback: (response: any) => void,
+    callback: (response: unknown) => void,
   ) {
-    return () => {};
+    return pollForUpdates(() => callback(undefined));
   },
 };

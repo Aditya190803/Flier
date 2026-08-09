@@ -2,16 +2,38 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { isAuthed, requireSession } from "@/lib/api-auth";
+import { respondWithOwnedDocument } from "@/lib/appwrite/single-document";
 import { databases, config, Query, ID } from "@/lib/appwrite-server";
 import { apiLogger } from "@/lib/logger";
 import type { UnsubscribeDocument } from "@/types/appwrite";
 
-// GET /api/appwrite/unsubscribes - List unsubscribes for the authenticated user
+/** Shared by the list and single-document paths so both return one shape. */
+function mapUnsubscribe(doc: UnsubscribeDocument) {
+  return {
+    $id: doc.$id,
+    email: doc.email || "",
+    user_email: doc.user_email || "",
+    reason: doc.reason,
+    unsubscribed_at: doc.unsubscribed_at || doc.$createdAt,
+  };
+}
+
+// GET /api/appwrite/unsubscribes[?id=] - List unsubscribes, or fetch one by id
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireSession(request);
     if (!isAuthed(auth)) {
       return auth;
+    }
+
+    const single = await respondWithOwnedDocument(
+      request,
+      config.unsubscribesCollectionId,
+      auth.email,
+      (doc) => mapUnsubscribe(doc as UnsubscribeDocument),
+    );
+    if (single) {
+      return single;
     }
 
     const { searchParams } = new URL(request.url);
@@ -46,13 +68,7 @@ export async function GET(request: NextRequest) {
 
     const documents = (
       response.documents as unknown as UnsubscribeDocument[]
-    ).map((doc) => ({
-      $id: doc.$id,
-      email: doc.email || "",
-      user_email: doc.user_email || "",
-      reason: doc.reason,
-      unsubscribed_at: doc.unsubscribed_at || doc.$createdAt,
-    }));
+    ).map(mapUnsubscribe);
 
     return NextResponse.json({ total: response.total, documents });
   } catch (error: unknown) {

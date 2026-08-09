@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { isAuthed, requireSession } from "@/lib/api-auth";
+import { respondWithOwnedDocument } from "@/lib/appwrite/single-document";
 import { databases, config, Query, ID } from "@/lib/appwrite-server";
 import { apiLogger } from "@/lib/logger";
 import type { WebhookDocument } from "@/types/appwrite";
@@ -11,12 +12,41 @@ interface ExtendedWebhookDocument extends WebhookDocument {
   last_triggered_at?: string;
 }
 
-// GET /api/appwrite/webhooks - List webhooks for the authenticated user
+/** Shared by the list and single-document paths so both return one shape. */
+function mapWebhook(doc: ExtendedWebhookDocument) {
+  return {
+    $id: doc.$id,
+    name: doc.name || "",
+    url: doc.url || "",
+    events:
+      typeof doc.events === "string"
+        ? JSON.parse(doc.events as unknown as string)
+        : doc.events || [],
+    is_active: doc.is_active ?? true,
+    secret: doc.secret,
+    user_email: doc.user_email || "",
+    created_at: doc.created_at || doc.$createdAt,
+    updated_at: doc.updated_at || doc.$updatedAt,
+    last_triggered_at: doc.last_triggered_at,
+  };
+}
+
+// GET /api/appwrite/webhooks[?id=] - List webhooks, or fetch one by id
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireSession(request);
     if (!isAuthed(auth)) {
       return auth;
+    }
+
+    const single = await respondWithOwnedDocument(
+      request,
+      config.webhooksCollectionId,
+      auth.email,
+      (doc) => mapWebhook(doc as ExtendedWebhookDocument),
+    );
+    if (single) {
+      return single;
     }
 
     const response = await databases.listDocuments(
@@ -31,21 +61,7 @@ export async function GET(request: NextRequest) {
 
     const documents = (
       response.documents as unknown as ExtendedWebhookDocument[]
-    ).map((doc) => ({
-      $id: doc.$id,
-      name: doc.name || "",
-      url: doc.url || "",
-      events:
-        typeof doc.events === "string"
-          ? JSON.parse(doc.events as unknown as string)
-          : doc.events || [],
-      is_active: doc.is_active ?? true,
-      secret: doc.secret,
-      user_email: doc.user_email || "",
-      created_at: doc.created_at || doc.$createdAt,
-      updated_at: doc.updated_at || doc.$updatedAt,
-      last_triggered_at: doc.last_triggered_at,
-    }));
+    ).map(mapWebhook);
 
     return NextResponse.json({ total: response.total, documents });
   } catch (error: unknown) {

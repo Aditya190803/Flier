@@ -1,6 +1,7 @@
 import type { EmailTemplate, TemplateVersion } from "@/types/appwrite-client";
 
 import { apiRequest } from "../api-request";
+import { pollForUpdates } from "../poll";
 import { createCrudService } from "../service-factory";
 
 // ============================================
@@ -35,11 +36,12 @@ export const templatesService = {
     });
   },
 
+  /** Refresh templates periodically. See {@link pollForUpdates} — not realtime. */
   subscribeToUserTemplates(
     _userEmail: string,
-    _callback: (response: any) => void,
+    callback: (response: unknown) => void,
   ) {
-    return () => {};
+    return pollForUpdates(() => callback(undefined));
   },
 
   async getVersions(

@@ -2,17 +2,41 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { isAuthed, requireSession } from "@/lib/api-auth";
+import { respondWithOwnedDocument } from "@/lib/appwrite/single-document";
 import { databases, config, Query, ID } from "@/lib/appwrite-server";
 import { cache, CacheKeys, CacheTTL, getOrSet } from "@/lib/cache";
 import { apiLogger } from "@/lib/logger";
 import type { SignatureDocument } from "@/types/appwrite";
 
-// GET /api/appwrite/signatures - List signatures for the authenticated user
+/** Shared by the list and single-document paths so both return one shape. */
+function mapSignature(doc: SignatureDocument) {
+  return {
+    $id: doc.$id,
+    name: doc.name || "",
+    content: doc.content || "",
+    is_default: doc.is_default || false,
+    user_email: doc.user_email || "",
+    created_at: doc.created_at || doc.$createdAt,
+    updated_at: doc.updated_at || doc.$updatedAt,
+  };
+}
+
+// GET /api/appwrite/signatures[?id=] - List signatures, or fetch one by id
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireSession(request);
     if (!isAuthed(auth)) {
       return auth;
+    }
+
+    const single = await respondWithOwnedDocument(
+      request,
+      config.signaturesCollectionId,
+      auth.email,
+      (doc) => mapSignature(doc as SignatureDocument),
+    );
+    if (single) {
+      return single;
     }
 
     const { searchParams } = new URL(request.url);
@@ -39,15 +63,7 @@ export async function GET(request: NextRequest) {
 
           const documents = (
             response.documents as unknown as SignatureDocument[]
-          ).map((doc) => ({
-            $id: doc.$id,
-            name: doc.name || "",
-            content: doc.content || "",
-            is_default: doc.is_default || false,
-            user_email: doc.user_email || "",
-            created_at: doc.created_at || doc.$createdAt,
-            updated_at: doc.updated_at || doc.$updatedAt,
-          }));
+          ).map(mapSignature);
 
           return { total: response.total, documents };
         },
@@ -73,15 +89,7 @@ export async function GET(request: NextRequest) {
 
     const documents = (
       response.documents as unknown as SignatureDocument[]
-    ).map((doc) => ({
-      $id: doc.$id,
-      name: doc.name || "",
-      content: doc.content || "",
-      is_default: doc.is_default || false,
-      user_email: doc.user_email || "",
-      created_at: doc.created_at || doc.$createdAt,
-      updated_at: doc.updated_at || doc.$updatedAt,
-    }));
+    ).map(mapSignature);
 
     return NextResponse.json({ total: response.total, documents });
   } catch (error: unknown) {

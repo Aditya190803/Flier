@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { isAuthed, requireSession } from "@/lib/api-auth";
+import { respondWithOwnedDocument } from "@/lib/appwrite/single-document";
 import { databases, config, Query, ID } from "@/lib/appwrite-server";
 import { apiLogger } from "@/lib/logger";
 import type { ContactGroupDocument } from "@/types/appwrite";
@@ -12,12 +13,39 @@ interface ExtendedContactGroupDocument extends ContactGroupDocument {
   contact_ids?: string | string[];
 }
 
-// GET /api/appwrite/contact-groups - List groups for the authenticated user
+/** Shared by the list and single-document paths so both return one shape. */
+function mapContactGroup(doc: ExtendedContactGroupDocument) {
+  return {
+    $id: doc.$id,
+    name: doc.name || "",
+    description: doc.description,
+    color: doc.color,
+    contact_ids:
+      typeof doc.contact_ids === "string"
+        ? JSON.parse(doc.contact_ids)
+        : doc.contact_ids || [],
+    user_email: doc.user_email || "",
+    created_at: doc.created_at || doc.$createdAt,
+    updated_at: doc.updated_at || doc.$updatedAt,
+  };
+}
+
+// GET /api/appwrite/contact-groups[?id=] - List groups, or fetch one by id
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireSession(request);
     if (!isAuthed(auth)) {
       return auth;
+    }
+
+    const single = await respondWithOwnedDocument(
+      request,
+      config.contactGroupsCollectionId,
+      auth.email,
+      (doc) => mapContactGroup(doc as ExtendedContactGroupDocument),
+    );
+    if (single) {
+      return single;
     }
 
     const response = await databases.listDocuments(
@@ -30,22 +58,9 @@ export async function GET(request: NextRequest) {
       ],
     );
 
-    // Parse stringified JSON fields
     const documents = (
       response.documents as unknown as ExtendedContactGroupDocument[]
-    ).map((doc) => ({
-      $id: doc.$id,
-      name: doc.name || "",
-      description: doc.description,
-      color: doc.color,
-      contact_ids:
-        typeof doc.contact_ids === "string"
-          ? JSON.parse(doc.contact_ids)
-          : doc.contact_ids || [],
-      user_email: doc.user_email || "",
-      created_at: doc.created_at || doc.$createdAt,
-      updated_at: doc.updated_at || doc.$updatedAt,
-    }));
+    ).map(mapContactGroup);
 
     return NextResponse.json({ total: response.total, documents });
   } catch (error: unknown) {

@@ -37,31 +37,38 @@ export interface ABTestDocument extends AppwriteDocument {
 }
 
 /**
- * Campaign document
+ * Campaign document, as actually stored in the `campaigns` collection.
+ *
+ * Field names mirror `scripts/setup-appwrite.ts` exactly. Appwrite has no
+ * JSON column type, so `recipients`, `attachments` and `send_results` are
+ * JSON-encoded strings on read — they are only arrays after parsing.
  */
 export interface CampaignDocument extends AppwriteDocument {
-  name: string;
   subject: string;
   content?: string;
-  status:
+  /** JSON-encoded `string[]` of recipient addresses */
+  recipients?: string | string[];
+  /** Recipients successfully delivered to */
+  sent?: number;
+  /** Recipients that errored */
+  failed?: number;
+  status?:
     | "draft"
     | "scheduled"
     | "sending"
+    | "partial"
     | "completed"
     | "failed"
-    | "cancelled";
-  recipients_count: number;
-  sent_count: number;
-  failed_count: number;
+    | "paused";
+  campaign_type?: string;
+  /** JSON-encoded attachment descriptors */
+  attachments?: string | unknown[];
+  /** JSON-encoded per-recipient results */
+  send_results?: string | unknown[];
   open_rate?: number;
   click_rate?: number;
-  bounce_rate?: number;
-  template_id?: string;
-  scheduled_at?: string;
-  started_at?: string;
-  completed_at?: string;
-  created_at: string;
-  tags?: string[];
+  tracking_enabled?: boolean;
+  created_at?: string;
 }
 
 /**

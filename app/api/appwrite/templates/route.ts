@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { isAuthed, requireSession } from "@/lib/api-auth";
+import { respondWithOwnedDocument } from "@/lib/appwrite/single-document";
 import { databases, config, Query, ID } from "@/lib/appwrite-server";
 import { cache, CacheKeys, CacheTTL, getOrSet } from "@/lib/cache";
 import { apiLogger } from "@/lib/logger";
@@ -12,12 +13,21 @@ interface ExtendedTemplateDocument extends TemplateDocument {
   version?: number;
 }
 
-// GET /api/appwrite/templates - List templates for the authenticated user
+// GET /api/appwrite/templates[?id=] - List templates, or fetch one by id
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireSession(request);
     if (!isAuthed(auth)) {
       return auth;
+    }
+
+    const single = await respondWithOwnedDocument(
+      request,
+      config.templatesCollectionId,
+      auth.email,
+    );
+    if (single) {
+      return single;
     }
 
     const userEmail = auth.email;

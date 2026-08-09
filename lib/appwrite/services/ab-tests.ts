@@ -1,7 +1,7 @@
-import { componentLogger } from "@/lib/client-logger";
 import type { ABTest } from "@/types/appwrite-client";
 
 import { apiRequest } from "../api-request";
+import { pollForUpdates } from "../poll";
 import { createCrudService } from "../service-factory";
 
 // ============================================
@@ -63,12 +63,11 @@ export const abTestsService = {
     });
   },
 
-  subscribeToUserTests(_userEmail: string, _callback: (response: any) => void) {
-    // Real-time subscriptions are not available via API routes
-    // Components should poll or use a different approach
-    componentLogger.warn(
-      "Real-time subscriptions are not available for A/B tests via API routes",
-    );
-    return () => {};
+  /** Refresh A/B tests periodically. See {@link pollForUpdates} — not realtime. */
+  subscribeToUserTests(
+    _userEmail: string,
+    callback: (response: unknown) => void,
+  ) {
+    return pollForUpdates(() => callback(undefined));
   },
 };

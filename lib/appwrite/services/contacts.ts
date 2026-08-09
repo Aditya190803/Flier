@@ -5,6 +5,7 @@ import type {
 } from "@/types/appwrite-client";
 
 import { apiRequest } from "../api-request";
+import { pollForUpdates } from "../poll";
 import { createCrudService } from "../service-factory";
 
 // ============================================
@@ -22,11 +23,12 @@ export const contactsService = {
 
   // Real-time subscriptions are not available via API routes
   // Components should poll or use a different approach
+  /** Refresh contacts periodically. See {@link pollForUpdates} — not realtime. */
   subscribeToUserContacts(
     _userEmail: string,
-    _callback: (response: any) => void,
+    callback: (response: unknown) => void,
   ) {
-    return () => {};
+    return pollForUpdates(() => callback(undefined));
   },
 };
 
@@ -73,11 +75,12 @@ export const contactGroupsService = {
     });
   },
 
+  /** Refresh groups periodically. See {@link pollForUpdates} — not realtime. */
   subscribeToUserGroups(
     _userEmail: string,
-    _callback: (response: any) => void,
+    callback: (response: unknown) => void,
   ) {
-    return () => {};
+    return pollForUpdates(() => callback(undefined));
   },
 };
 

@@ -17,9 +17,16 @@ export function createCrudService<TEntity, TCreate, TUpdate>(endpoint: string) {
       return apiRequest<{ total: number; documents: TEntity[] }>(basePath);
     },
 
+    /**
+     * Fetch a single document.
+     *
+     * Uses `?id=` rather than a `/<id>` path segment: the collection routes
+     * are single-file handlers with no `[id]` segment, so the path form
+     * resolved to a 404 for every collection.
+     */
     async get(id: string): Promise<TEntity> {
       const response = await apiRequest<TEntity>(
-        `${basePath}/${encodeURIComponent(id)}`,
+        `${basePath}?id=${encodeURIComponent(id)}`,
       );
 
       if (!response || typeof response !== "object") {

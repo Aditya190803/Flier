@@ -125,8 +125,13 @@ export async function GET(request: NextRequest) {
       ([name, value]) => ({ name, value }),
     );
 
-    // Advanced stats: Timing
-    const sentAt = new Date(campaign.created_at).getTime();
+    // Advanced stats: Timing.
+    // `created_at` is an optional attribute; fall back to Appwrite's own
+    // creation timestamp so a missing value can't turn every derived
+    // duration below into NaN.
+    const sentAt = new Date(
+      campaign.created_at || campaign.$createdAt,
+    ).getTime();
     const firstOpen =
       opens.length > 0
         ? Math.min(...opens.map((e) => new Date(e.created_at).getTime()))

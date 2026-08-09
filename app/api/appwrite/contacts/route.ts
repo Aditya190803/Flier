@@ -2,16 +2,26 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { isAuthed, requireSession } from "@/lib/api-auth";
+import { respondWithOwnedDocument } from "@/lib/appwrite/single-document";
 import { databases, config, Query, ID } from "@/lib/appwrite-server";
 import { apiLogger } from "@/lib/logger";
 import type { ContactDocument } from "@/types/appwrite";
 
-// GET /api/appwrite/contacts - List contacts for the authenticated user
+// GET /api/appwrite/contacts[?id=] - List contacts, or fetch one by id
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireSession(request);
     if (!isAuthed(auth)) {
       return auth;
+    }
+
+    const single = await respondWithOwnedDocument(
+      request,
+      config.contactsCollectionId,
+      auth.email,
+    );
+    if (single) {
+      return single;
     }
 
     const response = await databases.listDocuments(
