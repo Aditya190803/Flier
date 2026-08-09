@@ -11,8 +11,8 @@ Scheduled sends instead need:
 2. a long-running worker that checks for due campaigns.
 
 Heroku Postgres stores both the campaign queue and encrypted refresh tokens.
-The Heroku `clock` process polls every minute and executes due work directly,
-without depending on a long-running HTTP request.
+On Heroku, the always-on web dyno starts an in-process clock that polls every
+minute and executes due work without depending on a long-running HTTP request.
 
 | Piece                          | Path                                        |
 | ------------------------------ | ------------------------------------------- |
@@ -22,7 +22,8 @@ without depending on a long-running HTTP request.
 | Offline Google token exchange  | `lib/services/oauth-token-store.ts`         |
 | Scheduled campaign persistence | `lib/services/scheduled-campaign-store.ts`  |
 | Delivery worker                | `lib/services/scheduled-campaign-worker.ts` |
-| Heroku clock entrypoint        | `scripts/scheduled-clock.ts`                |
+| Heroku web startup hook        | `instrumentation.ts`                        |
+| Clock loop                     | `scripts/scheduled-clock.ts`                |
 | CRUD API                       | `app/api/scheduled-campaigns/route.ts`      |
 | Manual worker endpoint         | `app/api/cron/send-scheduled/route.ts`      |
 | Composer controls              | `components/compose/delivery-options.tsx`   |
@@ -43,8 +44,9 @@ scheduled ──(user)──> cancelled
 ```
 
 `processing` is a recovery lease. The worker atomically claims one due row
-with `FOR UPDATE SKIP LOCKED`, preventing two clock dynos or a manual trigger
-from claiming the same campaign. A worker that dies leaves `locked_at`; rows
+with `FOR UPDATE SKIP LOCKED`, preventing concurrent worker instances or a
+manual trigger from claiming the same campaign. A worker that dies leaves
+`locked_at`; rows
 older than `SCHEDULED_LOCK_STALE_MS` are returned to the queue.
 
 ## Chunking and delivery guarantees
@@ -74,7 +76,7 @@ the final in-flight recipient can receive a duplicate on retry.
 DATABASE_URL=postgres://...
 DATABASE_POOL_SIZE=5
 
-# Polling interval for the clock dyno; minimum 15 seconds.
+# Polling interval for the in-process clock; minimum 15 seconds.
 SCHEDULED_CLOCK_INTERVAL_MS=60000
 
 # Protects the optional manual worker endpoint.
@@ -90,15 +92,17 @@ Apply the idempotent schema locally or manually in production with:
 npm run db:migrate
 ```
 
-Heroku runs this command automatically during the `release` phase. Scale one
-clock process after deployment:
+Heroku runs this command automatically during the `release` phase. Only one
+Basic web dyno is required:
 
 ```bash
-heroku ps:scale web=1 clock=1
+heroku ps:scale web=1 clock=0
 ```
 
-A second clock dyno is safe because campaign claims are atomic, but is not
-normally useful. See `docs/HEROKU_DEPLOYMENT.md` for complete setup.
+The web dyno starts the clock through `instrumentation.ts`. This keeps the app
+within one dyno while preserving one-minute polling. Campaign claims remain
+atomic if the app is scaled later. See `docs/HEROKU_DEPLOYMENT.md` for complete
+setup.
 
 ## Existing users
 

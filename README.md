@@ -108,7 +108,7 @@
 - **Date Handling**: date-fns
 - **Notifications**: Sonner toast
 - **Testing**: Vitest, Playwright
-- **Deployment**: Heroku (web and clock dynos)
+- **Deployment**: Heroku (single web dyno with an integrated clock)
 
 ## 📋 Prerequisites
 
@@ -486,7 +486,7 @@ LOG_LEVEL=debug
 
 - **Browser Console**: Client-side errors and warnings
 - **Terminal**: Server-side logs during development
-- **Heroku Logs**: Production web and clock dyno logs
+- **Heroku Logs**: Production web and scheduled-delivery logs
 - **Appwrite Console**: Database and storage operations
 
 ### Getting Help

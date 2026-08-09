@@ -1,9 +1,8 @@
 # Deploy Flier to Heroku
 
-Flier runs as two Heroku processes:
-
-- `web` serves the Next.js application.
-- `clock` polls Heroku Postgres every minute and sends due campaigns.
+Flier runs on one always-on Basic web dyno. Next.js serves the application,
+and its Heroku startup hook runs a clock in the same Node.js process to poll
+Postgres every minute and send due campaigns.
 
 Scheduled campaigns and encrypted Google refresh tokens live in Heroku
 Postgres. Existing contacts, campaigns, templates, and attachment files remain
@@ -21,7 +20,9 @@ heroku addons:create heroku-postgresql:essential-0
 
 The Postgres add-on creates `DATABASE_URL` automatically. Essential-0 provides
 1 GB of storage and 20 connections; the app defaults to a pool of five
-connections per process.
+connections. One Basic dyno plus Essential-0 Postgres fits within a $13 monthly
+student credit at the documented $7 and $5 base prices. One-off dynos and other
+add-ons can create additional usage.
 
 ## 2. Configure secrets
 
@@ -57,15 +58,17 @@ The official Heroku Node.js buildpack uses Node and npm versions declared in
 ```bash
 heroku git:remote -a <your-app-name>
 git push heroku main
-heroku ps:scale web=1 clock=1
+heroku ps:scale web=1 clock=0
 ```
 
 Alternatively, connect the GitHub repository from the Heroku dashboard and
 enable automatic deploys after CI passes.
 
-A clock dyno is intentionally used instead of Heroku Scheduler: Scheduler's
-minimum interval is ten minutes and executions are not guaranteed. The clock
-interval defaults to 60 seconds and can be changed with
+`instrumentation.ts` starts the clock only on a Heroku `web.*` dyno. This
+preserves one-minute polling without paying for a second continuously running
+dyno. The loop catches pass failures, and Heroku restarts the whole process if
+the web server exits. A restart can delay a campaign briefly; stale database
+leases are recovered automatically. The interval can be changed with
 `SCHEDULED_CLOCK_INTERVAL_MS` (minimum 15 seconds).
 
 ## 4. Configure OAuth and domains
@@ -100,7 +103,7 @@ heroku run npm run db:migrate
 Confirm that:
 
 1. the web dyno starts and Google sign-in succeeds;
-2. the clock dyno logs `scheduled_campaign_pass` once per interval;
+2. the web dyno logs `scheduled_campaign_pass` once per interval;
 3. a test campaign moves from `scheduled` to `sent`;
 4. logout removes the user's stored offline authorization.
 

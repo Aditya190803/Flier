@@ -6,7 +6,7 @@ import { runScheduledCampaignPass } from "@/lib/services/scheduled-campaign-work
 
 export const dynamic = "force-dynamic";
 
-/** Manually trigger one worker pass. Production delivery uses the clock dyno. */
+/** Manually trigger one worker pass. The Heroku web dyno runs the clock. */
 export async function POST(request: NextRequest) {
   const denied = authorizeCron(request);
   if (denied) {
