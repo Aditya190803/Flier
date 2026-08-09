@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { Pool, type QueryResult, type QueryResultRow } from "pg";
 
 let pool: Pool | undefined;
@@ -25,7 +27,14 @@ function getPool(): Pool {
       max,
       connectionTimeoutMillis: 5_000,
       idleTimeoutMillis: 30_000,
-      ssl: local ? false : { rejectUnauthorized: true },
+      ssl: local
+        ? false
+        : {
+            ca: process.env.DYNO
+              ? readFileSync("/usr/lib/ssl/certs/ca-certificates.crt", "utf8")
+              : undefined,
+            rejectUnauthorized: true,
+          },
     });
   }
 

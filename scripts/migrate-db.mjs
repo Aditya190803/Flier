@@ -14,7 +14,14 @@ const hostname = new URL(connectionString).hostname;
 const local = hostname === "localhost" || hostname === "127.0.0.1";
 const client = new pg.Client({
   connectionString,
-  ssl: local ? false : { rejectUnauthorized: true },
+  ssl: local
+    ? false
+    : {
+        ca: process.env.DYNO
+          ? await readFile("/usr/lib/ssl/certs/ca-certificates.crt", "utf8")
+          : undefined,
+        rejectUnauthorized: true,
+      },
 });
 
 try {
