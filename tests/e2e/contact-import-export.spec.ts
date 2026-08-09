@@ -105,9 +105,7 @@ test.describe("Contact Import/Export", () => {
       .getByRole("button", { name: /export/i })
       .or(page.getByText(/export/i));
 
-    if (await exportButton.first().isVisible()) {
-      await expect(exportButton.first()).toBeEnabled();
-    }
+    await expect(exportButton.first()).toBeVisible();
   });
 
   test("should have Google Contacts import option", async ({ page }) => {

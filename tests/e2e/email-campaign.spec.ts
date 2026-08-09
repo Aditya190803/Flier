@@ -17,23 +17,23 @@ test.describe("Full Email Campaign Flow", () => {
     // Verify compose form is visible
     await expect(page.locator("body")).toBeVisible();
 
-    // Check for subject input
+    await page.getByRole("button", { name: /2 Compose/i }).click();
     const subjectInput = page
       .getByPlaceholder(/subject/i)
       .or(page.locator('input[name="subject"]'))
       .or(page.locator('[data-testid="subject-input"]'));
     await expect(subjectInput.first()).toBeVisible();
 
-    // Check for rich text editor
     const editor = page
       .locator('[contenteditable="true"]')
       .or(page.locator(".ProseMirror"))
       .or(page.locator('[data-testid="email-editor"]'));
     await expect(editor.first()).toBeVisible();
 
-    // Check for send button
-    const sendButton = page.getByRole("button", { name: /send/i });
-    await expect(sendButton.first()).toBeVisible();
+    await page.getByRole("button", { name: /3 Preview/i }).click();
+    await expect(
+      page.getByRole("button", { name: /dispatch/i }).first(),
+    ).toBeVisible();
   });
 
   test("should validate empty form submission", async ({ page }) => {
@@ -75,9 +75,10 @@ test.describe("Full Email Campaign Flow", () => {
   });
 
   test("should have CSV upload functionality", async ({ page }) => {
-    // Check for file upload capability
-    const fileInput = page.locator('input[type="file"]');
-    await expect(fileInput.first()).toBeAttached();
+    await expect(
+      page.getByText("Upload CSV File", { exact: true }),
+    ).toBeVisible();
+    await expect(page.getByText("Choose File", { exact: true })).toBeVisible();
   });
 
   test("should navigate to templates page from compose", async ({ page }) => {

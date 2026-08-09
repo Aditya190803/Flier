@@ -10,6 +10,15 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const response = NextResponse.next();
 
+  // Keep browser tests deterministic without reaching an external Appwrite.
+  if (
+    process.env.E2E_TEST === "true" &&
+    request.method === "GET" &&
+    pathname.startsWith("/api/appwrite/")
+  ) {
+    return NextResponse.json({ total: 0, documents: [] });
+  }
+
   // 1. Ensure CSRF token exists for all non-static requests
   const csrfToken = request.cookies.get(CSRF_TOKEN_NAME)?.value;
   if (!csrfToken) {
@@ -27,6 +36,8 @@ export async function proxy(request: NextRequest) {
         pathname.startsWith("/api/track/") ||
         pathname.startsWith("/api/unsubscribe") ||
         pathname.startsWith("/api/activity/cron") ||
+        // Cron workers authenticate with a bearer secret, not a session cookie
+        pathname.startsWith("/api/cron/") ||
         pathname.startsWith("/api/auth");
 
       if (!isPublicApi) {

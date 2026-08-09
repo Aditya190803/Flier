@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("Full Email Workflow", () => {
+// Requires a Gmail sandbox; never send mail from the generic CI account.
+test.describe.skip("Full Email Workflow", () => {
   test.beforeEach(async ({ page }) => {
     // In a real scenario, we would handle authentication here
     // For this test, we assume the user is already authenticated or mocked
