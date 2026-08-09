@@ -102,55 +102,6 @@ export interface DraftEmail {
   error?: string;
 }
 
-/**
- * A campaign queued for unattended delivery at `scheduled_at`.
- *
- * Everything needed to send lives on the document — the cron worker has no
- * browser session to fall back on, so recipients, personalization rows and
- * attachment references are all snapshotted at schedule time.
- */
-export interface ScheduledCampaign {
-  $id?: string;
-  subject: string;
-  content: string;
-  recipients: string[];
-  /** ISO-8601 UTC instant the campaign becomes due */
-  scheduled_at: string;
-  /** IANA zone the user picked the time in (display only) */
-  timezone?: string;
-  status:
-    | "scheduled"
-    | "processing"
-    | "sent"
-    | "partial"
-    | "failed"
-    | "cancelled";
-  user_email: string;
-  /** Id of the `campaigns` doc holding per-recipient send progress */
-  campaign_id?: string;
-  attachments?: {
-    fileName: string;
-    fileUrl: string;
-    fileSize: number;
-    appwrite_file_id?: string;
-  }[];
-  csv_data?: Record<string, string>[];
-  cc?: string[];
-  bcc?: string[];
-  tracking_enabled?: boolean;
-  /** Marketing sends honour unsubscribes; transactional ones don't */
-  is_marketing?: boolean;
-  personalized_attachment_column?: string;
-  has_personalized_attachments?: boolean;
-  sent?: number;
-  failed?: number;
-  attempts?: number;
-  last_error?: string;
-  sent_at?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
 export interface EmailSignature {
   $id?: string;
   name: string;

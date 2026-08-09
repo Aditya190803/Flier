@@ -51,7 +51,7 @@ export default defineConfig({
   projects: process.env.CI ? [chromiumProject] : browserProjects,
 
   webServer: {
-    command: "bun run dev",
+    command: "npm run dev",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

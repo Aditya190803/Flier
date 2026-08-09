@@ -11,13 +11,13 @@ import { generateCampaignId } from "@/lib/analytics";
 import {
   campaignsService,
   draftEmailsService,
-  scheduledCampaignsService,
   unsubscribesService,
   type EmailSignature,
 } from "@/lib/appwrite";
 import { componentLogger } from "@/lib/client-logger";
 import { parseEmailList } from "@/lib/email/parse-list";
 import { getBrowserTimeZone, validateScheduleValue } from "@/lib/schedule";
+import { scheduledCampaignsService } from "@/lib/services/scheduled-campaigns-client";
 import { isValidEmail } from "@/lib/validation";
 import type { CSVRow } from "@/types/email";
 

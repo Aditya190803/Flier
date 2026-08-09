@@ -297,88 +297,6 @@ const collections = [
       { key: "status_idx", type: "key", attributes: ["status"] },
     ],
   },
-  // Scheduled Sending
-  {
-    id: "scheduled_campaigns",
-    name: "Scheduled Campaigns",
-    // Server routes use the API key; browser Appwrite users must not read the queue.
-    permissions: [] as string[],
-    attributes: [
-      { key: "subject", type: "string", size: 500, required: true },
-      { key: "content", type: "string", size: 100000, required: false },
-      { key: "recipients", type: "string", size: 1000000, required: false },
-      { key: "csv_data", type: "string", size: 1000000, required: false },
-      { key: "attachments", type: "string", size: 100000, required: false },
-      // JSON: { cc: string[], bcc: string[] } — one attr (collection size limit)
-      { key: "cc", type: "string", size: 10000, required: false },
-      // ISO-8601 UTC instant the campaign becomes due
-      { key: "scheduled_at", type: "string", size: 50, required: true },
-      // IANA zone the user picked the time in, for display only
-      { key: "timezone", type: "string", size: 100, required: false },
-      // scheduled | processing | sent | partial | failed | cancelled
-      { key: "status", type: "string", size: 50, required: false },
-      { key: "user_email", type: "string", size: 255, required: true },
-      // Links to the `campaigns` doc that holds per-recipient send progress
-      { key: "campaign_id", type: "string", size: 100, required: false },
-      {
-        key: "tracking_enabled",
-        type: "boolean",
-        required: false,
-        default: true,
-      },
-      { key: "is_marketing", type: "boolean", required: false, default: false },
-      {
-        key: "has_personalized_attachments",
-        type: "boolean",
-        required: false,
-        default: false,
-      },
-      {
-        key: "personalized_attachment_column",
-        type: "string",
-        size: 255,
-        required: false,
-      },
-      { key: "sent", type: "integer", required: false, default: 0 },
-      { key: "failed", type: "integer", required: false, default: 0 },
-      { key: "attempts", type: "integer", required: false, default: 0 },
-      // Worker lease: set when a cron run claims this row
-      { key: "locked_at", type: "string", size: 50, required: false },
-      { key: "last_error", type: "string", size: 2000, required: false },
-      { key: "sent_at", type: "string", size: 50, required: false },
-      { key: "created_at", type: "string", size: 50, required: false },
-      { key: "updated_at", type: "string", size: 50, required: false },
-    ],
-    indexes: [
-      { key: "user_email_idx", type: "key", attributes: ["user_email"] },
-      { key: "status_idx", type: "key", attributes: ["status"] },
-      { key: "scheduled_at_idx", type: "key", attributes: ["scheduled_at"] },
-      // Drives the worker's "what is due now?" query
-      {
-        key: "due_idx",
-        type: "key",
-        attributes: ["status", "scheduled_at"],
-      },
-    ],
-  },
-  {
-    id: "oauth_tokens",
-    name: "OAuth Tokens",
-    // Token ciphertext is server-only even though it is encrypted at rest.
-    permissions: [] as string[],
-    attributes: [
-      { key: "user_email", type: "string", size: 255, required: true },
-      // AES-256-GCM ciphertext — never a plaintext Google refresh token
-      { key: "refresh_token", type: "string", size: 2000, required: true },
-      { key: "scope", type: "string", size: 1000, required: false },
-      { key: "revoked", type: "boolean", required: false, default: false },
-      { key: "created_at", type: "string", size: 50, required: false },
-      { key: "updated_at", type: "string", size: 50, required: false },
-    ],
-    indexes: [
-      { key: "user_email_idx", type: "unique", attributes: ["user_email"] },
-    ],
-  },
   // Teams & Organization Support
   {
     id: "teams",
@@ -507,15 +425,12 @@ async function createDatabase() {
 async function createCollection(collection: (typeof collections)[0]) {
   console.log(`\n📁 Creating collection: ${collection.name}...`);
 
-  const permissions =
-    "permissions" in collection
-      ? collection.permissions
-      : [
-          Permission.read(Role.users()),
-          Permission.create(Role.users()),
-          Permission.update(Role.users()),
-          Permission.delete(Role.users()),
-        ];
+  const permissions = [
+    Permission.read(Role.users()),
+    Permission.create(Role.users()),
+    Permission.update(Role.users()),
+    Permission.delete(Role.users()),
+  ];
 
   try {
     await databases.createCollection(
@@ -698,12 +613,6 @@ async function generateEnvVariables() {
   );
   console.log(`NEXT_PUBLIC_APPWRITE_AB_TESTS_COLLECTION_ID=ab_tests`);
   console.log(`NEXT_PUBLIC_APPWRITE_ATTACHMENTS_BUCKET_ID=attachments`);
-  console.log("");
-  console.log("# Scheduled Sending");
-  console.log(
-    `NEXT_PUBLIC_APPWRITE_SCHEDULED_CAMPAIGNS_COLLECTION_ID=scheduled_campaigns`,
-  );
-  console.log(`NEXT_PUBLIC_APPWRITE_OAUTH_TOKENS_COLLECTION_ID=oauth_tokens`);
   console.log("");
   console.log("# Teams & Organization");
   console.log(`NEXT_PUBLIC_APPWRITE_TEAMS_COLLECTION_ID=teams`);

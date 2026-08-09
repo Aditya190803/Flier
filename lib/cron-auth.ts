@@ -1,7 +1,7 @@
 /**
  * Shared authorization for cron-triggered routes.
  *
- * Vercel Cron invokes these endpoints with `Authorization: Bearer $CRON_SECRET`.
+ * External operators invoke these endpoints with `Authorization: Bearer $CRON_SECRET`.
  * Fails closed in production so an unconfigured deployment can't expose a
  * background worker to the open internet; stays open in development so
  * `curl localhost:3000/api/cron/...` works without ceremony.

@@ -10,11 +10,12 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const response = NextResponse.next();
 
-  // Keep browser tests deterministic without reaching an external Appwrite.
+  // Keep browser tests deterministic without external data services.
   if (
     process.env.E2E_TEST === "true" &&
     request.method === "GET" &&
-    pathname.startsWith("/api/appwrite/")
+    (pathname.startsWith("/api/appwrite/") ||
+      pathname === "/api/scheduled-campaigns")
   ) {
     return NextResponse.json({ total: 0, documents: [] });
   }

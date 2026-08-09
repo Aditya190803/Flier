@@ -1,12 +1,11 @@
-import type { ScheduledCampaign } from "@/types/appwrite-client";
-
-import { apiRequest } from "../api-request";
+import { apiRequest } from "@/lib/appwrite/api-request";
+import type { ScheduledCampaign } from "@/types/scheduled-campaign";
 
 // ============================================
 // Scheduled Campaigns Service (via API)
 // ============================================
 
-const basePath = "/api/appwrite/scheduled-campaigns";
+const basePath = "/api/scheduled-campaigns";
 
 /** Fields the client supplies when queuing a campaign. `user_email`, status
  *  and counters are all assigned server-side. */
@@ -19,6 +18,7 @@ export type ScheduledCampaignInput = Omit<
   | "sent"
   | "failed"
   | "attempts"
+  | "locked_at"
   | "last_error"
   | "sent_at"
   | "created_at"

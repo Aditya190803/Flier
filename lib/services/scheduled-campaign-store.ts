@@ -1,70 +1,75 @@
-/**
- * Scheduled Campaign Store
- *
- * Serialization and document helpers shared by the scheduled-campaign CRUD
- * route and the cron worker. Appwrite has no JSON column type, so arrays and
- * objects are stored as JSON strings and normalized back into real values
- * here — keeping every reader honest about the same shape.
- *
- * @module services/scheduled-campaign-store
- */
+import { randomUUID } from "node:crypto";
 
-import { databases, config, Query } from "@/lib/appwrite-server";
 import { SCHEDULED_STATUS, type ScheduledStatus } from "@/lib/constants";
+import { dbQuery, isDatabaseConfigured } from "@/lib/db";
 import type { AttachmentData } from "@/lib/email/attachment-manager";
+import type {
+  ScheduledCampaign,
+  StoredScheduledAttachment,
+} from "@/types/scheduled-campaign";
 
-/** Attachment as persisted on the document (already uploaded to Appwrite). */
-export interface StoredAttachment {
-  fileName: string;
-  fileUrl?: string;
-  fileSize?: number;
-  appwrite_file_id?: string;
-}
+import type { QueryResultRow } from "pg";
 
-/** A scheduled campaign with all JSON columns parsed. */
-export interface ScheduledCampaignRecord {
-  $id: string;
+export type ScheduledCampaignRecord = ScheduledCampaign;
+export type StoredAttachment = StoredScheduledAttachment;
+
+type ScheduledCampaignRow = QueryResultRow & {
+  id: string;
   subject: string;
   content: string;
-  recipients: string[];
-  scheduled_at: string;
-  timezone?: string;
+  recipients: unknown;
+  scheduled_at: Date | string;
+  timezone: string | null;
   status: ScheduledStatus;
   user_email: string;
   campaign_id: string;
-  attachments: StoredAttachment[];
-  csv_data: Record<string, string>[];
-  cc: string[];
-  bcc: string[];
+  attachments: unknown;
+  csv_data: unknown;
+  cc: unknown;
+  bcc: unknown;
   tracking_enabled: boolean;
   is_marketing: boolean;
   has_personalized_attachments: boolean;
-  personalized_attachment_column?: string;
+  personalized_attachment_column: string | null;
   sent: number;
   failed: number;
   attempts: number;
-  locked_at?: string;
-  last_error?: string;
-  sent_at?: string;
-  created_at?: string;
-  updated_at?: string;
+  locked_at: Date | string | null;
+  last_error: string | null;
+  sent_at: Date | string | null;
+  created_at: Date | string;
+  updated_at: Date | string;
+};
+
+export interface CreateScheduledCampaignInput {
+  subject: string;
+  content: string;
+  recipients: string[];
+  scheduledAt: Date;
+  timezone?: string;
+  userEmail: string;
+  attachments?: StoredAttachment[];
+  csvData?: Record<string, string>[];
+  cc?: string[];
+  bcc?: string[];
+  trackingEnabled: boolean;
+  isMarketing: boolean;
+  hasPersonalizedAttachments: boolean;
+  personalizedAttachmentColumn?: string;
 }
 
 export function isScheduledSendingConfigured(): boolean {
-  return Boolean(config.databaseId && config.scheduledCampaignsCollectionId);
+  return isDatabaseConfigured();
 }
 
-function parseJsonArray(value: unknown): unknown[] {
-  if (!value) {
-    return [];
-  }
+function arrayValue<T>(value: unknown): T[] {
   if (Array.isArray(value)) {
-    return value;
+    return value as T[];
   }
   if (typeof value === "string") {
     try {
       const parsed = JSON.parse(value);
-      return Array.isArray(parsed) ? parsed : [];
+      return Array.isArray(parsed) ? (parsed as T[]) : [];
     } catch {
       return [];
     }
@@ -72,180 +77,203 @@ function parseJsonArray(value: unknown): unknown[] {
   return [];
 }
 
-function parseStringArray(value: unknown): string[] {
-  return parseJsonArray(value).filter(
-    (v): v is string => typeof v === "string" && v.trim().length > 0,
-  );
-}
-
-/**
- * Cc and Bcc share one attribute (`cc`) as `{"cc":[],"bcc":[]}`, matching the
- * convention drafts already use to stay inside Appwrite's per-collection
- * attribute budget.
- */
-export function parseCcBcc(value: unknown): { cc: string[]; bcc: string[] } {
+function iso(value: Date | string | null | undefined): string | undefined {
   if (!value) {
-    return { cc: [], bcc: [] };
+    return undefined;
   }
-  if (Array.isArray(value)) {
-    return { cc: parseStringArray(value), bcc: [] };
-  }
-  if (typeof value === "string") {
-    try {
-      const parsed = JSON.parse(value);
-      if (Array.isArray(parsed)) {
-        return { cc: parseStringArray(parsed), bcc: [] };
-      }
-      if (parsed && typeof parsed === "object") {
-        return {
-          cc: parseStringArray((parsed as { cc?: unknown }).cc),
-          bcc: parseStringArray((parsed as { bcc?: unknown }).bcc),
-        };
-      }
-    } catch {
-      return { cc: [], bcc: [] };
-    }
-  }
-  return { cc: [], bcc: [] };
+  return value instanceof Date
+    ? value.toISOString()
+    : new Date(value).toISOString();
 }
 
-export function serializeCcBcc(cc?: string[], bcc?: string[]): string | null {
-  const ccList = parseStringArray(cc);
-  const bccList = parseStringArray(bcc);
-  if (!ccList.length && !bccList.length) {
-    return null;
-  }
-  return JSON.stringify({ cc: ccList, bcc: bccList });
-}
-
-/** Normalize a raw Appwrite document into a {@link ScheduledCampaignRecord}. */
-export function mapScheduledCampaign(
-  doc: Record<string, any>,
+export function mapScheduledCampaignRow(
+  row: ScheduledCampaignRow,
 ): ScheduledCampaignRecord {
-  const { cc, bcc } = parseCcBcc(doc.cc);
-
   return {
-    $id: doc.$id,
-    subject: doc.subject || "",
-    content: doc.content || "",
-    recipients: parseStringArray(doc.recipients),
-    scheduled_at: doc.scheduled_at,
-    timezone: doc.timezone || undefined,
-    status: (doc.status as ScheduledStatus) || SCHEDULED_STATUS.SCHEDULED,
-    user_email: doc.user_email || "",
-    campaign_id: doc.campaign_id || doc.$id,
-    attachments: parseJsonArray(doc.attachments) as StoredAttachment[],
-    csv_data: parseJsonArray(doc.csv_data) as Record<string, string>[],
-    cc,
-    bcc,
-    tracking_enabled: doc.tracking_enabled !== false,
-    is_marketing: doc.is_marketing === true,
-    has_personalized_attachments: doc.has_personalized_attachments === true,
+    $id: row.id,
+    subject: row.subject,
+    content: row.content,
+    recipients: arrayValue<string>(row.recipients),
+    scheduled_at: iso(row.scheduled_at)!,
+    timezone: row.timezone || undefined,
+    status: row.status,
+    user_email: row.user_email,
+    campaign_id: row.campaign_id,
+    attachments: arrayValue<StoredAttachment>(row.attachments),
+    csv_data: arrayValue<Record<string, string>>(row.csv_data),
+    cc: arrayValue<string>(row.cc),
+    bcc: arrayValue<string>(row.bcc),
+    tracking_enabled: row.tracking_enabled,
+    is_marketing: row.is_marketing,
+    has_personalized_attachments: row.has_personalized_attachments,
     personalized_attachment_column:
-      doc.personalized_attachment_column || undefined,
-    sent: doc.sent || 0,
-    failed: doc.failed || 0,
-    attempts: doc.attempts || 0,
-    locked_at: doc.locked_at || undefined,
-    last_error: doc.last_error || undefined,
-    sent_at: doc.sent_at || undefined,
-    created_at: doc.created_at || doc.$createdAt,
-    updated_at: doc.updated_at || undefined,
+      row.personalized_attachment_column || undefined,
+    sent: row.sent,
+    failed: row.failed,
+    attempts: row.attempts,
+    locked_at: iso(row.locked_at),
+    last_error: row.last_error || undefined,
+    sent_at: iso(row.sent_at),
+    created_at: iso(row.created_at),
+    updated_at: iso(row.updated_at),
   };
 }
 
-/**
- * Convert stored attachment references into the shape
- * `preResolveAttachments` expects. The `data: "appwrite"` sentinel tells the
- * resolver to fetch bytes from storage rather than decode an inline payload —
- * the same mapping `/api/send-draft` uses.
- */
 export function toAttachmentData(
   attachments: StoredAttachment[],
 ): AttachmentData[] {
   return attachments
-    .filter((a) => a.appwrite_file_id || a.fileUrl)
-    .map((a) => ({
-      name: a.fileName,
+    .filter((attachment) => attachment.appwrite_file_id || attachment.fileUrl)
+    .map((attachment) => ({
+      name: attachment.fileName,
       type: "application/octet-stream",
       data: "appwrite",
-      appwriteUrl: a.fileUrl,
-      appwriteFileId: a.appwrite_file_id,
+      appwriteUrl: attachment.fileUrl,
+      appwriteFileId: attachment.appwrite_file_id,
     }));
 }
 
-/** Fetch one scheduled campaign by document id. */
+export async function createScheduledCampaign(
+  input: CreateScheduledCampaignInput,
+): Promise<ScheduledCampaignRecord> {
+  const id = randomUUID();
+  const result = await dbQuery<ScheduledCampaignRow>(
+    `INSERT INTO scheduled_campaigns (
+      id, subject, content, recipients, scheduled_at, timezone, status,
+      user_email, campaign_id, attachments, csv_data, cc, bcc,
+      tracking_enabled, is_marketing, has_personalized_attachments,
+      personalized_attachment_column
+    ) VALUES (
+      $1, $2, $3, $4::jsonb, $5, $6, $7, $8, $1, $9::jsonb,
+      $10::jsonb, $11::jsonb, $12::jsonb, $13, $14, $15, $16
+    ) RETURNING *`,
+    [
+      id,
+      input.subject,
+      input.content,
+      JSON.stringify(input.recipients),
+      input.scheduledAt,
+      input.timezone || null,
+      SCHEDULED_STATUS.SCHEDULED,
+      input.userEmail,
+      JSON.stringify(input.attachments || []),
+      JSON.stringify(input.csvData || []),
+      JSON.stringify(input.cc || []),
+      JSON.stringify(input.bcc || []),
+      input.trackingEnabled,
+      input.isMarketing,
+      input.hasPersonalizedAttachments,
+      input.personalizedAttachmentColumn || null,
+    ],
+  );
+  return mapScheduledCampaignRow(result.rows[0]);
+}
+
+export async function listScheduledCampaignsForUser(
+  userEmail: string,
+  limit = 100,
+): Promise<ScheduledCampaignRecord[]> {
+  const result = await dbQuery<ScheduledCampaignRow>(
+    `SELECT * FROM scheduled_campaigns
+     WHERE user_email = $1
+     ORDER BY scheduled_at DESC
+     LIMIT $2`,
+    [userEmail, limit],
+  );
+  return result.rows.map(mapScheduledCampaignRow);
+}
+
 export async function getScheduledCampaign(
   id: string,
 ): Promise<ScheduledCampaignRecord | null> {
   if (!isScheduledSendingConfigured()) {
     return null;
   }
-  try {
-    const doc = await databases.getDocument(
-      config.databaseId,
-      config.scheduledCampaignsCollectionId,
-      id,
-    );
-    return mapScheduledCampaign(doc as unknown as Record<string, any>);
-  } catch {
-    return null;
-  }
+  const result = await dbQuery<ScheduledCampaignRow>(
+    "SELECT * FROM scheduled_campaigns WHERE id = $1 LIMIT 1",
+    [id],
+  );
+  return result.rows[0] ? mapScheduledCampaignRow(result.rows[0]) : null;
 }
 
-/** Patch a scheduled campaign, always refreshing `updated_at`. */
+const UPDATE_COLUMNS = new Set([
+  "scheduled_at",
+  "timezone",
+  "status",
+  "sent",
+  "failed",
+  "attempts",
+  "locked_at",
+  "last_error",
+  "sent_at",
+]);
+
 export async function updateScheduledCampaign(
   id: string,
   data: Record<string, unknown>,
-): Promise<void> {
-  if (!isScheduledSendingConfigured()) {
-    return;
-  }
-  await databases.updateDocument(
-    config.databaseId,
-    config.scheduledCampaignsCollectionId,
-    id,
-    { ...data, updated_at: new Date().toISOString() },
+  expectedStatus?: ScheduledStatus,
+): Promise<boolean> {
+  const entries = Object.entries(data).filter(([key]) =>
+    UPDATE_COLUMNS.has(key),
   );
+  if (!entries.length) {
+    return false;
+  }
+
+  const assignments = entries.map(([key], index) => `${key} = $${index + 2}`);
+  const values = [id, ...entries.map(([, value]) => value)];
+  const statusGuard = expectedStatus
+    ? ` AND status = $${values.push(expectedStatus)}`
+    : "";
+  const result = await dbQuery(
+    `UPDATE scheduled_campaigns
+     SET ${assignments.join(", ")}, updated_at = now()
+     WHERE id = $1${statusGuard}
+     RETURNING id`,
+    values,
+  );
+  return result.rowCount === 1;
 }
 
-/**
- * Campaigns whose send time has arrived and that no worker currently holds.
- *
- * Ordered oldest-first so a backlog drains in the order users asked for,
- * rather than newest-wins.
- */
-export async function listDueCampaigns(
+export async function deleteScheduledCampaign(id: string): Promise<boolean> {
+  const result = await dbQuery(
+    "DELETE FROM scheduled_campaigns WHERE id = $1 AND status <> $2 RETURNING id",
+    [id, SCHEDULED_STATUS.PROCESSING],
+  );
+  return result.rowCount === 1;
+}
+
+/** Atomically claim the oldest due campaign across all worker dynos. */
+export async function claimNextDueCampaign(
   now: Date,
-  limit: number,
-): Promise<ScheduledCampaignRecord[]> {
+): Promise<ScheduledCampaignRecord | null> {
   if (!isScheduledSendingConfigured()) {
-    return [];
+    return null;
   }
 
-  const response = await databases.listDocuments(
-    config.databaseId,
-    config.scheduledCampaignsCollectionId,
-    [
-      Query.equal("status", SCHEDULED_STATUS.SCHEDULED),
-      Query.lessThanEqual("scheduled_at", now.toISOString()),
-      Query.orderAsc("scheduled_at"),
-      Query.limit(limit),
-    ],
+  const result = await dbQuery<ScheduledCampaignRow>(
+    `WITH due AS (
+       SELECT id
+       FROM scheduled_campaigns
+       WHERE status = $1 AND scheduled_at <= $2
+       ORDER BY scheduled_at ASC
+       FOR UPDATE SKIP LOCKED
+       LIMIT 1
+     )
+     UPDATE scheduled_campaigns AS campaign
+     SET status = $3,
+         locked_at = now(),
+         attempts = campaign.attempts + 1,
+         updated_at = now()
+     FROM due
+     WHERE campaign.id = due.id
+     RETURNING campaign.*`,
+    [SCHEDULED_STATUS.SCHEDULED, now, SCHEDULED_STATUS.PROCESSING],
   );
 
-  return (response.documents as unknown as Record<string, any>[]).map(
-    mapScheduledCampaign,
-  );
+  return result.rows[0] ? mapScheduledCampaignRow(result.rows[0]) : null;
 }
 
-/**
- * Campaigns stuck in `processing` past their lease.
- *
- * A worker that dies mid-send (deploy, OOM, function timeout) leaves its row
- * claimed forever otherwise. Persisted recipient progress is skipped when the
- * campaign resumes.
- */
 export async function reclaimStaleCampaigns(
   staleBefore: Date,
   limit: number,
@@ -254,28 +282,55 @@ export async function reclaimStaleCampaigns(
     return 0;
   }
 
-  const response = await databases.listDocuments(
-    config.databaseId,
-    config.scheduledCampaignsCollectionId,
+  const result = await dbQuery(
+    `WITH stale AS (
+       SELECT id
+       FROM scheduled_campaigns
+       WHERE status = $1 AND locked_at < $2
+       ORDER BY locked_at ASC
+       FOR UPDATE SKIP LOCKED
+       LIMIT $3
+     )
+     UPDATE scheduled_campaigns AS campaign
+     SET status = $4, locked_at = NULL, updated_at = now()
+     FROM stale
+     WHERE campaign.id = stale.id
+     RETURNING campaign.id`,
     [
-      Query.equal("status", SCHEDULED_STATUS.PROCESSING),
-      Query.lessThan("locked_at", staleBefore.toISOString()),
-      Query.limit(limit),
+      SCHEDULED_STATUS.PROCESSING,
+      staleBefore,
+      limit,
+      SCHEDULED_STATUS.SCHEDULED,
     ],
   );
 
-  let reclaimed = 0;
-  for (const doc of response.documents) {
-    try {
-      await updateScheduledCampaign(doc.$id, {
-        status: SCHEDULED_STATUS.SCHEDULED,
-        locked_at: null,
-      });
-      reclaimed++;
-    } catch {
-      // Another worker got there first — nothing to do.
-    }
+  return result.rowCount || 0;
+}
+
+export async function deleteScheduledDataForUser(userEmail: string): Promise<{
+  scheduledCampaigns: number;
+  oauthTokens: number;
+}> {
+  if (!isScheduledSendingConfigured()) {
+    return { scheduledCampaigns: 0, oauthTokens: 0 };
   }
 
-  return reclaimed;
+  const result = await dbQuery<
+    QueryResultRow & { scheduled_campaigns: string; oauth_tokens: string }
+  >(
+    `WITH deleted_campaigns AS (
+       DELETE FROM scheduled_campaigns WHERE user_email = $1 RETURNING 1
+     ), deleted_tokens AS (
+       DELETE FROM oauth_tokens WHERE user_email = $1 RETURNING 1
+     )
+     SELECT
+       (SELECT count(*) FROM deleted_campaigns) AS scheduled_campaigns,
+       (SELECT count(*) FROM deleted_tokens) AS oauth_tokens`,
+    [userEmail],
+  );
+  const row = result.rows[0];
+  return {
+    scheduledCampaigns: Number(row?.scheduled_campaigns || 0),
+    oauthTokens: Number(row?.oauth_tokens || 0),
+  };
 }

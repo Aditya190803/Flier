@@ -2,7 +2,6 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { isAuthed, requireSession } from "@/lib/api-auth";
-import { databases, config, Query, ID } from "@/lib/appwrite-server";
 import {
   MAX_SCHEDULE_HORIZON_MS,
   MIN_SCHEDULE_LEAD_MS,
@@ -11,10 +10,11 @@ import {
 import { apiLogger } from "@/lib/logger";
 import { hasUsableRefreshToken } from "@/lib/services/oauth-token-store";
 import {
+  createScheduledCampaign,
+  deleteScheduledCampaign,
   getScheduledCampaign,
   isScheduledSendingConfigured,
-  mapScheduledCampaign,
-  serializeCcBcc,
+  listScheduledCampaignsForUser,
   updateScheduledCampaign,
 } from "@/lib/services/scheduled-campaign-store";
 import {
@@ -38,7 +38,7 @@ function notConfigured() {
   return NextResponse.json(
     {
       error:
-        "Scheduled sending is not configured. Run `bun run appwrite:setup` to create the scheduled_campaigns collection.",
+        "Scheduled sending is not configured. Set DATABASE_URL and run `npm run db:migrate`.",
     },
     { status: 503 },
   );
@@ -70,7 +70,7 @@ function validateSendTime(value: string): { at: Date } | { error: string } {
   return { at };
 }
 
-// GET /api/appwrite/scheduled-campaigns[?id=] — list or fetch one
+// GET /api/scheduled-campaigns[?id=] — list or fetch one
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireSession(request);
@@ -96,21 +96,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(record);
     }
 
-    const response = await databases.listDocuments(
-      config.databaseId,
-      config.scheduledCampaignsCollectionId,
-      [
-        Query.equal("user_email", auth.email),
-        Query.orderDesc("scheduled_at"),
-        Query.limit(100),
-      ],
-    );
-
-    const documents = (
-      response.documents as unknown as Record<string, any>[]
-    ).map(mapScheduledCampaign);
-
-    return NextResponse.json({ total: response.total, documents });
+    const documents = await listScheduledCampaignsForUser(auth.email);
+    return NextResponse.json({ total: documents.length, documents });
   } catch (error: unknown) {
     apiLogger.error(
       "Error fetching scheduled campaigns",
@@ -123,7 +110,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/appwrite/scheduled-campaigns — queue a campaign
+// POST /api/scheduled-campaigns — queue a campaign
 export async function POST(request: NextRequest) {
   try {
     const auth = await requireSession(request);
@@ -165,44 +152,24 @@ export async function POST(request: NextRequest) {
     }
 
     const data = parsed.data;
-    const docId = ID.unique();
+    const campaign = await createScheduledCampaign({
+      subject: data.subject,
+      content: data.content,
+      recipients: data.recipients,
+      scheduledAt: timing.at,
+      timezone: data.timezone,
+      userEmail: auth.email,
+      attachments: data.attachments,
+      csvData: data.csv_data,
+      cc: data.cc,
+      bcc: data.bcc,
+      trackingEnabled: data.tracking_enabled !== false,
+      isMarketing: data.is_marketing === true,
+      hasPersonalizedAttachments: data.has_personalized_attachments === true,
+      personalizedAttachmentColumn: data.personalized_attachment_column,
+    });
 
-    const result = await databases.createDocument(
-      config.databaseId,
-      config.scheduledCampaignsCollectionId,
-      docId,
-      {
-        subject: data.subject,
-        content: data.content,
-        recipients: JSON.stringify(data.recipients),
-        csv_data: data.csv_data ? JSON.stringify(data.csv_data) : null,
-        attachments: data.attachments ? JSON.stringify(data.attachments) : null,
-        cc: serializeCcBcc(data.cc, data.bcc),
-        scheduled_at: timing.at.toISOString(),
-        timezone: data.timezone || null,
-        status: SCHEDULED_STATUS.SCHEDULED,
-        user_email: auth.email,
-        // Reuse the document id as the campaign id so per-recipient send
-        // progress in the `campaigns` collection is trivially traceable back.
-        campaign_id: docId,
-        tracking_enabled: data.tracking_enabled !== false,
-        is_marketing: data.is_marketing === true,
-        has_personalized_attachments:
-          data.has_personalized_attachments === true,
-        personalized_attachment_column:
-          data.personalized_attachment_column || null,
-        sent: 0,
-        failed: 0,
-        attempts: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-    );
-
-    return NextResponse.json(
-      mapScheduledCampaign(result as unknown as Record<string, any>),
-      { status: 201 },
-    );
+    return NextResponse.json(campaign, { status: 201 });
   } catch (error: unknown) {
     apiLogger.error(
       "Error creating scheduled campaign",
@@ -215,7 +182,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT /api/appwrite/scheduled-campaigns — reschedule or cancel
+// PUT /api/scheduled-campaigns — reschedule or cancel
 export async function PUT(request: NextRequest) {
   try {
     const auth = await requireSession(request);
@@ -274,9 +241,19 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
     }
 
-    await updateScheduledCampaign(id, updates);
-    const updated = await getScheduledCampaign(id);
+    const changed = await updateScheduledCampaign(
+      id,
+      updates,
+      SCHEDULED_STATUS.SCHEDULED,
+    );
+    if (!changed) {
+      return NextResponse.json(
+        { error: "Campaign started sending before the change was applied" },
+        { status: 409 },
+      );
+    }
 
+    const updated = await getScheduledCampaign(id);
     return NextResponse.json(updated);
   } catch (error: unknown) {
     apiLogger.error(
@@ -290,7 +267,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE /api/appwrite/scheduled-campaigns?id= — remove from the queue
+// DELETE /api/scheduled-campaigns?id= — remove from the queue
 export async function DELETE(request: NextRequest) {
   try {
     const auth = await requireSession(request);
@@ -328,11 +305,13 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await databases.deleteDocument(
-      config.databaseId,
-      config.scheduledCampaignsCollectionId,
-      id,
-    );
+    const deleted = await deleteScheduledCampaign(id);
+    if (!deleted) {
+      return NextResponse.json(
+        { error: "Campaign started sending before it could be deleted" },
+        { status: 409 },
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {

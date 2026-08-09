@@ -98,23 +98,24 @@
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: Next.js 15, React 19, TypeScript
+- **Frontend**: Next.js 16, React 19, TypeScript
 - **Styling**: Tailwind CSS, shadcn/ui components, Radix UI
 - **Authentication**: NextAuth.js with Google OAuth
-- **Database & Storage**: Appwrite (Cloud or Self-hosted)
+- **Data**: Heroku Postgres for scheduled delivery; Appwrite for existing app data and attachment storage
 - **Email**: Gmail API with automatic token refresh
 - **Rich Text**: TipTap editor
 - **Icons**: Lucide React
 - **Date Handling**: date-fns
 - **Notifications**: Sonner toast
 - **Testing**: Vitest, Playwright
-- **Deployment**: Vercel
+- **Deployment**: Heroku (web and clock dynos)
 
 ## 📋 Prerequisites
 
 Before you begin, ensure you have:
 
-- Node.js 20+ installed
+- Node.js 24 and npm 11 installed
+- PostgreSQL for local scheduled-delivery development
 - Gmail account
 - Google Cloud Project with Gmail API enabled
 - Appwrite project set up (Cloud or Self-hosted)
@@ -146,6 +147,11 @@ NEXTAUTH_SECRET=your-secret-key-here
 # Google OAuth (Gmail API)
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# Scheduled sending (Heroku sets this automatically in production)
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/flier
+TOKEN_ENCRYPTION_KEY=generate-with-openssl-rand-base64-32
+CRON_SECRET=generate-a-long-random-secret
 
 # Appwrite Configuration
 NEXT_PUBLIC_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
@@ -208,6 +214,14 @@ The setup script creates all required collections:
 - **Features**: signatures, unsubscribes, webhooks, tracking_events, ab_tests
 - **Teams**: teams, team_members
 - **Compliance**: audit_logs, consents
+
+Create the Postgres tables used by scheduled sending:
+
+```bash
+npm run db:migrate
+```
+
+See [Heroku Deployment](docs/HEROKU_DEPLOYMENT.md) for production setup.
 
 ### 6. Run the Development Server
 
@@ -450,7 +464,7 @@ npm run build:analyze   # Opens bundle analyzer
 **Problem:** Different behavior in production vs development
 **Solution:**
 
-1. Verify production environment variables are set in Vercel/hosting platform
+1. Verify production environment variables are set in Heroku config vars
 2. Check for `process.env.NODE_ENV` dependent code
 3. Review build logs for warnings
 
@@ -472,7 +486,7 @@ LOG_LEVEL=debug
 
 - **Browser Console**: Client-side errors and warnings
 - **Terminal**: Server-side logs during development
-- **Vercel Logs**: Production server logs
+- **Heroku Logs**: Production web and clock dyno logs
 - **Appwrite Console**: Database and storage operations
 
 ### Getting Help

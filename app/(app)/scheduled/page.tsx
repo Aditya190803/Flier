@@ -59,7 +59,6 @@ import {
 } from "@/components/ui/page-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
-import { scheduledCampaignsService } from "@/lib/appwrite";
 import { componentLogger } from "@/lib/client-logger";
 import {
   getBrowserTimeZone,
@@ -68,7 +67,8 @@ import {
   toDateTimeLocalValue,
   validateScheduleValue,
 } from "@/lib/schedule";
-import type { ScheduledCampaign } from "@/types/appwrite-client";
+import { scheduledCampaignsService } from "@/lib/services/scheduled-campaigns-client";
+import type { ScheduledCampaign } from "@/types/scheduled-campaign";
 
 /** Statuses that still have a pending send behind them. */
 const ACTIVE_STATUSES = ["scheduled", "processing"];

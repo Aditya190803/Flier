@@ -170,7 +170,7 @@ export const sendEmailRequestSchema = z
   );
 
 /**
- * Scheduled campaign create/update (POST|PUT /api/appwrite/scheduled-campaigns)
+ * Scheduled campaign create/update (POST|PUT /api/scheduled-campaigns)
  *
  * The send time is validated for *shape* here; whether it's far enough in the
  * future is checked in the route, where "now" is unambiguous.

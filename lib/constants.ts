@@ -26,11 +26,9 @@ export const EMAIL_SEND_TIMEOUT_MS = 60000;
 /**
  * Chunked / resumable bulk campaign sending (see /api/send-email).
  *
- * `vercel.json` caps this route at `maxDuration` seconds. Rather than trying
- * to send an entire campaign in one request (which gets killed mid-flight
- * for large recipient lists), the route processes recipients until this
- * time budget is used up, persists progress, and reports back so the caller
- * can invoke the same endpoint again to continue where it left off.
+ * Large campaigns are split into time-budgeted requests. The route persists
+ * progress before returning so the caller can resume without restarting the
+ * recipient list.
  */
 export const SEND_EMAIL_MAX_DURATION_MS = 60_000;
 
@@ -257,7 +255,7 @@ export const API_ROUTES = {
   SEND_EMAIL: "/api/send-email",
   SEND_SINGLE_EMAIL: "/api/send-single-email",
   SEND_DRAFT: "/api/send-draft",
-  SCHEDULED_CAMPAIGNS: "/api/appwrite/scheduled-campaigns",
+  SCHEDULED_CAMPAIGNS: "/api/scheduled-campaigns",
   CRON_SEND_SCHEDULED: "/api/cron/send-scheduled",
   FORMAT_EMAIL: "/api/format-email",
   UPLOAD_ATTACHMENT: "/api/upload-attachment",
@@ -371,9 +369,8 @@ export const MIN_SCHEDULE_LEAD_MS = 60_000;
 export const MAX_SCHEDULE_HORIZON_MS = 365 * 24 * 60 * 60 * 1000;
 
 /**
- * Time budget for one cron pass over due campaigns. Kept under the route's
- * 60s `maxDuration` (see `vercel.json`) so the worker persists progress and
- * exits cleanly rather than being killed mid-send.
+ * Time budget for one worker pass so progress is checkpointed frequently and
+ * deployments can shut the clock process down cleanly.
  */
 export const SCHEDULED_CRON_BUDGET_MS = 45_000;
 

@@ -15,20 +15,18 @@
 
 ## Domain cutover checklist
 
-Order: DNS → Vercel → env → OAuth → smoke test → retire old domain.
+Order: Heroku domain → DNS → env → OAuth → smoke test → retire old domain.
 
 ### 1. Domain + DNS
 
 - [ ] Register **`sendflier.tech`** (if not already)
-- [ ] Vercel → Project → **Settings → Domains** → add `sendflier.tech` (and `www` if wanted)
-- [ ] At registrar, point DNS as Vercel shows (usually):
-  - Apex: A → `76.76.21.21` (or Vercel nameservers)
-  - `www`: CNAME → `cname.vercel-dns.com`
-- [ ] Wait until Vercel shows domain **Valid** + HTTPS ready
+- [ ] Run `heroku domains:add sendflier.tech` and `heroku domains:add www.sendflier.tech`
+- [ ] Run `heroku domains` and point DNS to the returned targets
+- [ ] Wait for DNS and Heroku Automated Certificate Management to report healthy
 
-### 2. Vercel env vars
+### 2. Heroku config vars
 
-Project → **Settings → Environment Variables** (Production):
+Set production values with `heroku config:set` or the Heroku dashboard:
 
 | Key                                         | Value                       |
 | ------------------------------------------- | --------------------------- |
@@ -81,12 +79,12 @@ NEXTAUTH_URL=http://localhost:3000
 **Until verified:**
 
 - [ ] Leave DNS + OAuth redirect live
-- [ ] Optional: Vercel 301 `echomail.adityamer.dev` → `sendflier.tech`
+- [ ] Keep the old host redirecting to `sendflier.tech`
 
 **After a quiet week:**
 
 - [ ] Remove old Google OAuth origin/redirect
-- [ ] Remove old domain from Vercel
+- [ ] Remove the old domain from its previous host
 - [ ] Optional: rename GitHub repo `EchoMail` → `flier`
 
 ### 7. Nice-to-haves (not blockers)
@@ -97,6 +95,6 @@ NEXTAUTH_URL=http://localhost:3000
 
 ---
 
-**Minimum path:** DNS → Vercel domain → set two env URLs → add Google redirect → redeploy → login smoke test.
+**Minimum path:** Heroku domain → DNS → set two env URLs → add Google redirect → redeploy → login smoke test.
 
 **Do not remove** old OAuth/domain until smoke tests pass.

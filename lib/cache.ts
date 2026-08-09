@@ -150,7 +150,7 @@ class MemoryCache implements CacheProvider {
 
 /**
  * Upstash Redis Cache Implementation
- * Serverless-friendly, perfect for Vercel/Next.js deployments
+ * Shared cache provider for multi-process Next.js deployments
  *
  * Required env variables:
  * - UPSTASH_REDIS_REST_URL

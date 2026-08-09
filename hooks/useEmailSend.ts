@@ -61,8 +61,8 @@ interface UseEmailSendResult {
   /**
    * Sends a campaign via the chunked, resumable `/api/send-email` endpoint
    * instead of one `/api/send-single-email` call per recipient. The server
-   * processes recipients in time-budgeted chunks (to stay under Vercel's
-   * `maxDuration`); this loops, calling the endpoint again with the same
+   * processes recipients in time-budgeted chunks; this loops, calling the
+   * endpoint again with the same
    * `campaignId` until the server reports `done: true`, updating
    * `progress` after every chunk. Safe to call again after a page
    * reload/network drop — already-sent recipients are skipped server-side.

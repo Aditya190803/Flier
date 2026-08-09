@@ -4,7 +4,7 @@
  * Scheduled campaigns are dispatched by a cron worker long after the user has
  * closed their browser, so the Gmail access token in the NextAuth JWT cookie
  * isn't available. This module persists the user's Google *refresh* token
- * (encrypted — see {@link module:crypto/secret-box}) in Appwrite and exchanges
+ * (encrypted — see {@link module:crypto/secret-box}) in Postgres and exchanges
  * it for a short-lived access token at send time.
  *
  * Nothing here is used by the interactive send path; that keeps using the
@@ -13,9 +13,11 @@
  * @module services/oauth-token-store
  */
 
-import { databases, config, Query, ID } from "@/lib/appwrite-server";
 import { canEncryptSecrets, decryptSecret, encryptSecret } from "@/lib/crypto";
+import { dbQuery, isDatabaseConfigured } from "@/lib/db";
 import { authLogger } from "@/lib/logger";
+
+import type { QueryResultRow } from "pg";
 
 /** Access tokens are cached until this long before their real expiry. */
 const ACCESS_TOKEN_SKEW_MS = 60_000;
@@ -26,26 +28,19 @@ const accessTokenCache = new Map<
   { accessToken: string; expiresAt: number }
 >();
 
-interface StoredTokenDoc {
-  $id: string;
+type StoredTokenRow = QueryResultRow & {
   user_email: string;
   refresh_token: string;
-  scope?: string;
-  revoked?: boolean;
-  updated_at?: string;
-}
+  scope: string;
+  revoked: boolean;
+};
 
-function isConfigured(): boolean {
-  return Boolean(config.databaseId && config.oauthTokensCollectionId);
-}
-
-async function findTokenDoc(userEmail: string): Promise<StoredTokenDoc | null> {
-  const response = await databases.listDocuments(
-    config.databaseId,
-    config.oauthTokensCollectionId,
-    [Query.equal("user_email", userEmail), Query.limit(1)],
+async function findTokenDoc(userEmail: string): Promise<StoredTokenRow | null> {
+  const result = await dbQuery<StoredTokenRow>(
+    "SELECT * FROM oauth_tokens WHERE user_email = $1 LIMIT 1",
+    [userEmail],
   );
-  return (response.documents[0] as unknown as StoredTokenDoc) ?? null;
+  return result.rows[0] || null;
 }
 
 /**
@@ -63,7 +58,7 @@ export async function persistRefreshToken(input: {
 }): Promise<void> {
   const { userEmail, refreshToken, scope } = input;
 
-  if (!userEmail || !refreshToken || !isConfigured()) {
+  if (!userEmail || !refreshToken || !isDatabaseConfigured()) {
     return;
   }
 
@@ -76,34 +71,18 @@ export async function persistRefreshToken(input: {
 
   try {
     const encrypted = encryptSecret(refreshToken);
-    const existing = await findTokenDoc(userEmail);
-
-    const payload = {
-      user_email: userEmail,
-      refresh_token: encrypted,
-      scope: scope ?? "",
-      revoked: false,
-      updated_at: new Date().toISOString(),
-    };
-
-    if (existing) {
-      await databases.updateDocument(
-        config.databaseId,
-        config.oauthTokensCollectionId,
-        existing.$id,
-        payload,
-      );
-    } else {
-      await databases.createDocument(
-        config.databaseId,
-        config.oauthTokensCollectionId,
-        ID.unique(),
-        { ...payload, created_at: new Date().toISOString() },
-      );
-    }
+    await dbQuery(
+      `INSERT INTO oauth_tokens (user_email, refresh_token, scope, revoked)
+       VALUES ($1, $2, $3, false)
+       ON CONFLICT (user_email) DO UPDATE SET
+         refresh_token = EXCLUDED.refresh_token,
+         scope = EXCLUDED.scope,
+         revoked = false,
+         updated_at = now()`,
+      [userEmail, encrypted, scope ?? ""],
+    );
   } catch (error) {
     authLogger.error("Failed to persist refresh token", {
-      userEmail,
       error: error instanceof Error ? error.message : String(error),
     });
   }
@@ -121,24 +100,17 @@ export async function markRefreshTokenRevoked(
 ): Promise<void> {
   accessTokenCache.delete(userEmail);
 
-  if (!isConfigured()) {
+  if (!isDatabaseConfigured()) {
     return;
   }
 
   try {
-    const existing = await findTokenDoc(userEmail);
-    if (!existing) {
-      return;
-    }
-    await databases.updateDocument(
-      config.databaseId,
-      config.oauthTokensCollectionId,
-      existing.$id,
-      { revoked: true, updated_at: new Date().toISOString() },
+    await dbQuery(
+      "UPDATE oauth_tokens SET revoked = true, updated_at = now() WHERE user_email = $1",
+      [userEmail],
     );
   } catch (error) {
     authLogger.error("Failed to mark refresh token revoked", {
-      userEmail,
       error: error instanceof Error ? error.message : String(error),
     });
   }
@@ -150,23 +122,16 @@ export async function deleteStoredRefreshToken(
 ): Promise<void> {
   accessTokenCache.delete(userEmail);
 
-  if (!isConfigured()) {
+  if (!isDatabaseConfigured()) {
     return;
   }
 
   try {
-    const existing = await findTokenDoc(userEmail);
-    if (!existing) {
-      return;
-    }
-    await databases.deleteDocument(
-      config.databaseId,
-      config.oauthTokensCollectionId,
-      existing.$id,
-    );
+    await dbQuery("DELETE FROM oauth_tokens WHERE user_email = $1", [
+      userEmail,
+    ]);
   } catch (error) {
     authLogger.error("Failed to delete stored refresh token", {
-      userEmail,
       error: error instanceof Error ? error.message : String(error),
     });
   }
@@ -176,7 +141,7 @@ export async function deleteStoredRefreshToken(
 export async function hasUsableRefreshToken(
   userEmail: string,
 ): Promise<boolean> {
-  if (!isConfigured()) {
+  if (!isDatabaseConfigured()) {
     return false;
   }
 
@@ -218,7 +183,7 @@ export async function getOfflineAccessToken(
     };
   }
 
-  if (!isConfigured()) {
+  if (!isDatabaseConfigured()) {
     return {
       ok: false,
       reason: "no_token",
@@ -226,7 +191,7 @@ export async function getOfflineAccessToken(
     };
   }
 
-  let doc: StoredTokenDoc | null;
+  let doc: StoredTokenRow | null;
   try {
     doc = await findTokenDoc(userEmail);
   } catch (error) {

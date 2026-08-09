@@ -25,10 +25,6 @@ const getAppwriteConfig = () => ({
   trackingEventsCollectionId:
     env.NEXT_PUBLIC_APPWRITE_TRACKING_EVENTS_COLLECTION_ID,
   abTestsCollectionId: env.NEXT_PUBLIC_APPWRITE_AB_TESTS_COLLECTION_ID,
-  // Scheduled sending
-  scheduledCampaignsCollectionId:
-    env.NEXT_PUBLIC_APPWRITE_SCHEDULED_CAMPAIGNS_COLLECTION_ID,
-  oauthTokensCollectionId: env.NEXT_PUBLIC_APPWRITE_OAUTH_TOKENS_COLLECTION_ID,
   // GDPR & Compliance collections
   auditLogsCollectionId: env.NEXT_PUBLIC_APPWRITE_AUDIT_LOGS_COLLECTION_ID,
   consentsCollectionId: env.NEXT_PUBLIC_APPWRITE_CONSENTS_COLLECTION_ID,
