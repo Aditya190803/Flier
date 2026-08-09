@@ -143,6 +143,9 @@ export const sendEmailRequestSchema = z
       )
       .max(10)
       .optional(),
+    // Campaign-level Cc/Bcc, applied to every message that doesn't set its own
+    cc: z.array(emailSchema).max(50).optional(),
+    bcc: z.array(emailSchema).max(50).optional(),
     personalizedEmails: z
       .array(
         z.object({
@@ -151,6 +154,8 @@ export const sendEmailRequestSchema = z
           message: messageSchema,
           originalRowData: z.record(z.string(), z.string()).optional(),
           attachments: z.array(attachmentSchema).optional(),
+          cc: z.array(emailSchema).max(50).optional(),
+          bcc: z.array(emailSchema).max(50).optional(),
         }),
       )
       .min(1)

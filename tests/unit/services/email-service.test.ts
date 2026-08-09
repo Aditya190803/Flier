@@ -283,5 +283,99 @@ describe("EmailService", () => {
       expect(summary.results.length).toBeGreaterThan(0);
       expect(summary.results.length).toBeLessThan(5);
     });
+
+    it("substitutes placeholders from originalRowData", async () => {
+      (gmail.sendEmailViaAPI as any).mockResolvedValue({
+        success: true,
+        messageId: "msg-1",
+      });
+
+      await emailService.sendPersonalizedBatch(
+        [
+          {
+            to: "ada@example.com",
+            subject: "Hello {{name}}",
+            message: "<p>You work at {{company}}, {{name}}.</p>",
+            originalRowData: { name: "Ada", company: "Analytical Engines" },
+          },
+        ],
+        { delayBetweenEmails: 0 },
+      );
+
+      const call = (gmail.sendEmailViaAPI as any).mock.calls[0];
+      expect(call[3]).toBe("Hello Ada");
+      expect(call[4]).toBe("<p>You work at Analytical Engines, Ada.</p>");
+    });
+
+    it("exposes the recipient address as an {{email}} placeholder", async () => {
+      (gmail.sendEmailViaAPI as any).mockResolvedValue({
+        success: true,
+        messageId: "msg-1",
+      });
+
+      await emailService.sendPersonalizedBatch(
+        [
+          {
+            to: "ada@example.com",
+            subject: "Receipt",
+            message: "Sent to {{email}}",
+            originalRowData: {},
+          },
+        ],
+        { delayBetweenEmails: 0 },
+      );
+
+      expect((gmail.sendEmailViaAPI as any).mock.calls[0][4]).toBe(
+        "Sent to ada@example.com",
+      );
+    });
+
+    it("leaves unmatched placeholders untouched rather than blanking them", async () => {
+      (gmail.sendEmailViaAPI as any).mockResolvedValue({
+        success: true,
+        messageId: "msg-1",
+      });
+
+      await emailService.sendPersonalizedBatch(
+        [
+          {
+            to: "ada@example.com",
+            subject: "Hi {{nickname}}",
+            message: "Body",
+            originalRowData: { name: "Ada" },
+          },
+        ],
+        { delayBetweenEmails: 0 },
+      );
+
+      expect((gmail.sendEmailViaAPI as any).mock.calls[0][3]).toBe(
+        "Hi {{nickname}}",
+      );
+    });
+
+    it("forwards per-message cc and bcc to the sender", async () => {
+      (gmail.sendEmailViaAPI as any).mockResolvedValue({
+        success: true,
+        messageId: "msg-1",
+      });
+
+      await emailService.sendPersonalizedBatch(
+        [
+          {
+            to: "ada@example.com",
+            subject: "Subject",
+            message: "Message",
+            originalRowData: {},
+            cc: ["cc@example.com"],
+            bcc: ["bcc@example.com"],
+          },
+        ],
+        { delayBetweenEmails: 0 },
+      );
+
+      const call = (gmail.sendEmailViaAPI as any).mock.calls[0];
+      expect(call[8]).toEqual(["cc@example.com"]);
+      expect(call[9]).toEqual(["bcc@example.com"]);
+    });
   });
 });

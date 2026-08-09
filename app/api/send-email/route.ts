@@ -70,36 +70,53 @@ export async function POST(request: NextRequest) {
       subject,
       content,
       variants,
+      cc: campaignCc,
+      bcc: campaignBcc,
       personalizedEmails: rawPersonalized,
     } = parsed.data;
 
+    // Per-message Cc/Bcc wins; campaign-level values fill in otherwise.
+    const withCampaignCcBcc = (
+      email: PersonalizedEmail,
+    ): PersonalizedEmail => ({
+      ...email,
+      cc: email.cc ?? (campaignCc?.length ? campaignCc : undefined),
+      bcc: email.bcc ?? (campaignBcc?.length ? campaignBcc : undefined),
+    });
+
     let personalizedEmails: PersonalizedEmail[] | undefined =
-      rawPersonalized?.map((e) => ({
-        to: e.to,
-        subject: e.subject,
-        message: e.message,
-        originalRowData: e.originalRowData ?? {},
-        attachments: e.attachments,
-      }));
+      rawPersonalized?.map((e) =>
+        withCampaignCcBcc({
+          to: e.to,
+          subject: e.subject,
+          message: e.message,
+          originalRowData: e.originalRowData ?? {},
+          attachments: e.attachments,
+          cc: e.cc,
+          bcc: e.bcc,
+        }),
+      );
 
     if (!personalizedEmails && recipients && Array.isArray(recipients)) {
       if (variants && variants.length > 0) {
         personalizedEmails = recipients.map((to: string, index: number) => {
           const variant = variants[index % variants.length];
-          return {
+          return withCampaignCcBcc({
             to,
             subject: variant.subject || subject || "A/B Test Email",
             message: variant.content || content || "",
             originalRowData: {},
-          };
+          });
         });
       } else {
-        personalizedEmails = recipients.map((to: string) => ({
-          to,
-          subject: subject || "A/B Test Email",
-          message: content || "",
-          originalRowData: {},
-        }));
+        personalizedEmails = recipients.map((to: string) =>
+          withCampaignCcBcc({
+            to,
+            subject: subject || "A/B Test Email",
+            message: content || "",
+            originalRowData: {},
+          }),
+        );
       }
     }
 

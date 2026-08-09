@@ -10,9 +10,9 @@
  *
  * The campaign document's `$id` is the caller-provided `campaignId` (the
  * same convention used by `POST /api/appwrite/campaigns` and
- * `hooks/useEmailSend/persistence.ts`'s `generateCampaignId`). Idempotency
- * across chunks/resumes is guaranteed by keying processed recipients off
- * this document's persisted `send_results`.
+ * `hooks/useEmailSend/persistence.ts`'s `generateCampaignId`). Normal chunk
+ * resumes skip recipients in the persisted `send_results`. Delivery remains
+ * at least once because Gmail sending and result persistence are not atomic.
  *
  * @module services/campaign-send-state
  */
@@ -156,7 +156,9 @@ export async function persistCampaignSendState(
   const sent = input.previousSent + input.sentDelta;
   const failed = input.previousFailed + input.failedDelta;
   const status = input.done
-    ? CAMPAIGN_STATUS.COMPLETED
+    ? sent === 0 && failed > 0
+      ? CAMPAIGN_STATUS.FAILED
+      : CAMPAIGN_STATUS.COMPLETED
     : CAMPAIGN_STATUS.PARTIAL;
   const send_results = JSON.stringify(input.allResults);
 

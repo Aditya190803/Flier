@@ -198,6 +198,27 @@ describe("persistCampaignSendState", () => {
     expect(data.recipients).toBeUndefined();
   });
 
+  it("marks a completed campaign as failed when every send failed", async () => {
+    await persistCampaignSendState({
+      campaignId: "campaign_failed",
+      docId: "campaign_failed",
+      existed: true,
+      userEmail: "user@example.com",
+      fullRecipients: ["a@example.com"],
+      allResults: [
+        { email: "a@example.com", status: "error", error: "Rejected" },
+      ],
+      sentDelta: 0,
+      failedDelta: 1,
+      previousSent: 0,
+      previousFailed: 0,
+      done: true,
+    });
+
+    const [, , , data] = (databases.updateDocument as any).mock.calls[0];
+    expect(data.status).toBe("failed");
+  });
+
   it("swallows persistence errors instead of throwing", async () => {
     (databases.createDocument as any).mockRejectedValueOnce(
       new Error("Appwrite down"),

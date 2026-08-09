@@ -590,14 +590,30 @@ export class EmailService {
           }
         }
 
+        // Personalize. `sendSingle` does this via `customFields`; this batch
+        // path used to skip it entirely, so every recipient on the chunked
+        // `/api/send-email` route received literal `{{name}}` text.
+        const personalizationData: Record<string, string> = {
+          email: email.to,
+          ...email.originalRowData,
+        };
+        const personalizedSubject = replacePlaceholders(
+          email.subject,
+          personalizationData,
+        );
+        const personalizedMessage = replacePlaceholders(
+          email.message,
+          personalizationData,
+        );
+
         // Send the email
         try {
           const result = await sendEmailViaAPI(
             this.accessToken,
             this.fromEmail,
             email.to,
-            email.subject,
-            email.message,
+            personalizedSubject,
+            personalizedMessage,
             resolvedAttachments,
             tracking?.enabled
               ? {

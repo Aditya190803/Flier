@@ -47,6 +47,10 @@ export interface BulkCampaignOptions {
   trackingEnabled?: boolean;
   isTransactional?: boolean;
   abTestId?: string;
+  /** Campaign-level Cc, applied to messages that don't set their own */
+  cc?: string[];
+  /** Campaign-level Bcc, applied to messages that don't set their own */
+  bcc?: string[];
 }
 
 interface UseEmailSendResult {
@@ -1114,6 +1118,9 @@ export function useEmailSend(): UseEmailSendResult {
                 trackingEnabled: trackingEnabledRef.current,
                 isTransactional: options?.isTransactional,
                 abTestId: options?.abTestId,
+                // Always send arrays so the API never drops campaign Cc/Bcc
+                cc: options?.cc ?? [],
+                bcc: options?.bcc ?? [],
                 personalizedEmails,
               }),
             });
