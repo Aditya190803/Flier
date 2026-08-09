@@ -170,6 +170,61 @@ export const sendEmailRequestSchema = z
   );
 
 /**
+ * Scheduled campaign create/update (POST|PUT /api/appwrite/scheduled-campaigns)
+ *
+ * The send time is validated for *shape* here; whether it's far enough in the
+ * future is checked in the route, where "now" is unambiguous.
+ */
+export const isoDatetimeSchema = z
+  .string()
+  .max(40)
+  .datetime({ offset: true, message: "Must be a valid ISO-8601 datetime" });
+
+/** Attachment as stored on a campaign document (already uploaded to Appwrite) */
+export const storedAttachmentSchema = z
+  .object({
+    fileName: z.string().min(1).max(255),
+    fileUrl: z.string().url().max(2000).optional(),
+    fileSize: z
+      .number()
+      .nonnegative()
+      .max(25 * 1024 * 1024)
+      .optional(),
+    appwrite_file_id: z.string().max(255).optional(),
+  })
+  .refine((attachment) => attachment.appwrite_file_id || attachment.fileUrl, {
+    message: "Stored attachment requires a file reference",
+  });
+
+export const scheduledCampaignSchema = z.object({
+  // These limits mirror the Appwrite scheduled_campaigns attributes.
+  subject: subjectSchema.max(500, "Subject too long (max 500 characters)"),
+  content: messageSchema.max(
+    100000,
+    "Message too long (max 100000 characters)",
+  ),
+  recipients: emailArraySchema,
+  scheduled_at: isoDatetimeSchema,
+  timezone: z.string().max(100).optional(),
+  attachments: z.array(storedAttachmentSchema).max(25).optional(),
+  csv_data: z.array(z.record(z.string(), z.string())).max(1000).optional(),
+  cc: z.array(emailSchema).max(50).optional(),
+  bcc: z.array(emailSchema).max(50).optional(),
+  tracking_enabled: z.boolean().optional(),
+  is_marketing: z.boolean().optional(),
+  has_personalized_attachments: z.boolean().optional(),
+  personalized_attachment_column: z.string().max(255).optional(),
+});
+
+/** Reschedule or cancel a campaign that has not started sending. */
+export const updateScheduledCampaignSchema = z.object({
+  id: z.string().min(1, "Campaign ID is required"),
+  scheduled_at: isoDatetimeSchema.optional(),
+  timezone: z.string().max(100).optional(),
+  status: z.enum(["scheduled", "cancelled"]).optional(),
+});
+
+/**
  * Contact creation/update
  */
 export const contactSchema = z.object({

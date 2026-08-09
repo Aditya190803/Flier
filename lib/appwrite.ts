@@ -11,6 +11,10 @@ export {
   unsubscribesService,
 } from "./appwrite/services/contacts";
 export { campaignsService } from "./appwrite/services/campaigns";
+export {
+  scheduledCampaignsService,
+  type ScheduledCampaignInput,
+} from "./appwrite/services/scheduled-campaigns";
 export { templatesService } from "./appwrite/services/templates";
 export { apiRequest } from "./appwrite/api-request";
 export { draftEmailsService } from "./appwrite/services/drafts";
@@ -29,6 +33,7 @@ export type {
   TemplateVersion,
   ContactGroup,
   DraftEmail,
+  ScheduledCampaign,
   EmailSignature,
   Unsubscribe,
   Webhook,

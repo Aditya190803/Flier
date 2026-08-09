@@ -257,6 +257,8 @@ export const API_ROUTES = {
   SEND_EMAIL: "/api/send-email",
   SEND_SINGLE_EMAIL: "/api/send-single-email",
   SEND_DRAFT: "/api/send-draft",
+  SCHEDULED_CAMPAIGNS: "/api/appwrite/scheduled-campaigns",
+  CRON_SEND_SCHEDULED: "/api/cron/send-scheduled",
   FORMAT_EMAIL: "/api/format-email",
   UPLOAD_ATTACHMENT: "/api/upload-attachment",
   EXPORT_REPORT: "/api/export-report",
@@ -334,6 +336,58 @@ export const CAMPAIGN_STATUS = {
 
 export type CampaignStatus =
   (typeof CAMPAIGN_STATUS)[keyof typeof CAMPAIGN_STATUS];
+
+// ============================================
+// Scheduled Sending
+// ============================================
+
+/**
+ * Lifecycle of a row in the `scheduled_campaigns` collection.
+ *
+ * `processing` is a worker lease, not a user-visible state: a cron run claims
+ * a due row by moving it to `processing` and either finishes it or drops it
+ * back to `scheduled` to continue on the next tick.
+ */
+export const SCHEDULED_STATUS = {
+  SCHEDULED: "scheduled",
+  PROCESSING: "processing",
+  SENT: "sent",
+  PARTIAL: "partial",
+  FAILED: "failed",
+  CANCELLED: "cancelled",
+} as const;
+
+export type ScheduledStatus =
+  (typeof SCHEDULED_STATUS)[keyof typeof SCHEDULED_STATUS];
+
+/**
+ * A campaign must be scheduled at least this far out. Guards against a time
+ * that's already past by the time the request lands, and gives the user a
+ * moment to cancel a misfire.
+ */
+export const MIN_SCHEDULE_LEAD_MS = 60_000;
+
+/** Furthest into the future a campaign may be scheduled (1 year). */
+export const MAX_SCHEDULE_HORIZON_MS = 365 * 24 * 60 * 60 * 1000;
+
+/**
+ * Time budget for one cron pass over due campaigns. Kept under the route's
+ * 60s `maxDuration` (see `vercel.json`) so the worker persists progress and
+ * exits cleanly rather than being killed mid-send.
+ */
+export const SCHEDULED_CRON_BUDGET_MS = 45_000;
+
+/**
+ * How long a `processing` lease is honoured before another run may reclaim
+ * the row. Covers a worker that was killed without releasing its lease.
+ */
+export const SCHEDULED_LOCK_STALE_MS = 10 * 60 * 1000;
+
+/** Maximum due campaigns a single cron pass will look at. */
+export const SCHEDULED_BATCH_SIZE = 10;
+
+/** Give up on a campaign after this many failed dispatch attempts. */
+export const SCHEDULED_MAX_ATTEMPTS = 5;
 
 // ============================================
 // Error Messages

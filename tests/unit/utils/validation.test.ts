@@ -9,6 +9,9 @@ import {
   subjectSchema,
   messageSchema,
   sendSingleEmailSchema,
+  scheduledCampaignSchema,
+  isoDatetimeSchema,
+  storedAttachmentSchema,
   contactSchema,
   templateSchema,
   sanitizeHTML,
@@ -240,6 +243,59 @@ describe("Validation Schemas", () => {
 
       const result = templateSchema.safeParse(invalidTemplate);
       expect(result.success).toBe(false);
+    });
+  });
+});
+
+describe("Scheduled Campaign Validation", () => {
+  describe("scheduledCampaignSchema", () => {
+    const validCampaign = {
+      subject: "Scheduled update",
+      content: "Hello",
+      recipients: ["reader@example.com"],
+      scheduled_at: "2030-01-01T09:00:00.000Z",
+    };
+
+    it("accepts a stored campaign snapshot", () => {
+      expect(scheduledCampaignSchema.safeParse(validCampaign).success).toBe(
+        true,
+      );
+    });
+
+    it("requires a timezone-qualified ISO send time", () => {
+      expect(isoDatetimeSchema.safeParse("tomorrow morning").success).toBe(
+        false,
+      );
+      expect(isoDatetimeSchema.safeParse("2030-01-01T09:00:00").success).toBe(
+        false,
+      );
+    });
+
+    it("matches Appwrite subject and content limits", () => {
+      expect(
+        scheduledCampaignSchema.safeParse({
+          ...validCampaign,
+          subject: "s".repeat(501),
+        }).success,
+      ).toBe(false);
+      expect(
+        scheduledCampaignSchema.safeParse({
+          ...validCampaign,
+          content: "c".repeat(100001),
+        }).success,
+      ).toBe(false);
+    });
+
+    it("requires stored attachments to have a retrievable reference", () => {
+      expect(
+        storedAttachmentSchema.safeParse({ fileName: "report.pdf" }).success,
+      ).toBe(false);
+      expect(
+        storedAttachmentSchema.safeParse({
+          fileName: "report.pdf",
+          appwrite_file_id: "file-1",
+        }).success,
+      ).toBe(true);
     });
   });
 });

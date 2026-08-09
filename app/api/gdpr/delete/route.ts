@@ -32,6 +32,8 @@ export async function DELETE(request: NextRequest) {
       tracking_events: 0,
       audit_logs: 0,
       consent_records: 0,
+      scheduled_campaigns: 0,
+      oauth_tokens: 0,
       errors: [] as string[],
     };
 
@@ -100,6 +102,13 @@ export async function DELETE(request: NextRequest) {
       deleteUserDocuments(config.webhooksCollectionId, "webhooks"),
       deleteUserDocuments(config.abTestsCollectionId, "ab_tests"),
       deleteUserDocuments(config.trackingEventsCollectionId, "tracking_events"),
+      // Drops any queued sends, and — critically — the stored Google refresh
+      // token, so no background job can act as this user after erasure.
+      deleteUserDocuments(
+        config.scheduledCampaignsCollectionId,
+        "scheduled_campaigns",
+      ),
+      deleteUserDocuments(config.oauthTokensCollectionId, "oauth_tokens"),
     ]);
 
     // Third group - GDPR/compliance collections (optional)

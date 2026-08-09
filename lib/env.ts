@@ -35,6 +35,10 @@ const envSchema = z.object({
   // HMAC secret for open/click/unsubscribe links (falls back to NEXTAUTH_SECRET)
   TRACKING_TOKEN_SECRET: z.string().optional(),
 
+  // AES-256 key for refresh tokens at rest (falls back to NEXTAUTH_SECRET).
+  // Required for scheduled sending to survive a NEXTAUTH_SECRET rotation.
+  TOKEN_ENCRYPTION_KEY: z.string().optional(),
+
   // Optional Appwrite Collections (with defaults)
   NEXT_PUBLIC_APPWRITE_CONTACTS_COLLECTION_ID: z.string().default("contacts"),
   NEXT_PUBLIC_APPWRITE_CAMPAIGNS_COLLECTION_ID: z.string().default("campaigns"),
@@ -60,6 +64,12 @@ const envSchema = z.object({
     .string()
     .default("tracking_events"),
   NEXT_PUBLIC_APPWRITE_AB_TESTS_COLLECTION_ID: z.string().default("ab_tests"),
+  NEXT_PUBLIC_APPWRITE_SCHEDULED_CAMPAIGNS_COLLECTION_ID: z
+    .string()
+    .default("scheduled_campaigns"),
+  NEXT_PUBLIC_APPWRITE_OAUTH_TOKENS_COLLECTION_ID: z
+    .string()
+    .default("oauth_tokens"),
   NEXT_PUBLIC_APPWRITE_AUDIT_LOGS_COLLECTION_ID: z.string().default(""),
   NEXT_PUBLIC_APPWRITE_CONSENTS_COLLECTION_ID: z.string().default(""),
   NEXT_PUBLIC_APPWRITE_TEAMS_COLLECTION_ID: z.string().default(""),
@@ -83,6 +93,7 @@ const _env = envSchema.safeParse({
   APPWRITE_API_KEY: process.env.APPWRITE_API_KEY,
   CRON_SECRET: process.env.CRON_SECRET,
   TRACKING_TOKEN_SECRET: process.env.TRACKING_TOKEN_SECRET,
+  TOKEN_ENCRYPTION_KEY: process.env.TOKEN_ENCRYPTION_KEY,
   NEXT_PUBLIC_APPWRITE_CONTACTS_COLLECTION_ID:
     process.env.NEXT_PUBLIC_APPWRITE_CONTACTS_COLLECTION_ID,
   NEXT_PUBLIC_APPWRITE_CAMPAIGNS_COLLECTION_ID:
@@ -107,6 +118,10 @@ const _env = envSchema.safeParse({
     process.env.NEXT_PUBLIC_APPWRITE_TRACKING_EVENTS_COLLECTION_ID,
   NEXT_PUBLIC_APPWRITE_AB_TESTS_COLLECTION_ID:
     process.env.NEXT_PUBLIC_APPWRITE_AB_TESTS_COLLECTION_ID,
+  NEXT_PUBLIC_APPWRITE_SCHEDULED_CAMPAIGNS_COLLECTION_ID:
+    process.env.NEXT_PUBLIC_APPWRITE_SCHEDULED_CAMPAIGNS_COLLECTION_ID,
+  NEXT_PUBLIC_APPWRITE_OAUTH_TOKENS_COLLECTION_ID:
+    process.env.NEXT_PUBLIC_APPWRITE_OAUTH_TOKENS_COLLECTION_ID,
   NEXT_PUBLIC_APPWRITE_AUDIT_LOGS_COLLECTION_ID:
     process.env.NEXT_PUBLIC_APPWRITE_AUDIT_LOGS_COLLECTION_ID,
   NEXT_PUBLIC_APPWRITE_CONSENTS_COLLECTION_ID:
