@@ -59,7 +59,7 @@ const getAttachmentUrl = (a: {
     return `/api/appwrite/attachments/${a.appwrite_file_id}`;
   }
   if (a.fileUrl) {
-    const m = a.fileUrl.match(/\/files\/([^\/]+)\//);
+    const m = a.fileUrl.match(/\/files\/([^/]+)\//);
     if (m?.[1]) {
       return `/api/appwrite/attachments/${m[1]}`;
     }

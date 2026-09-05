@@ -9,6 +9,7 @@ import {
   Users,
   PenSquare,
   FileText,
+  CalendarClock,
   Clock,
   Settings,
   BarChart3,
@@ -50,6 +51,7 @@ import {
 const mainNav = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Compose", href: "/compose", icon: PenSquare },
+  { name: "Scheduled", href: "/scheduled", icon: CalendarClock },
   { name: "Drafts", href: "/draft", icon: Clock },
   { name: "Templates", href: "/templates", icon: FileText },
 ];
@@ -107,6 +109,14 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { setTheme } = useTheme();
+
+  const handleSignOut = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } finally {
+      await signOut({ callbackUrl: "/" });
+    }
+  };
 
   const userInitials = session?.user?.name
     ? session.user.name
@@ -215,7 +225,7 @@ export function AppSidebar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="cursor-pointer text-destructive focus:text-destructive"
-                  onClick={() => signOut({ callbackUrl: "/" })}
+                  onClick={handleSignOut}
                 >
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign out

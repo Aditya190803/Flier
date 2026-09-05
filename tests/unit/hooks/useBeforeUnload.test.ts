@@ -3,7 +3,14 @@
  */
 
 import { renderHook } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+} from "vite-plus/test";
 
 import { useBeforeUnload } from "@/hooks/useBeforeUnload";
 
@@ -54,7 +61,9 @@ describe("useBeforeUnload Hook", () => {
     it("should update listener when shouldWarn changes", () => {
       const { rerender } = renderHook(
         ({ shouldWarn }) => useBeforeUnload(shouldWarn),
-        { initialProps: { shouldWarn: false } },
+        {
+          initialProps: { shouldWarn: false },
+        },
       );
 
       expect(addEventListenerSpy).not.toHaveBeenCalledWith(
@@ -155,7 +164,9 @@ describe("useBeforeUnload Hook", () => {
     it("should handle rapid shouldWarn toggling", () => {
       const { rerender } = renderHook(
         ({ shouldWarn }) => useBeforeUnload(shouldWarn),
-        { initialProps: { shouldWarn: true } },
+        {
+          initialProps: { shouldWarn: true },
+        },
       );
 
       rerender({ shouldWarn: false });

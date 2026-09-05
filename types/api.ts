@@ -130,12 +130,7 @@ export interface BulkImportResult {
  * Campaign status
  */
 export type CampaignStatus =
-  | "draft"
-  | "scheduled"
-  | "sending"
-  | "completed"
-  | "paused"
-  | "failed";
+  "draft" | "scheduled" | "sending" | "completed" | "paused" | "failed";
 
 /**
  * Campaign type

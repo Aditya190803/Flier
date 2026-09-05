@@ -4,7 +4,14 @@
 import React from "react";
 
 import { renderHook, act, render } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+} from "vite-plus/test";
 
 const { mockPush, mockToast } = vi.hoisted(() => ({
   mockPush: vi.fn(),

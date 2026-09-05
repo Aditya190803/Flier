@@ -2,7 +2,7 @@
  * Unit tests for constants
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vite-plus/test";
 
 import {
   API_TIMEOUT_MS,

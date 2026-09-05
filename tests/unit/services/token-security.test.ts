@@ -2,7 +2,14 @@
  * Unit tests for Token Security Module
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+} from "vite-plus/test";
 
 vi.mock("@/lib/logger", async () => {
   const { createMockLoggerModule, createSpyLogger } =

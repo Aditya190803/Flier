@@ -36,7 +36,7 @@ export function buildRecipientFields(input: {
     ...(contact?.company ? { company: contact.company } : {}),
     ...(contact?.phone ? { phone: contact.phone } : {}),
     ...(contact?.tags?.length ? { tags: contact.tags.join(", ") } : {}),
-    ...(contact?.customFields || {}),
+    ...contact?.customFields,
     ...(manualEntry?.name ? { name: manualEntry.name } : {}),
     ...csvRow,
   };

@@ -4,7 +4,14 @@
  * and the Upstash-backed async path (Redis mocked, no network).
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+} from "vite-plus/test";
 
 const { mockRedisInstance, RedisCtor } = vi.hoisted(() => {
   const instance = {
@@ -360,7 +367,10 @@ describe("rateLimitAsync / rateLimitUserEmailAsync (Upstash configured)", () => 
     const { rateLimitAsync } = await import("@/lib/rate-limit");
     const result = await rateLimitAsync(
       makeRequest({ "x-forwarded-for": "1.2.3.4" }),
-      { windowMs: 60_000, maxRequests: 5 },
+      {
+        windowMs: 60_000,
+        maxRequests: 5,
+      },
     );
 
     expect(result).toBeNull();
@@ -375,7 +385,10 @@ describe("rateLimitAsync / rateLimitUserEmailAsync (Upstash configured)", () => 
     const { rateLimitAsync } = await import("@/lib/rate-limit");
     const result = await rateLimitAsync(
       makeRequest({ "x-forwarded-for": "1.2.3.5" }),
-      { windowMs: 60_000, maxRequests: 5 },
+      {
+        windowMs: 60_000,
+        maxRequests: 5,
+      },
     );
 
     expect(result).toBeInstanceOf(Response);
@@ -391,7 +404,10 @@ describe("rateLimitAsync / rateLimitUserEmailAsync (Upstash configured)", () => 
     const { rateLimitAsync } = await import("@/lib/rate-limit");
     const result = await rateLimitAsync(
       makeRequest({ "x-forwarded-for": "1.2.3.6" }),
-      { windowMs: 60_000, maxRequests: 5 },
+      {
+        windowMs: 60_000,
+        maxRequests: 5,
+      },
     );
 
     // Falls back to the in-memory path, which allows the first request.

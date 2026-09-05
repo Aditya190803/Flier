@@ -22,9 +22,8 @@ import { sendEmailRequestSchema, validate } from "@/lib/validation";
 /**
  * Sends a bulk/personalized campaign.
  *
- * `vercel.json` caps this route at 60s (`maxDuration`). To avoid a large
- * campaign getting killed mid-send with no record of where it stopped, this
- * route only processes recipients until a time budget
+ * To keep large campaigns resumable, this route processes recipients until a
+ * time budget
  * (`SEND_EMAIL_CHUNK_BUDGET_MS`) is used up, persists per-recipient
  * progress to the `campaigns` collection keyed by `campaignId`, and returns
  * `done: false` with the remaining count when there's more work left.

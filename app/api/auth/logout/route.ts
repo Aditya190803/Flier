@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
 import { apiLogger } from "@/lib/logger";
+import { deleteStoredRefreshToken } from "@/lib/services/oauth-token-store";
 import { revokeAllUserTokens } from "@/lib/token-security";
 
 /**
@@ -23,8 +24,9 @@ export async function POST() {
 
     const userEmail = session.user.email;
 
-    // Revoke all tokens for this user
+    // Revoke the local session tokens and remove background-send access.
     revokeAllUserTokens(userEmail);
+    await deleteStoredRefreshToken(userEmail);
 
     // Optionally revoke Google OAuth token
     if (session.accessToken) {

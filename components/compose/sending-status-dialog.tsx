@@ -29,12 +29,7 @@ import {
 interface SendStatusItem {
   email?: string;
   status:
-    | "success"
-    | "error"
-    | "skipped"
-    | "cancelled"
-    | "pending"
-    | "retrying";
+    "success" | "error" | "skipped" | "cancelled" | "pending" | "retrying";
   error?: string;
 }
 

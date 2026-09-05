@@ -2,12 +2,21 @@
 
 import * as React from "react";
 
-import { ChevronLeft, ChevronRight, Loader2, Send } from "lucide-react";
+import {
+  CalendarClock,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Save,
+  Send,
+} from "lucide-react";
 import { createPortal } from "react-dom";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+import type { DeliveryMode } from "./delivery-options";
 
 export type ComposeSectionId = "recipients" | "compose" | "preview";
 
@@ -15,6 +24,28 @@ const sectionLabels: Record<ComposeSectionId, string> = {
   recipients: "Recipients",
   compose: "Editor",
   preview: "Preview",
+};
+
+/** The primary button says what will actually happen, per delivery mode. */
+const dispatchLabels: Record<
+  DeliveryMode,
+  { idle: string; busy: string; icon: React.ReactNode }
+> = {
+  now: {
+    idle: "Dispatch",
+    busy: "Dispatching…",
+    icon: <Send className="h-4 w-4 mr-2" />,
+  },
+  schedule: {
+    idle: "Schedule",
+    busy: "Scheduling…",
+    icon: <CalendarClock className="h-4 w-4 mr-2" />,
+  },
+  draft: {
+    idle: "Save draft",
+    busy: "Saving…",
+    icon: <Save className="h-4 w-4 mr-2" />,
+  },
 };
 
 export function StickyActionBar({
@@ -27,6 +58,7 @@ export function StickyActionBar({
   onDispatch,
   isDispatching,
   dispatchDisabled,
+  deliveryMode = "now",
   className,
 }: {
   activeSection: ComposeSectionId;
@@ -38,6 +70,7 @@ export function StickyActionBar({
   onDispatch: () => void;
   isDispatching: boolean;
   dispatchDisabled: boolean;
+  deliveryMode?: DeliveryMode;
   className?: string;
 }) {
   const [mounted, setMounted] = React.useState(false);
@@ -94,12 +127,12 @@ export function StickyActionBar({
                 {isDispatching ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Dispatching…
+                    {dispatchLabels[deliveryMode].busy}
                   </>
                 ) : (
                   <>
-                    <Send className="h-4 w-4 mr-2" />
-                    Dispatch
+                    {dispatchLabels[deliveryMode].icon}
+                    {dispatchLabels[deliveryMode].idle}
                   </>
                 )}
               </Button>

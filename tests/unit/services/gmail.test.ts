@@ -2,7 +2,7 @@
  * Unit tests for Gmail/email sending utilities
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vite-plus/test";
 
 import { EMAIL_REGEX } from "@/lib/constants";
 import { replacePlaceholders } from "@/lib/gmail";

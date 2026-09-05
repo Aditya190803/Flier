@@ -3,7 +3,7 @@
  * Tests keyboard shortcut functionality across the application
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* oxlint-disable @typescript-eslint/no-unused-vars */
 import { test, expect } from "@playwright/test";
 
 test.describe("Keyboard Shortcuts", () => {

@@ -34,9 +34,7 @@ export const gdprService = {
     const csrfToken = getCookie(CSRF_TOKEN_NAME);
     const response = await fetch("/api/gdpr/export", {
       credentials: "include",
-      headers: {
-        ...(csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {}),
-      },
+      headers: csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {},
     });
     if (!response.ok) {
       let errorMessage = "Failed to export data";
@@ -62,9 +60,7 @@ export const gdprService = {
     const response = await fetch("/api/gdpr/delete", {
       method: "DELETE",
       credentials: "include",
-      headers: {
-        ...(csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {}),
-      },
+      headers: csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {},
     });
     if (!response.ok) {
       let errorMessage = "Failed to delete data";

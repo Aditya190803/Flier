@@ -2,9 +2,21 @@
  * Unit tests for cache utilities
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+} from "vite-plus/test";
 
-import { MemoryCache, getOrSet as _getOrSet, CacheKeys, CacheTTL } from "@/lib/cache";
+import {
+  MemoryCache,
+  getOrSet as _getOrSet,
+  CacheKeys,
+  CacheTTL,
+} from "@/lib/cache";
 
 // Mock Upstash Redis for testing
 vi.mock("@upstash/redis", () => ({

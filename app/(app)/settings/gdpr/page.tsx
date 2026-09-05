@@ -101,7 +101,7 @@ export default function GDPRPage() {
     if (session?.user?.email) {
       fetchConsents();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user?.email]);
 
   const fetchConsents = async () => {
@@ -196,9 +196,7 @@ export default function GDPRPage() {
       const csrfToken = getCookie(CSRF_TOKEN_NAME);
       const response = await fetch("/api/gdpr/delete", {
         method: "DELETE",
-        headers: {
-          ...(csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {}),
-        },
+        headers: csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {},
       });
 
       if (!response.ok) {

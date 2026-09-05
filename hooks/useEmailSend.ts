@@ -61,8 +61,8 @@ interface UseEmailSendResult {
   /**
    * Sends a campaign via the chunked, resumable `/api/send-email` endpoint
    * instead of one `/api/send-single-email` call per recipient. The server
-   * processes recipients in time-budgeted chunks (to stay under Vercel's
-   * `maxDuration`); this loops, calling the endpoint again with the same
+   * processes recipients in time-budgeted chunks; this loops, calling the
+   * endpoint again with the same
    * `campaignId` until the server reports `done: true`, updating
    * `progress` after every chunk. Safe to call again after a page
    * reload/network drop — already-sent recipients are skipped server-side.
@@ -870,7 +870,9 @@ export function useEmailSend(): UseEmailSendResult {
               emailSendLogger.error(
                 `Stopping email campaign due to persistent error`,
                 undefined,
-                { error: result.error },
+                {
+                  error: result.error,
+                },
               );
 
               // Mark remaining emails as skipped
@@ -928,7 +930,10 @@ export function useEmailSend(): UseEmailSendResult {
               emailSendLogger.warn(
                 `Email failed but continuing campaign`,
                 undefined,
-                { to: email.to, error: result.error },
+                {
+                  to: email.to,
+                  error: result.error,
+                },
               );
               continue;
             }
@@ -1006,7 +1011,7 @@ export function useEmailSend(): UseEmailSendResult {
         releaseLock();
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     [quotaInfo.estimatedRemaining, updateQuotaUsed, checkTokenStatus],
   );
 

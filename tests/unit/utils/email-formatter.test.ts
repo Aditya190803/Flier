@@ -2,7 +2,7 @@
  * Unit tests for email formatting utilities
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vite-plus/test";
 
 import { EMAIL_REGEX } from "@/lib/constants";
 

@@ -5,7 +5,7 @@
  * into the existing Appwrite `campaigns` collection (no new collection or
  * external infrastructure needed). This lets `/api/send-email` process a
  * time-budgeted chunk of recipients per request — staying under the
- * Vercel `maxDuration` limit — and pick up where it left off on a
+ * request time budget — and pick up where it left off on a
  * subsequent call, skipping recipients that were already sent.
  *
  * The campaign document's `$id` is the caller-provided `campaignId` (the
@@ -168,7 +168,12 @@ export async function persistCampaignSendState(
         config.databaseId,
         config.campaignsCollectionId,
         input.docId,
-        { sent, failed, status, send_results },
+        {
+          sent,
+          failed,
+          status,
+          send_results,
+        },
       );
     } else {
       await databases.createDocument(

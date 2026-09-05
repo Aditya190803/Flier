@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vite-plus/test";
 
 import { aggregateDeviceData } from "@/lib/activity/devices";
 import type { TrackingEvent } from "@/types/activity";

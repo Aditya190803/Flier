@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { isAuthed, requireSession } from "@/lib/api-auth";
 import { databases, config, Query } from "@/lib/appwrite-server";
 import { apiLogger } from "@/lib/logger";
+import { deleteScheduledDataForUser } from "@/lib/services/scheduled-campaign-store";
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown error";
@@ -32,6 +33,8 @@ export async function DELETE(request: NextRequest) {
       tracking_events: 0,
       audit_logs: 0,
       consent_records: 0,
+      scheduled_campaigns: 0,
+      oauth_tokens: 0,
       errors: [] as string[],
     };
 
@@ -102,6 +105,17 @@ export async function DELETE(request: NextRequest) {
       deleteUserDocuments(config.trackingEventsCollectionId, "tracking_events"),
     ]);
 
+    // Scheduled sends and offline Google authorization live in Postgres.
+    try {
+      const scheduled = await deleteScheduledDataForUser(userEmail);
+      deletionResults.scheduled_campaigns = scheduled.scheduledCampaigns;
+      deletionResults.oauth_tokens = scheduled.oauthTokens;
+    } catch (e) {
+      deletionResults.errors.push(
+        `Failed to delete scheduled sending data: ${errorMessage(e)}`,
+      );
+    }
+
     // Third group - GDPR/compliance collections (optional)
     await Promise.all([
       config.auditLogsCollectionId &&
@@ -127,7 +141,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Log the deletion (to a separate permanent audit log if needed)
-    apiLogger.info("GDPR Deletion completed", { userEmail, deletionResults });
+    apiLogger.info("GDPR Deletion completed", { deletionResults });
 
     const totalDeleted =
       deletionResults.contacts +
@@ -138,7 +152,9 @@ export async function DELETE(request: NextRequest) {
       deletionResults.groups +
       deletionResults.unsubscribes +
       deletionResults.webhooks +
-      deletionResults.ab_tests;
+      deletionResults.ab_tests +
+      deletionResults.scheduled_campaigns +
+      deletionResults.oauth_tokens;
 
     return NextResponse.json({
       success: true,

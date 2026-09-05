@@ -226,8 +226,7 @@ export async function PUT(request: NextRequest) {
       ],
     );
     const membershipDoc = membership.documents[0] as unknown as
-      | TeamMembershipDocument
-      | undefined;
+      TeamMembershipDocument | undefined;
 
     if (!membershipDoc || !["owner", "admin"].includes(membershipDoc.role)) {
       return NextResponse.json(

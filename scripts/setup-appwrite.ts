@@ -425,17 +425,19 @@ async function createDatabase() {
 async function createCollection(collection: (typeof collections)[0]) {
   console.log(`\n📁 Creating collection: ${collection.name}...`);
 
+  const permissions = [
+    Permission.read(Role.users()),
+    Permission.create(Role.users()),
+    Permission.update(Role.users()),
+    Permission.delete(Role.users()),
+  ];
+
   try {
     await databases.createCollection(
       config.databaseId,
       collection.id,
       collection.name,
-      [
-        Permission.read(Role.users()),
-        Permission.create(Role.users()),
-        Permission.update(Role.users()),
-        Permission.delete(Role.users()),
-      ],
+      permissions,
     );
     console.log(`✅ Collection "${collection.name}" created`);
   } catch (error: any) {

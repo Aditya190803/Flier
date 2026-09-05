@@ -1,16 +1,8 @@
 export type AttachmentFileType =
-  | "pdf"
-  | "image"
-  | "document"
-  | "spreadsheet"
-  | "presentation"
-  | "other";
+  "pdf" | "image" | "document" | "spreadsheet" | "presentation" | "other";
 
 export type AttachmentSource =
-  | "google-drive"
-  | "onedrive"
-  | "dropbox"
-  | "direct";
+  "google-drive" | "onedrive" | "dropbox" | "direct";
 
 export interface AttachmentMetadata {
   fileName: string;

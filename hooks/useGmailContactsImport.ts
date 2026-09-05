@@ -192,7 +192,9 @@ export function useGmailContactsImport({
       } else {
         toast.warning(
           `${successCount} of ${totalCount} contacts imported, ${failedCount} failed`,
-          { id: toastId },
+          {
+            id: toastId,
+          },
         );
       }
 

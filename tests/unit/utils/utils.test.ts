@@ -2,7 +2,7 @@
  * Unit tests for utility functions
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vite-plus/test";
 
 import { cn } from "@/lib/utils";
 import { isValidEmail } from "@/lib/validation";

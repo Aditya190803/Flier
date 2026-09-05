@@ -3,7 +3,7 @@
  * Tests keyboard navigation, screen reader support, and ARIA landmarks
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* oxlint-disable @typescript-eslint/no-unused-vars */
 import { test, expect } from "@playwright/test";
 
 test.describe("Accessibility Features", () => {

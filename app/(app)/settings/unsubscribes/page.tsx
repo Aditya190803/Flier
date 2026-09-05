@@ -205,7 +205,9 @@ export default function UnsubscribesPage() {
               componentLogger.error(
                 "Error importing",
                 error instanceof Error ? error : undefined,
-                { email },
+                {
+                  email,
+                },
               );
             }
           }

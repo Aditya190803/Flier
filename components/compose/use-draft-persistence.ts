@@ -205,7 +205,7 @@ export function useDraftPersistence({
     };
 
     loadDraft();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   // Handle draft recovery
@@ -224,7 +224,7 @@ export function useDraftPersistence({
     setShowDraftRecoveryDialog(false);
     setPendingDraft(null);
     toast.success("Draft restored!");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const clearDraft = useCallback(() => {
@@ -332,7 +332,7 @@ export function useDraftPersistence({
         clearTimeout(autoSaveTimerRef.current);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [subject, content, recipients, hasUnsavedChanges]);
 
   return {

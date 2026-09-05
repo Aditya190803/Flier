@@ -6,7 +6,7 @@
  */
 import { NextRequest } from "next/server";
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vite-plus/test";
 
 import { POST } from "@/app/api/send-email/route";
 

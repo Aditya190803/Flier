@@ -62,7 +62,7 @@ export function createEditorPasteHandler(getEditor: () => Editor | null) {
     const textData = event.clipboardData?.getData("text/plain") || "";
 
     if (htmlData) {
-      const pasteToken = `__ECHOMAIL_BLANK_LINE_${Date.now()}_${Math.random().toString(36).slice(2)}__`;
+      const pasteToken = `__FLIER_BLANK_LINE_${Date.now()}_${Math.random().toString(36).slice(2)}__`;
       let cleanedHtml = convertEmojisToUnicode(htmlData);
 
       cleanedHtml = cleanedHtml

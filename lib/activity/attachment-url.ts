@@ -7,7 +7,7 @@ export function getAttachmentUrl(attachment: {
   }
 
   if (attachment.fileUrl) {
-    const match = attachment.fileUrl.match(/\/files\/([^\/]+)\//);
+    const match = attachment.fileUrl.match(/\/files\/([^/]+)\//);
     if (match && match[1]) {
       return `/api/appwrite/attachments/${match[1]}`;
     }

@@ -89,7 +89,7 @@ export function useKeyboardShortcuts(customShortcuts?: KeyboardShortcut[]) {
 
   const allShortcuts = useMemo(
     () => [...defaultShortcuts, ...(customShortcuts || [])],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     [customShortcuts],
   );
 

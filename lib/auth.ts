@@ -1,4 +1,5 @@
 import { authLogger } from "./logger";
+import { persistRefreshToken } from "./services/oauth-token-store";
 import { validateToken, trackRefreshTokenUsage } from "./token-security";
 
 import type { NextAuthOptions, User } from "next-auth";
@@ -65,6 +66,19 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
     }
 
     const newRefreshToken = refreshedTokens.refresh_token ?? refreshToken;
+
+    // Keep the offline store in sync when Google rotates the refresh token,
+    // otherwise scheduled sends would keep using a grant that no longer works.
+    if (refreshedTokens.refresh_token) {
+      const email = (token.user as User)?.email;
+      if (email) {
+        await persistRefreshToken({
+          userEmail: email,
+          refreshToken: refreshedTokens.refresh_token,
+          scope: refreshedTokens.scope,
+        });
+      }
+    }
 
     return {
       ...token,
@@ -141,6 +155,18 @@ export const authOptions: NextAuthOptions = {
 
         const now: number = Date.now();
         const expiresAt: number = now + expiresIn * 1000;
+
+        // Store the refresh token server-side so scheduled campaigns can be
+        // sent on the user's behalf after the session cookie is long gone.
+        // Best-effort: never let this block sign-in.
+        if (account.refresh_token && user.email) {
+          await persistRefreshToken({
+            userEmail: user.email,
+            refreshToken: account.refresh_token,
+            scope:
+              typeof account.scope === "string" ? account.scope : undefined,
+          });
+        }
 
         return {
           accessToken: account.access_token,

@@ -3,7 +3,7 @@
  */
 
 import { renderHook, act } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vite-plus/test";
 
 import { usePagination, PAGE_SIZE_OPTIONS } from "@/hooks/usePagination";
 

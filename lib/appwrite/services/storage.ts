@@ -54,9 +54,7 @@ export const storageService = {
     const csrfToken = getCookie(CSRF_TOKEN_NAME);
     const response = await fetch("/api/upload-attachment", {
       method: "POST",
-      headers: {
-        ...(csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {}),
-      },
+      headers: csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {},
       body: formData,
     });
 
