@@ -14,13 +14,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getAttachmentUrl } from "@/lib/activity/attachment-url";
 import { getRecipientsArray } from "@/lib/activity/recipients";
 import type { EmailCampaign } from "@/lib/appwrite";
 import { formatDate } from "@/lib/utils";
 import type { CampaignAnalytics, ClickHeatmapData } from "@/types/activity";
 
 import { CampaignRecipientsSection } from "./campaign-recipients-section";
+
+function getAttachmentUrl(attachment: {
+  fileUrl?: string;
+  appwrite_file_id?: string;
+}) {
+  if (attachment.appwrite_file_id) {
+    return `/api/appwrite/attachments/${attachment.appwrite_file_id}`;
+  }
+  if (attachment.fileUrl) {
+    const match = attachment.fileUrl.match(/\/files\/([^/]+)\//);
+    if (match?.[1]) {
+      return `/api/appwrite/attachments/${match[1]}`;
+    }
+  }
+  return attachment.fileUrl || "#";
+}
 
 interface CampaignDetailsDialogProps {
   selectedCampaign: EmailCampaign | null;

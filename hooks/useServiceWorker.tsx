@@ -1,11 +1,5 @@
 "use client";
 
-/**
- * Service Worker Registration Hook
- *
- * Handles service worker registration and update lifecycle
- */
-
 import { useEffect, useState, useCallback } from "react";
 
 interface ServiceWorkerState {
@@ -23,9 +17,6 @@ interface UseServiceWorkerOptions {
   onError?: (error: Error) => void;
 }
 
-/**
- * Hook for managing service worker registration
- */
 export function useServiceWorker(options: UseServiceWorkerOptions = {}) {
   const [state, setState] = useState<ServiceWorkerState>({
     isSupported: false,
@@ -38,7 +29,6 @@ export function useServiceWorker(options: UseServiceWorkerOptions = {}) {
 
   const { onUpdate, onSuccess, onError } = options;
 
-  // Register service worker
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
       setState((prev) => ({ ...prev, isSupported: false }));
@@ -59,7 +49,6 @@ export function useServiceWorker(options: UseServiceWorkerOptions = {}) {
           registration,
         }));
 
-        // Check for updates
         registration.addEventListener("updatefound", () => {
           const newWorker = registration.installing;
 
@@ -67,11 +56,9 @@ export function useServiceWorker(options: UseServiceWorkerOptions = {}) {
             newWorker.addEventListener("statechange", () => {
               if (newWorker.state === "installed") {
                 if (navigator.serviceWorker.controller) {
-                  // New content available
                   setState((prev) => ({ ...prev, hasUpdate: true }));
                   onUpdate?.();
                 } else {
-                  // Content cached for offline use
                   onSuccess?.();
                 }
               }
@@ -88,7 +75,6 @@ export function useServiceWorker(options: UseServiceWorkerOptions = {}) {
     register();
   }, [onUpdate, onSuccess, onError]);
 
-  // Update service worker
   const update = useCallback(async () => {
     if (!state.registration) {
       return;
@@ -106,7 +92,6 @@ export function useServiceWorker(options: UseServiceWorkerOptions = {}) {
     }
   }, [state.registration]);
 
-  // Skip waiting and reload
   const skipWaiting = useCallback(() => {
     const waiting = state.registration?.waiting;
 
@@ -116,7 +101,6 @@ export function useServiceWorker(options: UseServiceWorkerOptions = {}) {
     }
   }, [state.registration]);
 
-  // Unregister service worker
   const unregister = useCallback(async () => {
     if (!state.registration) {
       return false;
@@ -145,9 +129,6 @@ export function useServiceWorker(options: UseServiceWorkerOptions = {}) {
   };
 }
 
-/**
- * Component to show update notification
- */
 export function ServiceWorkerUpdateNotification() {
   const [showNotification, setShowNotification] = useState(false);
 
