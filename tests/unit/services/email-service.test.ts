@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vite-plus/test";
 
 import * as gmail from "@/lib/gmail";
 import { EmailService } from "@/lib/services/email-service";

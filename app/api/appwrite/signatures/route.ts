@@ -135,7 +135,9 @@ export async function POST(request: NextRequest) {
           config.databaseId,
           config.signaturesCollectionId,
           sig.$id,
-          { is_default: false },
+          {
+            is_default: false,
+          },
         );
       }
     }

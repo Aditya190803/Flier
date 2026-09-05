@@ -3,7 +3,7 @@
  * Tests team management, member invitations, and permissions
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* oxlint-disable @typescript-eslint/no-unused-vars */
 import { test, expect } from "@playwright/test";
 
 test.describe("Team Collaboration", () => {

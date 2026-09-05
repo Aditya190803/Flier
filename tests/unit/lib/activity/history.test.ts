@@ -1,4 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+} from "vite-plus/test";
 
 import { buildHistoryData } from "@/lib/activity/history";
 import type { EmailCampaign } from "@/lib/appwrite";

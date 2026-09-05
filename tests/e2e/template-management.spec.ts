@@ -3,7 +3,7 @@
  * Tests template creation, editing, deletion, and usage
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* oxlint-disable @typescript-eslint/no-unused-vars */
 import { test, expect } from "@playwright/test";
 
 test.describe("Template Management", () => {

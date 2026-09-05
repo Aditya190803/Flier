@@ -119,7 +119,9 @@ export function WebhookList({
                       Last triggered{" "}
                       {formatDistanceToNow(
                         new Date(webhook.last_triggered_at),
-                        { addSuffix: true },
+                        {
+                          addSuffix: true,
+                        },
                       )}
                     </span>
                   )}

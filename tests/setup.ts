@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom";
 import { cleanup } from "@testing-library/react";
 import { JSDOM } from "jsdom";
-import { afterEach, beforeEach, vi, type VitestUtils } from "vitest";
+import { afterEach, beforeEach, vi, type VitestUtils } from "vite-plus/test";
 
 if (
   typeof (vi as { stubEnv?: (key: string, value: string) => void }).stubEnv ===

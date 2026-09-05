@@ -1,8 +1,8 @@
-import bundleAnalyzer from '@next/bundle-analyzer'
+import bundleAnalyzer from "@next/bundle-analyzer";
 
 const withBundleAnalyzer = bundleAnalyzer({
-  enabled: process.env.ANALYZE === 'true',
-})
+  enabled: process.env.ANALYZE === "true",
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -46,89 +46,90 @@ const nextConfig = {
             vendors: false,
             // Create a single vendor chunk
             vendor: {
-              name: 'vendors',
-              chunks: 'all',
+              name: "vendors",
+              chunks: "all",
               test: /[\\/]node_modules[\\/]/,
               priority: 20,
               reuseExistingChunk: true,
             },
             // Create a commons chunk
             common: {
-              name: 'commons',
-              chunks: 'all',
+              name: "commons",
+              chunks: "all",
               minChunks: 2,
               priority: 10,
               reuseExistingChunk: true,
             },
           },
         },
-      }
+      };
     }
-    return config
+    return config;
   },
   // Add headers for CORS and content-type handling
   // SECURITY: Restrict CORS to specific origins in production
   async headers() {
     // Get allowed origins from environment or use defaults
-    const allowedOrigins = process.env.ALLOWED_ORIGINS 
-      ? process.env.ALLOWED_ORIGINS.split(',')
-      : ['http://localhost:3000', 'http://localhost:3001']
-    
+    const allowedOrigins = process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(",")
+      : ["http://localhost:3000", "http://localhost:3001"];
+
     // In production, use the actual domain
-    const origin = process.env.NODE_ENV === 'production' 
-      ? (process.env.NEXT_PUBLIC_APP_URL || 'https://sendflier.tech')
-      : allowedOrigins[0]
+    const origin =
+      process.env.NODE_ENV === "production"
+        ? process.env.NEXT_PUBLIC_APP_URL || "https://sendflier.tech"
+        : allowedOrigins[0];
 
     return [
       {
-        source: '/api/:path*',
+        source: "/api/:path*",
         headers: [
           {
-            key: 'Access-Control-Allow-Origin',
+            key: "Access-Control-Allow-Origin",
             value: origin,
           },
           {
-            key: 'Access-Control-Allow-Methods',
-            value: 'GET, POST, PUT, DELETE, OPTIONS',
+            key: "Access-Control-Allow-Methods",
+            value: "GET, POST, PUT, DELETE, OPTIONS",
           },
           {
-            key: 'Access-Control-Allow-Headers',
-            value: 'Content-Type, Authorization, X-CSRF-Token',
+            key: "Access-Control-Allow-Headers",
+            value: "Content-Type, Authorization, X-CSRF-Token",
           },
           {
-            key: 'Access-Control-Allow-Credentials',
-            value: 'true',
+            key: "Access-Control-Allow-Credentials",
+            value: "true",
           },
           // Security headers
           {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
+            key: "X-Content-Type-Options",
+            value: "nosniff",
           },
           {
-            key: 'X-Frame-Options',
-            value: 'DENY',
+            key: "X-Frame-Options",
+            value: "DENY",
           },
           {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
           },
         ],
       },
       // Additional security headers for all routes
       {
-        source: '/:path*',
+        source: "/:path*",
         headers: [
           {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
+            key: "X-Content-Type-Options",
+            value: "nosniff",
           },
           {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
           },
           // Content Security Policy
           {
-            key: 'Content-Security-Policy',
+            key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://apis.google.com",
@@ -142,23 +143,23 @@ const nextConfig = {
               "form-action 'self'",
               "frame-ancestors 'none'",
               "upgrade-insecure-requests",
-            ].join('; '),
+            ].join("; "),
           },
           // Permissions Policy
           {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
           },
           // Strict Transport Security (HSTS)
           {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains',
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains",
           },
         ],
       },
-    ]
+    ];
   },
   turbopack: {},
-}
+};
 
-export default withBundleAnalyzer(nextConfig)
+export default withBundleAnalyzer(nextConfig);

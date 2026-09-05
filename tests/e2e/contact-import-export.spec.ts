@@ -3,7 +3,7 @@
  * Tests CSV import, Google Contacts import, and export features
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* oxlint-disable @typescript-eslint/no-unused-vars */
 import _path from "path";
 
 import { test, expect } from "@playwright/test";

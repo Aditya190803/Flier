@@ -146,7 +146,7 @@ export default function ContactsPage() {
   // Reset pagination when filters change
   useEffect(() => {
     contactsPagination.reset();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, selectedGroup, selectedTag, contactsPagination.reset]);
 
   useEffect(() => {

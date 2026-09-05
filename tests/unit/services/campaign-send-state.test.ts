@@ -2,7 +2,7 @@
  * Unit tests for chunked campaign send-state persistence
  * (lib/services/campaign-send-state.ts).
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vite-plus/test";
 
 import { databases, config } from "@/lib/appwrite-server";
 import {

@@ -58,7 +58,9 @@ export async function GET(request: NextRequest) {
       apiLogger.error(
         "Error recording click event",
         error instanceof Error ? error : undefined,
-        { campaignId: payload.campaignId },
+        {
+          campaignId: payload.campaignId,
+        },
       );
     }
 

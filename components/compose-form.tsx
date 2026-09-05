@@ -149,7 +149,7 @@ export function ComposeForm() {
     if (pdfColumn) {
       setShowPersonalizedAttachments(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [pdfColumn]);
 
   // Set marketing mode based on A/B testing or content
@@ -357,7 +357,7 @@ export function ComposeForm() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [subject, content, recipients, saveAsDraft]);
 
   // Load templates

@@ -150,7 +150,9 @@ export function useTemplateActions({
         addedCount++;
         toast.loading(
           `Adding templates... (${addedCount}/${templatesToAdd.length})`,
-          { id: toastId },
+          {
+            id: toastId,
+          },
         );
       }
 

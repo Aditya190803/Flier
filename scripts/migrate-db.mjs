@@ -25,10 +25,7 @@ const client = new pg.Client({
 });
 
 try {
-  const schema = await readFile(
-    new URL("../db/schema.sql", import.meta.url),
-    "utf8",
-  );
+  const schema = await readFile(new URL("../db/schema.sql", import.meta.url), "utf8");
   await client.connect();
   await client.query("BEGIN");
   await client.query(schema);

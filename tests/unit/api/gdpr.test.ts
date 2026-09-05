@@ -2,7 +2,7 @@
  * Unit tests for GDPR API routes
  */
 import { getServerSession } from "next-auth";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vite-plus/test";
 
 import { databases, ID } from "@/lib/appwrite-server";
 import {

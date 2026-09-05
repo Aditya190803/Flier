@@ -152,7 +152,7 @@ const EMOJI_PATTERNS = {
   unicodeWithPrefix:
     /<img[^>]*src="[^"]*\/u([0-9a-f]{4,6})\.(?:png|svg|gif)"[^>]*>/gi,
   namedEmoji:
-    /<img[^>]*src="[^"]*emoji[^"]*[/\\]([^"\/\\]+)\.(?:png|svg|gif)"[^>]*>/gi,
+    /<img[^>]*src="[^"]*emoji[^"]*[/\\]([^"/\\]+)\.(?:png|svg|gif)"[^>]*>/gi,
   emojiClassOnly: /<img[^>]*class="[^"]*emoji[^"]*"[^>]*>/gi,
   emojiInTag: /<img[^>]*emoji[^>]*>/gi,
   emojiInSrc: /<img[^>]*src="[^"]*emoji[^"]*"[^>]*>/gi,

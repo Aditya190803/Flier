@@ -870,7 +870,9 @@ export function useEmailSend(): UseEmailSendResult {
               emailSendLogger.error(
                 `Stopping email campaign due to persistent error`,
                 undefined,
-                { error: result.error },
+                {
+                  error: result.error,
+                },
               );
 
               // Mark remaining emails as skipped
@@ -928,7 +930,10 @@ export function useEmailSend(): UseEmailSendResult {
               emailSendLogger.warn(
                 `Email failed but continuing campaign`,
                 undefined,
-                { to: email.to, error: result.error },
+                {
+                  to: email.to,
+                  error: result.error,
+                },
               );
               continue;
             }
@@ -1006,7 +1011,7 @@ export function useEmailSend(): UseEmailSendResult {
         releaseLock();
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     [quotaInfo.estimatedRemaining, updateQuotaUsed, checkTokenStatus],
   );
 

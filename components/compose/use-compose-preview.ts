@@ -18,12 +18,7 @@ interface AttachmentMetadata {
   fileName: string;
   fileSize: number | null;
   fileType:
-    | "pdf"
-    | "image"
-    | "document"
-    | "spreadsheet"
-    | "presentation"
-    | "other";
+    "pdf" | "image" | "document" | "spreadsheet" | "presentation" | "other";
   contentType?: string;
   source: "google-drive" | "onedrive" | "dropbox" | "direct";
   accessible: boolean;
@@ -65,7 +60,9 @@ export function useComposePreview({
   const [showClientPreview, setShowClientPreview] = useState(false);
 
   const [personalizedAttachmentMetadata, setPersonalizedAttachmentMetadata] =
-    useState<{ [email: string]: AttachmentMetadata | null }>({});
+    useState<{
+      [email: string]: AttachmentMetadata | null;
+    }>({});
   const [_isLoadingAttachmentMetadata, setIsLoadingAttachmentMetadata] =
     useState(false);
   const [showAttachmentPreview, setShowAttachmentPreview] = useState(false);
@@ -97,7 +94,7 @@ export function useComposePreview({
       ...(contact?.company ? { company: contact.company } : {}),
       ...(contact?.phone ? { phone: contact.phone } : {}),
       ...(contact?.tags?.length ? { tags: contact.tags.join(", ") } : {}),
-      ...(contact?.customFields || {}),
+      ...contact?.customFields,
       ...(manualEntry?.name ? { name: manualEntry.name } : {}),
       ...csvRow,
     };
@@ -143,7 +140,7 @@ export function useComposePreview({
     };
 
     loadFormattedPreview();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [
     activeTab,
     previewRecipientIndex,
@@ -212,7 +209,7 @@ export function useComposePreview({
     };
 
     fetchAttachmentMetadata();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, previewRecipientIndex, pdfColumn, recipients]);
 
   return {

@@ -126,8 +126,7 @@ export async function POST(request: NextRequest) {
       ],
     );
     const requesterMembership = userMembership.documents[0] as unknown as
-      | TeamMembershipDocument
-      | undefined;
+      TeamMembershipDocument | undefined;
 
     if (
       !requesterMembership ||
@@ -264,8 +263,7 @@ export async function PUT(request: NextRequest) {
       ],
     );
     const requesterMembership = userMembership.documents[0] as unknown as
-      | TeamMembershipDocument
-      | undefined;
+      TeamMembershipDocument | undefined;
 
     if (
       !requesterMembership ||

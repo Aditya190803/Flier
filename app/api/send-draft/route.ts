@@ -124,7 +124,9 @@ export async function POST(request: NextRequest) {
       config.databaseId,
       config.draftEmailsCollectionId,
       draftId,
-      { status: "sending" },
+      {
+        status: "sending",
+      },
     );
 
     const results: { email: string; status: string; error?: string }[] = [];
@@ -157,7 +159,10 @@ export async function POST(request: NextRequest) {
           config.databaseId,
           config.draftEmailsCollectionId,
           draftId,
-          { status: "pending", error: "Failed to process attachments" },
+          {
+            status: "pending",
+            error: "Failed to process attachments",
+          },
         );
         return NextResponse.json(
           {
@@ -228,7 +233,10 @@ export async function POST(request: NextRequest) {
           config.databaseId,
           config.draftEmailsCollectionId,
           draftId,
-          { status: "pending", error: "Failed to build email template" },
+          {
+            status: "pending",
+            error: "Failed to build email template",
+          },
         );
         return NextResponse.json(
           {

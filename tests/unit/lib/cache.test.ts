@@ -5,7 +5,14 @@
  * functions (getOrSet, cached, invalidatePattern, key prefixing).
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+} from "vite-plus/test";
 
 const { mockRedisInstance, RedisCtor } = vi.hoisted(() => {
   const instance = {

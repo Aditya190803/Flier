@@ -168,7 +168,12 @@ export async function persistCampaignSendState(
         config.databaseId,
         config.campaignsCollectionId,
         input.docId,
-        { sent, failed, status, send_results },
+        {
+          sent,
+          failed,
+          status,
+          send_results,
+        },
       );
     } else {
       await databases.createDocument(

@@ -2,7 +2,7 @@
  * Unit tests for Send Email API route
  */
 import { getServerSession } from "next-auth";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vite-plus/test";
 
 import { fetchFileFromUrl } from "@/lib/attachment-fetcher";
 import { sendEmailViaAPI, replacePlaceholders } from "@/lib/gmail";

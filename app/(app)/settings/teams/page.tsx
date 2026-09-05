@@ -254,9 +254,7 @@ export default function TeamsPage() {
       const csrfToken = getCookie(CSRF_TOKEN_NAME);
       const response = await fetch(`/api/teams/members?id=${memberId}`, {
         method: "DELETE",
-        headers: {
-          ...(csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {}),
-        },
+        headers: csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {},
       });
 
       if (!response.ok) {
@@ -276,9 +274,7 @@ export default function TeamsPage() {
       const csrfToken = getCookie(CSRF_TOKEN_NAME);
       const response = await fetch(`/api/teams?id=${teamId}`, {
         method: "DELETE",
-        headers: {
-          ...(csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {}),
-        },
+        headers: csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {},
       });
 
       if (!response.ok) {
