@@ -18,7 +18,7 @@
     "test:e2e:headed": "playwright test --headed",
     "appwrite:setup": "tsx scripts/setup-appwrite.ts",
     "prepare": "husky",
-    "validate": "npm run typecheck && npm run lint && npm run test",
+    "validate": "pnpm run typecheck && pnpm run lint && pnpm run test",
     "db:migrate": "node scripts/migrate-db.mjs",
     "scheduled:clock": "tsx scripts/scheduled-clock.ts"
   },
