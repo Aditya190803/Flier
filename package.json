@@ -1,5 +1,5 @@
 {
-  "name": "echomail",
+  "name": "flier",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,12 +7,12 @@
     "build": "next build",
     "build:analyze": "ANALYZE=true next build",
     "start": "next start",
-    "lint": "eslint . --config eslint.config.mjs",
-    "lint:fix": "eslint . --config eslint.config.mjs --fix",
+    "lint": "vp lint . --config eslint.config.mjs",
+    "lint:fix": "vp lint . --config eslint.config.mjs --fix",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage",
+    "test": "vp test run",
+    "test:ui": "vp test --ui",
+    "test:coverage": "vp test run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
@@ -133,9 +133,7 @@
     "@types/sanitize-html": "^2.16.1",
     "@types/swagger-ui-react": "^5.18.0",
     "@vitejs/plugin-react": "^5.1.1",
-    "@vitest/coverage-v8": "4.0.14",
-    "eslint": "^9",
-    "eslint-config-next": "^16",
+    "@vitest/coverage-v8": "catalog:",
     "husky": "^9.1.7",
     "jsdom": "^27.2.0",
     "lint-staged": "^16.2.7",
@@ -144,10 +142,13 @@
     "storybook": "^10.5.2",
     "tailwindcss": "^4.2.2",
     "typescript": "^5",
-    "vitest": "^4.0.14"
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": "24.x",
     "npm": "11.x"
-  }
+  },
+  "packageManager": "pnpm@10.33.0"
 }
