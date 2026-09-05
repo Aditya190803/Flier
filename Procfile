@@ -1,2 +1,2 @@
-release: npm run db:migrate
-web: npm start
+release: node scripts/migrate-db.mjs
+web: node_modules/.bin/next start
