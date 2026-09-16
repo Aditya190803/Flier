@@ -14,12 +14,15 @@ export default function AuthError() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [errorDescription, setErrorDescription] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Get error from URL params
-    const errorParam = searchParams.get("error");
-    setError(errorParam);
+    setError(searchParams.get("error"));
+    // Google appends extra detail here (e.g. access_denied). NextAuth
+    // forwards it as error_description.
+    setErrorDescription(searchParams.get("error_description"));
     setIsLoading(false);
   }, [searchParams]);
 
@@ -34,7 +37,7 @@ export default function AuthError() {
       case "OAuthSignin":
         return "Error in constructing an authorization URL.";
       case "OAuthCallback":
-        return "Error in handling the response from an OAuth provider.";
+        return "Google rejected the sign-in attempt. This usually means the OAuth app is still in Testing mode or the redirect URI is not registered.";
       case "OAuthCreateAccount":
         return "Could not create OAuth provider user in the database.";
       case "EmailCreateAccount":
@@ -67,9 +70,10 @@ export default function AuthError() {
       case "Verification":
         return "Please try the sign-in process again.";
       case "OAuthSignin":
-      case "OAuthCallback":
       case "OAuthCreateAccount":
         return "There may be an issue with the OAuth configuration. Please check your Google OAuth settings.";
+      case "OAuthCallback":
+        return "If you own the app: publish the Google OAuth consent screen to Production (or add the user under Test users) and make sure https://sendflier.tech/api/auth/callback/google is registered as an authorized redirect URI. Then try again.";
       case "OAuthAccountNotLinked":
         return "Try signing in with a different method or contact support to link your accounts.";
       default:
@@ -79,7 +83,7 @@ export default function AuthError() {
 
   const handleRetry = () => {
     setIsLoading(true);
-    router.push("/");
+    router.push("/auth/signin");
   };
 
   if (isLoading) {
@@ -118,14 +122,21 @@ export default function AuthError() {
             </p>
           </div>
 
-          {error && (
-            <div className="bg-muted p-4 rounded-lg">
+          {(error || errorDescription) && (
+            <div className="bg-muted p-4 rounded-lg space-y-2">
               <p className="text-xs text-muted-foreground mb-2 font-medium">
                 Error Details:
               </p>
-              <code className="text-sm font-mono text-destructive bg-destructive/10 p-2 rounded block">
-                {error}
-              </code>
+              {error && (
+                <code className="text-sm font-mono text-destructive bg-destructive/10 p-2 rounded block">
+                  {error}
+                </code>
+              )}
+              {errorDescription && (
+                <code className="text-xs font-mono text-muted-foreground bg-background p-2 rounded block break-all">
+                  {errorDescription}
+                </code>
+              )}
             </div>
           )}
 

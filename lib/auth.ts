@@ -209,4 +209,19 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: false, // Disable debug to prevent verbose logging
+  // Log the real OAuth error server-side so `OAuthCallback` in the UI can
+  // be traced in production logs (Google only sends the detail here).
+  logger: {
+    error(code, metadata) {
+      authLogger.error(`NextAuth error: ${code}`, {
+        error:
+          metadata instanceof Error
+            ? metadata.message
+            : JSON.stringify(metadata)?.slice(0, 2000),
+      });
+    },
+    warn(code) {
+      authLogger.warn(`NextAuth warning: ${code}`);
+    },
+  },
 };

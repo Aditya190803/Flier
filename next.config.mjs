@@ -66,6 +66,31 @@ const nextConfig = {
     }
     return config;
   },
+  // Canonicalize auth hosts: NextAuth's PKCE/state cookies are host-only,
+  // so a login started on www.sendflier.tech dies at the callback on
+  // sendflier.tech with "State cookie was missing". Force everything
+  // onto the apex (which matches NEXTAUTH_URL) before auth starts.
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.sendflier.tech" }],
+        destination: "https://sendflier.tech/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "sendflier-971560a20530.herokuapp.com",
+          },
+        ],
+        destination: "https://sendflier.tech/:path*",
+        permanent: true,
+      },
+    ];
+  },
   // Add headers for CORS and content-type handling
   // SECURITY: Restrict CORS to specific origins in production
   async headers() {
