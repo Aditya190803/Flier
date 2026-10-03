@@ -14,10 +14,7 @@ import { generateWebhookSecret } from "@/components/webhooks/event-types";
 import { useWebhooks } from "@/hooks/useWebhooks";
 import { type Webhook as WebhookType } from "@/lib/appwrite";
 
-import {
-  CreateWebhookDialog,
-  type NewWebhookState,
-} from "./_components/create-webhook-dialog";
+import { CreateWebhookDialog, type NewWebhookState } from "./_components/create-webhook-dialog";
 import { EditWebhookDialog } from "./_components/edit-webhook-dialog";
 import { WebhookDocsSection } from "./_components/webhook-docs-section";
 import { WebhookList } from "./_components/webhook-list";
@@ -35,9 +32,7 @@ export default function WebhooksPage() {
   } = useWebhooks(session?.user?.email ?? undefined);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [editingWebhook, setEditingWebhook] = useState<WebhookType | null>(
-    null,
-  );
+  const [editingWebhook, setEditingWebhook] = useState<WebhookType | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [newWebhook, setNewWebhook] = useState<NewWebhookState>({
     name: "",
@@ -57,11 +52,7 @@ export default function WebhooksPage() {
   }, [status, router]);
 
   const createWebhook = async () => {
-    if (
-      !newWebhook.name.trim() ||
-      !newWebhook.url.trim() ||
-      newWebhook.events.length === 0
-    ) {
+    if (!newWebhook.name.trim() || !newWebhook.url.trim() || newWebhook.events.length === 0) {
       return;
     }
     try {

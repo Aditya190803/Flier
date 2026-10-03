@@ -13,12 +13,7 @@
  * @module crypto/secret-box
  */
 
-import {
-  createCipheriv,
-  createDecipheriv,
-  randomBytes,
-  scryptSync,
-} from "node:crypto";
+import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "node:crypto";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12;
@@ -84,9 +79,7 @@ function getKey(): Buffer {
 
   const fallback = process.env.NEXTAUTH_SECRET;
   if (!fallback) {
-    throw new Error(
-      "Cannot encrypt secrets: set TOKEN_ENCRYPTION_KEY or NEXTAUTH_SECRET",
-    );
+    throw new Error("Cannot encrypt secrets: set TOKEN_ENCRYPTION_KEY or NEXTAUTH_SECRET");
   }
 
   cachedKey = scryptSync(fallback, KEY_DERIVATION_SALT, KEY_LENGTH);
@@ -111,10 +104,7 @@ export function encryptSecret(plaintext: string): string {
 
   const iv = randomBytes(IV_LENGTH);
   const cipher = createCipheriv(ALGORITHM, getKey(), iv);
-  const ciphertext = Buffer.concat([
-    cipher.update(plaintext, "utf8"),
-    cipher.final(),
-  ]);
+  const ciphertext = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
   const tag = cipher.getAuthTag();
 
   return [
@@ -154,10 +144,7 @@ export function decryptSecret(payload: string): string | null {
     const decipher = createDecipheriv(ALGORITHM, getKey(), iv);
     decipher.setAuthTag(tag);
 
-    return Buffer.concat([
-      decipher.update(ciphertext),
-      decipher.final(),
-    ]).toString("utf8");
+    return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString("utf8");
   } catch {
     // Auth tag mismatch (tampering / wrong key) or malformed input.
     return null;

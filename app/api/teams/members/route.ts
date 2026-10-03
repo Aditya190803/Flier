@@ -4,11 +4,7 @@ import { NextResponse } from "next/server";
 import { isAuthed, requireSession } from "@/lib/api-auth";
 import { databases, config, Query, ID } from "@/lib/appwrite-server";
 import { apiLogger } from "@/lib/logger";
-import {
-  inviteTeamMemberSchema,
-  updateTeamMemberSchema,
-  validate,
-} from "@/lib/validation";
+import { inviteTeamMemberSchema, updateTeamMemberSchema, validate } from "@/lib/validation";
 import type { TeamDocument, TeamMembershipDocument } from "@/types/appwrite";
 
 function errorMessage(error: unknown): string {
@@ -24,20 +20,14 @@ export async function GET(request: NextRequest) {
     }
 
     if (!config.teamsCollectionId || !config.teamMembersCollectionId) {
-      return NextResponse.json(
-        { error: "Teams feature not configured" },
-        { status: 503 },
-      );
+      return NextResponse.json({ error: "Teams feature not configured" }, { status: 503 });
     }
 
     const { searchParams } = new URL(request.url);
     const teamId = searchParams.get("team_id");
 
     if (!teamId) {
-      return NextResponse.json(
-        { error: "Team ID is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Team ID is required" }, { status: 400 });
     }
 
     // Check if user is a member of this team
@@ -53,35 +43,23 @@ export async function GET(request: NextRequest) {
     );
 
     if (userMembership.documents.length === 0) {
-      return NextResponse.json(
-        { error: "You are not a member of this team" },
-        { status: 403 },
-      );
+      return NextResponse.json({ error: "You are not a member of this team" }, { status: 403 });
     }
 
     // Get all members
     const members = await databases.listDocuments(
       config.databaseId,
       config.teamMembersCollectionId,
-      [
-        Query.equal("team_id", teamId),
-        Query.orderDesc("$createdAt"),
-        Query.limit(100),
-      ],
+      [Query.equal("team_id", teamId), Query.orderDesc("$createdAt"), Query.limit(100)],
     );
 
     return NextResponse.json({
       total: members.total,
       documents: members.documents,
-      current_user_role: (
-        userMembership.documents[0] as unknown as TeamMembershipDocument
-      ).role,
+      current_user_role: (userMembership.documents[0] as unknown as TeamMembershipDocument).role,
     });
   } catch (error) {
-    apiLogger.error(
-      "Error fetching team members",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error fetching team members", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: errorMessage(error) || "Failed to fetch team members" },
       { status: 500 },
@@ -98,19 +76,13 @@ export async function POST(request: NextRequest) {
     }
 
     if (!config.teamsCollectionId || !config.teamMembersCollectionId) {
-      return NextResponse.json(
-        { error: "Teams feature not configured" },
-        { status: 503 },
-      );
+      return NextResponse.json({ error: "Teams feature not configured" }, { status: 503 });
     }
 
     const body = await request.json();
     const parsed = validate(inviteTeamMemberSchema, body);
     if (!parsed.success || !parsed.data) {
-      return NextResponse.json(
-        { error: parsed.message || "Invalid request" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: parsed.message || "Invalid request" }, { status: 400 });
     }
     const { team_id, email, role } = parsed.data;
 
@@ -126,12 +98,10 @@ export async function POST(request: NextRequest) {
       ],
     );
     const requesterMembership = userMembership.documents[0] as unknown as
-      TeamMembershipDocument | undefined;
+      | TeamMembershipDocument
+      | undefined;
 
-    if (
-      !requesterMembership ||
-      !["owner", "admin"].includes(requesterMembership.role)
-    ) {
+    if (!requesterMembership || !["owner", "admin"].includes(requesterMembership.role)) {
       return NextResponse.json(
         { error: "You don't have permission to invite members" },
         { status: 403 },
@@ -208,10 +178,7 @@ export async function POST(request: NextRequest) {
           : "Member added successfully.",
     });
   } catch (error) {
-    apiLogger.error(
-      "Error inviting team member",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error inviting team member", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: errorMessage(error) || "Failed to invite team member" },
       { status: 500 },
@@ -228,19 +195,13 @@ export async function PUT(request: NextRequest) {
     }
 
     if (!config.teamMembersCollectionId) {
-      return NextResponse.json(
-        { error: "Teams feature not configured" },
-        { status: 503 },
-      );
+      return NextResponse.json({ error: "Teams feature not configured" }, { status: 503 });
     }
 
     const body = await request.json();
     const parsed = validate(updateTeamMemberSchema, body);
     if (!parsed.success || !parsed.data) {
-      return NextResponse.json(
-        { error: parsed.message || "Invalid request" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: parsed.message || "Invalid request" }, { status: 400 });
     }
     const { member_id, role, status } = parsed.data;
 
@@ -263,12 +224,10 @@ export async function PUT(request: NextRequest) {
       ],
     );
     const requesterMembership = userMembership.documents[0] as unknown as
-      TeamMembershipDocument | undefined;
+      | TeamMembershipDocument
+      | undefined;
 
-    if (
-      !requesterMembership ||
-      !["owner", "admin"].includes(requesterMembership.role)
-    ) {
+    if (!requesterMembership || !["owner", "admin"].includes(requesterMembership.role)) {
       return NextResponse.json(
         { error: "You don't have permission to update members" },
         { status: 403 },
@@ -277,18 +236,12 @@ export async function PUT(request: NextRequest) {
 
     // Prevent changing owner role
     if (member.role === "owner") {
-      return NextResponse.json(
-        { error: "Cannot change the owner's role" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Cannot change the owner's role" }, { status: 400 });
     }
 
     // Admins can't change other admins
     if (requesterMembership.role === "admin" && member.role === "admin") {
-      return NextResponse.json(
-        { error: "Admins cannot modify other admins" },
-        { status: 403 },
-      );
+      return NextResponse.json({ error: "Admins cannot modify other admins" }, { status: 403 });
     }
 
     const updateData: Partial<TeamMembershipDocument> = {};
@@ -337,10 +290,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(updated);
   } catch (error) {
-    apiLogger.error(
-      "Error updating team member",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error updating team member", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: errorMessage(error) || "Failed to update team member" },
       { status: 500 },
@@ -357,20 +307,14 @@ export async function DELETE(request: NextRequest) {
     }
 
     if (!config.teamMembersCollectionId) {
-      return NextResponse.json(
-        { error: "Teams feature not configured" },
-        { status: 503 },
-      );
+      return NextResponse.json({ error: "Teams feature not configured" }, { status: 503 });
     }
 
     const { searchParams } = new URL(request.url);
     const memberId = searchParams.get("id");
 
     if (!memberId) {
-      return NextResponse.json(
-        { error: "Member ID is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Member ID is required" }, { status: 400 });
     }
 
     // Get the member document
@@ -394,15 +338,12 @@ export async function DELETE(request: NextRequest) {
 
     const userRole: string | null =
       userMembership.documents.length > 0
-        ? (userMembership.documents[0] as unknown as TeamMembershipDocument)
-            .role
+        ? (userMembership.documents[0] as unknown as TeamMembershipDocument).role
         : null;
 
     // Allow self-removal (leaving the team) or admin/owner removal
     const isSelfRemoval = member.user_email === auth.email;
-    const canRemoveOthers = userRole
-      ? ["owner", "admin"].includes(userRole)
-      : false;
+    const canRemoveOthers = userRole ? ["owner", "admin"].includes(userRole) : false;
 
     if (!isSelfRemoval && !canRemoveOthers) {
       return NextResponse.json(
@@ -423,17 +364,10 @@ export async function DELETE(request: NextRequest) {
 
     // Admins can't remove other admins
     if (userRole === "admin" && member.role === "admin" && !isSelfRemoval) {
-      return NextResponse.json(
-        { error: "Admins cannot remove other admins" },
-        { status: 403 },
-      );
+      return NextResponse.json({ error: "Admins cannot remove other admins" }, { status: 403 });
     }
 
-    await databases.deleteDocument(
-      config.databaseId,
-      config.teamMembersCollectionId,
-      memberId,
-    );
+    await databases.deleteDocument(config.databaseId, config.teamMembersCollectionId, memberId);
 
     // Log the action
     if (config.auditLogsCollectionId) {
@@ -463,10 +397,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    apiLogger.error(
-      "Error removing team member",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error removing team member", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: errorMessage(error) || "Failed to remove team member" },
       { status: 500 },

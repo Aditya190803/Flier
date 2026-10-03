@@ -38,10 +38,7 @@ export async function POST(request: NextRequest) {
 
     // Verify ownership
     if ((doc as any).user_email !== auth.email) {
-      return NextResponse.json(
-        { error: "Not authorized to send this draft" },
-        { status: 403 },
-      );
+      return NextResponse.json({ error: "Not authorized to send this draft" }, { status: 403 });
     }
 
     // Check if already sent or cancelled
@@ -73,25 +70,19 @@ export async function POST(request: NextRequest) {
             ? JSON.parse((doc as any).csv_data)
             : (doc as any).csv_data;
       } catch (e) {
-        apiLogger.error(
-          "Error parsing csv_data",
-          e instanceof Error ? e : undefined,
-        );
+        apiLogger.error("Error parsing csv_data", e instanceof Error ? e : undefined);
       }
     }
 
     // Check if we have personalization (placeholders in subject or content)
     const hasPlaceholders =
-      /\{\{?\w+\}?\}/.test((doc as any).subject) ||
-      /\{\{?\w+\}?\}/.test((doc as any).content);
+      /\{\{?\w+\}?\}/.test((doc as any).subject) || /\{\{?\w+\}?\}/.test((doc as any).content);
 
     // Drafts store both lists in attribute `cc` as {"cc":[],"bcc":[]} (Appwrite attr limit)
     const parseCcBcc = (value: unknown): { cc: string[]; bcc: string[] } => {
       const asStrings = (v: unknown) =>
         Array.isArray(v)
-          ? v.filter(
-              (x): x is string => typeof x === "string" && x.trim().length > 0,
-            )
+          ? v.filter((x): x is string => typeof x === "string" && x.trim().length > 0)
           : [];
       if (!value) {
         return { cc: [], bcc: [] };
@@ -120,14 +111,9 @@ export async function POST(request: NextRequest) {
     const { cc: ccList, bcc: bccList } = parseCcBcc((doc as any).cc);
 
     // Update status to sending
-    await databases.updateDocument(
-      config.databaseId,
-      config.draftEmailsCollectionId,
-      draftId,
-      {
-        status: "sending",
-      },
-    );
+    await databases.updateDocument(config.databaseId, config.draftEmailsCollectionId, draftId, {
+      status: "sending",
+    });
 
     const results: { email: string; status: string; error?: string }[] = [];
     let successCount = 0;
@@ -155,15 +141,10 @@ export async function POST(request: NextRequest) {
           error instanceof Error ? error : undefined,
         );
         // Update status back to pending so user can retry
-        await databases.updateDocument(
-          config.databaseId,
-          config.draftEmailsCollectionId,
-          draftId,
-          {
-            status: "pending",
-            error: "Failed to process attachments",
-          },
-        );
+        await databases.updateDocument(config.databaseId, config.draftEmailsCollectionId, draftId, {
+          status: "pending",
+          error: "Failed to process attachments",
+        });
         return NextResponse.json(
           {
             error: "Failed to process attachments",
@@ -209,8 +190,7 @@ export async function POST(request: NextRequest) {
               to: recipientEmail,
             });
           } catch (error) {
-            const errorMessage =
-              error instanceof Error ? error.message : "Unknown error";
+            const errorMessage = error instanceof Error ? error.message : "Unknown error";
             results.push({
               email: recipientEmail,
               status: "error",
@@ -229,15 +209,10 @@ export async function POST(request: NextRequest) {
           "Failed to build email template",
           error instanceof Error ? error : undefined,
         );
-        await databases.updateDocument(
-          config.databaseId,
-          config.draftEmailsCollectionId,
-          draftId,
-          {
-            status: "pending",
-            error: "Failed to build email template",
-          },
-        );
+        await databases.updateDocument(config.databaseId, config.draftEmailsCollectionId, draftId, {
+          status: "pending",
+          error: "Failed to build email template",
+        });
         return NextResponse.json(
           {
             error: "Failed to build email template",
@@ -273,14 +248,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Personalize subject and content
-        const personalizedSubject = replacePlaceholders(
-          (doc as any).subject,
-          recipientData,
-        );
-        const personalizedContent = replacePlaceholders(
-          (doc as any).content,
-          recipientData,
-        );
+        const personalizedSubject = replacePlaceholders((doc as any).subject, recipientData);
+        const personalizedContent = replacePlaceholders((doc as any).content, recipientData);
 
         try {
           await sendEmailViaAPI(
@@ -299,8 +268,7 @@ export async function POST(request: NextRequest) {
           results.push({ email: recipientEmail, status: "success" });
           successCount++;
         } catch (error) {
-          const errorMessage =
-            error instanceof Error ? error.message : "Unknown error";
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
           results.push({
             email: recipientEmail,
             status: "error",
@@ -318,19 +286,11 @@ export async function POST(request: NextRequest) {
 
     // Update final status
     const finalStatus = failedCount === recipients.length ? "failed" : "sent";
-    await databases.updateDocument(
-      config.databaseId,
-      config.draftEmailsCollectionId,
-      draftId,
-      {
-        status: finalStatus,
-        sent_at: new Date().toISOString(),
-        error:
-          failedCount > 0
-            ? `${failedCount} of ${recipients.length} emails failed`
-            : null,
-      },
-    );
+    await databases.updateDocument(config.databaseId, config.draftEmailsCollectionId, draftId, {
+      status: finalStatus,
+      sent_at: new Date().toISOString(),
+      error: failedCount > 0 ? `${failedCount} of ${recipients.length} emails failed` : null,
+    });
 
     // Clear attachment cache after sending
     clearAttachmentCache();
@@ -365,13 +325,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    apiLogger.error(
-      "Send draft error",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Failed to send draft" },
-      { status: 500 },
-    );
+    apiLogger.error("Send draft error", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Failed to send draft" }, { status: 500 });
   }
 }

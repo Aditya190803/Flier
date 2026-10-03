@@ -15,10 +15,7 @@ export const maxDuration = 60;
 export async function POST(request: NextRequest) {
   try {
     // Apply rate limiting
-    const rateLimitResponse = await rateLimitAsync(
-      request,
-      RATE_LIMITS.sendEmail,
-    );
+    const rateLimitResponse = await rateLimitAsync(request, RATE_LIMITS.sendEmail);
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
@@ -31,10 +28,7 @@ export async function POST(request: NextRequest) {
     const data = await request.json();
     const parsed = validate(sendSingleEmailSchema, data);
     if (!parsed.success || !parsed.data) {
-      return NextResponse.json(
-        { error: parsed.message || "Invalid request" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: parsed.message || "Invalid request" }, { status: 400 });
     }
 
     const {
@@ -47,8 +41,7 @@ export async function POST(request: NextRequest) {
       cc,
       bcc,
     } = parsed.data;
-    const campaignId =
-      typeof data.campaignId === "string" ? data.campaignId : undefined;
+    const campaignId = typeof data.campaignId === "string" ? data.campaignId : undefined;
     const trackingEnabled = data.trackingEnabled !== false;
     const isTransactional = data.isTransactional === true;
 
@@ -103,13 +96,7 @@ export async function POST(request: NextRequest) {
       messageId: result.messageId,
     });
   } catch (error) {
-    apiLogger.error(
-      "Send single email API error",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Failed to process email request" },
-      { status: 500 },
-    );
+    apiLogger.error("Send single email API error", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Failed to process email request" }, { status: 500 });
   }
 }

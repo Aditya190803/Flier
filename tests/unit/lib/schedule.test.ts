@@ -1,11 +1,4 @@
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vite-plus/test";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { MIN_SCHEDULE_LEAD_MS } from "@/lib/constants";
 import {
@@ -33,9 +26,7 @@ describe("schedule helpers", () => {
     });
 
     it("zero-pads single-digit components", () => {
-      expect(toDateTimeLocalValue(new Date(2026, 8, 3, 4, 5))).toBe(
-        "2026-09-03T04:05",
-      );
+      expect(toDateTimeLocalValue(new Date(2026, 8, 3, 4, 5))).toBe("2026-09-03T04:05");
     });
 
     it("round-trips through parseDateTimeLocal", () => {
@@ -69,9 +60,7 @@ describe("schedule helpers", () => {
 
     it("rejects a time inside the minimum lead window", () => {
       const tooSoon = new Date(Date.now() + MIN_SCHEDULE_LEAD_MS / 2);
-      expect(validateScheduleValue(toDateTimeLocalValue(tooSoon)).valid).toBe(
-        false,
-      );
+      expect(validateScheduleValue(toDateTimeLocalValue(tooSoon)).valid).toBe(false);
     });
 
     it("rejects a time beyond the one-year horizon", () => {
@@ -92,10 +81,9 @@ describe("schedule helpers", () => {
     it("all resolve to valid future times", () => {
       for (const preset of SCHEDULE_PRESETS) {
         const value = toDateTimeLocalValue(preset.getDate());
-        expect(
-          validateScheduleValue(value),
-          `${preset.label} should be schedulable`,
-        ).toMatchObject({ valid: true });
+        expect(validateScheduleValue(value), `${preset.label} should be schedulable`).toMatchObject(
+          { valid: true },
+        );
       }
     });
 

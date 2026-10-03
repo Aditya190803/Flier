@@ -41,10 +41,7 @@ function formatFileSize(bytes: number): string {
   const normalizedBytes = Math.abs(bytes);
   const k = 1024;
   const sizes = ["B", "KB", "MB", "GB", "TB", "PB"];
-  const i = Math.min(
-    Math.floor(Math.log(normalizedBytes) / Math.log(k)),
-    sizes.length - 1,
-  );
+  const i = Math.min(Math.floor(Math.log(normalizedBytes) / Math.log(k)), sizes.length - 1);
   const value = normalizedBytes / Math.pow(k, i);
   const prefix = bytes < 0 ? "-" : "";
   return `${prefix}${parseFloat(value.toFixed(1))} ${sizes[i]}`;
@@ -84,9 +81,7 @@ export function AttachmentPreviewDialog({
                 return metadata ? (
                   <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
                     <div className="p-2 bg-primary/10 rounded-lg">
-                      {metadata.fileType === "pdf" && (
-                        <FileText className="h-8 w-8 text-red-500" />
-                      )}
+                      {metadata.fileType === "pdf" && <FileText className="h-8 w-8 text-red-500" />}
                       {metadata.fileType === "image" && (
                         <ImageIcon className="h-8 w-8 text-green-500" />
                       )}
@@ -112,13 +107,12 @@ export function AttachmentPreviewDialog({
                           {metadata.source === "dropbox" && "Dropbox"}
                           {metadata.source === "direct" && "Direct Link"}
                         </span>
-                        {metadata.fileSize !== null &&
-                          metadata.fileSize !== undefined && (
-                            <>
-                              <span>•</span>
-                              <span>{formatFileSize(metadata.fileSize)}</span>
-                            </>
-                          )}
+                        {metadata.fileSize !== null && metadata.fileSize !== undefined && (
+                          <>
+                            <span>•</span>
+                            <span>{formatFileSize(metadata.fileSize)}</span>
+                          </>
+                        )}
                         {metadata.accessible && (
                           <>
                             <span>•</span>
@@ -133,9 +127,7 @@ export function AttachmentPreviewDialog({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() =>
-                        window.open(previewAttachmentUrl, "_blank")
-                      }
+                      onClick={() => window.open(previewAttachmentUrl, "_blank")}
                     >
                       <Eye className="h-4 w-4 mr-2" />
                       Open in New Tab
@@ -155,9 +147,7 @@ export function AttachmentPreviewDialog({
                       sandbox="allow-scripts"
                     />
                   </div>
-                ) : previewAttachmentUrl.match(
-                    /\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i,
-                  ) ? (
+                ) : previewAttachmentUrl.match(/\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i) ? (
                   <div className="flex items-center justify-center p-8 max-h-[60vh] overflow-auto">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -166,9 +156,7 @@ export function AttachmentPreviewDialog({
                       className="max-w-full max-h-full object-contain"
                       onError={(e) => {
                         e.currentTarget.style.display = "none";
-                        e.currentTarget.nextElementSibling?.classList.remove(
-                          "hidden",
-                        );
+                        e.currentTarget.nextElementSibling?.classList.remove("hidden");
                       }}
                     />
                     <div className="hidden text-center text-muted-foreground">
@@ -191,18 +179,13 @@ export function AttachmentPreviewDialog({
                     <div className="p-4 bg-muted rounded-full mb-4">
                       <Paperclip className="h-12 w-12 text-muted-foreground" />
                     </div>
-                    <p className="text-lg font-medium mb-2">
-                      Preview Not Available
-                    </p>
+                    <p className="text-lg font-medium mb-2">Preview Not Available</p>
                     <p className="text-sm text-muted-foreground mb-4">
-                      This file type cannot be previewed directly in the
-                      browser.
+                      This file type cannot be previewed directly in the browser.
                     </p>
                     <Button
                       variant="default"
-                      onClick={() =>
-                        window.open(previewAttachmentUrl, "_blank")
-                      }
+                      onClick={() => window.open(previewAttachmentUrl, "_blank")}
                     >
                       <Eye className="h-4 w-4 mr-2" />
                       Open in New Tab to View

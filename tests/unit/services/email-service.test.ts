@@ -74,9 +74,8 @@ const { verifyEmailLikeReal } = vi.hoisted(() => {
 // Mock dependencies
 vi.mock("@/lib/gmail", () => ({
   sendEmailViaAPI: vi.fn(),
-  replacePlaceholders: vi.fn(
-    (text: string, data: Record<string, string> = {}) =>
-      text.replace(/{{(.*?)}}/g, (match, key) => data[key.trim()] ?? match),
+  replacePlaceholders: vi.fn((text: string, data: Record<string, string> = {}) =>
+    text.replace(/{{(.*?)}}/g, (match, key) => data[key.trim()] ?? match),
   ),
   preResolveAttachments: vi.fn(async (attachments) => attachments),
   clearAttachmentCache: vi.fn(),
@@ -120,18 +119,14 @@ describe("EmailService", () => {
       (text: string, data: Record<string, string> = {}) =>
         text.replace(/{{(.*?)}}/g, (match, key) => data[key.trim()] ?? match),
     );
-    (VerificationService.verifyEmail as any).mockImplementation(
-      verifyEmailLikeReal,
-    );
-    (VerificationService.verifyBatch as any).mockImplementation(
-      async (emails: string[]) => {
-        const results = new Map();
-        for (const email of emails) {
-          results.set(email, await verifyEmailLikeReal(email));
-        }
-        return results;
-      },
-    );
+    (VerificationService.verifyEmail as any).mockImplementation(verifyEmailLikeReal);
+    (VerificationService.verifyBatch as any).mockImplementation(async (emails: string[]) => {
+      const results = new Map();
+      for (const email of emails) {
+        results.set(email, await verifyEmailLikeReal(email));
+      }
+      return results;
+    });
     emailService = new EmailService(mockAccessToken, "sender@example.com");
   });
 
@@ -158,10 +153,7 @@ describe("EmailService", () => {
     });
 
     it("should skip invalid emails if verifyBeforeSending is true", async () => {
-      const recipients = [
-        { email: "valid@example.com" },
-        { email: "invalid@example.com" },
-      ];
+      const recipients = [{ email: "valid@example.com" }, { email: "invalid@example.com" }];
       const content = { subject: "Hello {{name}}", body: "World" };
 
       (VerificationService.verifyBatch as any).mockResolvedValue(
@@ -325,9 +317,7 @@ describe("EmailService", () => {
         { delayBetweenEmails: 0 },
       );
 
-      expect((gmail.sendEmailViaAPI as any).mock.calls[0][4]).toBe(
-        "Sent to ada@example.com",
-      );
+      expect((gmail.sendEmailViaAPI as any).mock.calls[0][4]).toBe("Sent to ada@example.com");
     });
 
     it("leaves unmatched placeholders untouched rather than blanking them", async () => {
@@ -348,9 +338,7 @@ describe("EmailService", () => {
         { delayBetweenEmails: 0 },
       );
 
-      expect((gmail.sendEmailViaAPI as any).mock.calls[0][3]).toBe(
-        "Hi {{nickname}}",
-      );
+      expect((gmail.sendEmailViaAPI as any).mock.calls[0][3]).toBe("Hi {{nickname}}");
     });
 
     it("forwards per-message cc and bcc to the sender", async () => {

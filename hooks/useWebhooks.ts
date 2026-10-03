@@ -19,10 +19,7 @@ export function useWebhooks(userEmail: string | undefined) {
       const response = await webhooksService.listByUser(userEmail);
       setWebhooks(response.documents);
     } catch (error) {
-      componentLogger.error(
-        "Error fetching webhooks",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error fetching webhooks", error instanceof Error ? error : undefined);
       toast.error("Failed to load webhooks");
     }
   }, [userEmail]);
@@ -57,10 +54,7 @@ export function useWebhooks(userEmail: string | undefined) {
       await fetchWebhooks();
       return true;
     } catch (error) {
-      componentLogger.error(
-        "Error creating webhook",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error creating webhook", error instanceof Error ? error : undefined);
       toast.error("Failed to create webhook");
       return false;
     } finally {
@@ -85,10 +79,7 @@ export function useWebhooks(userEmail: string | undefined) {
       await fetchWebhooks();
       return true;
     } catch (error) {
-      componentLogger.error(
-        "Error updating webhook",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error updating webhook", error instanceof Error ? error : undefined);
       toast.error("Failed to update webhook");
       return false;
     } finally {
@@ -102,10 +93,7 @@ export function useWebhooks(userEmail: string | undefined) {
       toast.success(isActive ? "Webhook disabled" : "Webhook enabled");
       await fetchWebhooks();
     } catch (error) {
-      componentLogger.error(
-        "Error toggling webhook",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error toggling webhook", error instanceof Error ? error : undefined);
       toast.error("Failed to update webhook");
     }
   };
@@ -116,10 +104,7 @@ export function useWebhooks(userEmail: string | undefined) {
       toast.success("Webhook deleted");
       await fetchWebhooks();
     } catch (error) {
-      componentLogger.error(
-        "Error deleting webhook",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error deleting webhook", error instanceof Error ? error : undefined);
       toast.error("Failed to delete webhook");
     }
   };

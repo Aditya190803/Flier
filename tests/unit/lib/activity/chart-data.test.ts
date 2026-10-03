@@ -3,9 +3,7 @@ import { describe, it, expect } from "vite-plus/test";
 import { buildCampaignChartData } from "@/lib/activity/chart-data";
 import type { CampaignAnalytics } from "@/types/activity";
 
-function makeCampaign(
-  overrides: Partial<CampaignAnalytics> = {},
-): CampaignAnalytics {
+function makeCampaign(overrides: Partial<CampaignAnalytics> = {}): CampaignAnalytics {
   return {
     id: "c1",
     subject: "Test",
@@ -61,9 +59,7 @@ describe("buildCampaignChartData", () => {
     const result = buildCampaignChartData(campaigns);
     expect(result).toHaveLength(10);
     // Should keep the last 10 days (days 6..15 => sent values 6..15)
-    expect(result.map((r) => r.value)).toEqual([
-      6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-    ]);
+    expect(result.map((r) => r.value)).toEqual([6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
   });
 
   it("each entry only has name and value keys", () => {

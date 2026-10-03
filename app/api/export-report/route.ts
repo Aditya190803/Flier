@@ -34,10 +34,7 @@ export async function GET(request: NextRequest) {
       campaign: searchParams.get("campaign") || undefined,
     });
     if (!parsed.success || !parsed.data) {
-      return NextResponse.json(
-        { error: parsed.message || "Invalid request" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: parsed.message || "Invalid request" }, { status: 400 });
     }
     const { format, campaign: campaignId } = parsed.data;
 
@@ -56,11 +53,7 @@ export async function GET(request: NextRequest) {
       const response = await databases.listDocuments(
         config.databaseId,
         config.campaignsCollectionId,
-        [
-          Query.equal("user_email", auth.email),
-          Query.orderDesc("created_at"),
-          Query.limit(1000),
-        ],
+        [Query.equal("user_email", auth.email), Query.orderDesc("created_at"), Query.limit(1000)],
       );
       campaigns = response.documents as ExportCampaignDoc[];
     }
@@ -103,25 +96,17 @@ export async function GET(request: NextRequest) {
       c.recipients,
       c.sent,
       c.failed,
-      c.recipients > 0
-        ? `${((c.sent / c.recipients) * 100).toFixed(1)}%`
-        : "0%",
+      c.recipients > 0 ? `${((c.sent / c.recipients) * 100).toFixed(1)}%` : "0%",
       c.campaign_type,
       new Date(c.created_at).toISOString(),
     ]);
 
-    const csvContent = [
-      csvHeaders.join(","),
-      ...csvRows.map((row) => row.join(",")),
-    ].join("\n");
+    const csvContent = [csvHeaders.join(","), ...csvRows.map((row) => row.join(","))].join("\n");
 
     // Add summary at the end
     const totalSent = parsedCampaigns.reduce((sum, c) => sum + c.sent, 0);
     const totalFailed = parsedCampaigns.reduce((sum, c) => sum + c.failed, 0);
-    const totalRecipients = parsedCampaigns.reduce(
-      (sum, c) => sum + c.recipients,
-      0,
-    );
+    const totalRecipients = parsedCampaigns.reduce((sum, c) => sum + c.recipients, 0);
 
     const summary = `\n\nSUMMARY\nTotal Campaigns,${parsedCampaigns.length}\nTotal Recipients,${totalRecipients}\nTotal Sent,${totalSent}\nTotal Failed,${totalFailed}\nOverall Success Rate,${totalRecipients > 0 ? ((totalSent / totalRecipients) * 100).toFixed(1) : 0}%\nExport Date,${new Date().toISOString()}`;
 
@@ -135,9 +120,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     apiLogger.error("Export error", error instanceof Error ? error : undefined);
-    return NextResponse.json(
-      { error: "Failed to export report" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to export report" }, { status: 500 });
   }
 }

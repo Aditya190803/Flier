@@ -1,16 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-const { requireSession, createScheduledCampaign, hasUsableRefreshToken } =
-  vi.hoisted(() => ({
-    requireSession: vi.fn(),
-    createScheduledCampaign: vi.fn(),
-    hasUsableRefreshToken: vi.fn(),
-  }));
+const { requireSession, createScheduledCampaign, hasUsableRefreshToken } = vi.hoisted(() => ({
+  requireSession: vi.fn(),
+  createScheduledCampaign: vi.fn(),
+  hasUsableRefreshToken: vi.fn(),
+}));
 
 vi.mock("@/lib/api-auth", () => ({
   requireSession,
-  isAuthed: (value: unknown) =>
-    Boolean(value && typeof value === "object" && "email" in value),
+  isAuthed: (value: unknown) => Boolean(value && typeof value === "object" && "email" in value),
 }));
 
 vi.mock("@/lib/services/oauth-token-store", () => ({

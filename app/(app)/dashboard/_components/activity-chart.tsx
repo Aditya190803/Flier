@@ -36,9 +36,7 @@ export function ActivityChart({ campaigns }: Props) {
   const sorted = [...campaigns].sort((a, b) => {
     const timeA = new Date(a.created_at || 0).getTime();
     const timeB = new Date(b.created_at || 0).getTime();
-    return (
-      (Number.isNaN(timeA) ? 0 : timeA) - (Number.isNaN(timeB) ? 0 : timeB)
-    );
+    return (Number.isNaN(timeA) ? 0 : timeA) - (Number.isNaN(timeB) ? 0 : timeB);
   });
 
   const map: Record<string, { sent: number; failed: number }> = {};
@@ -67,9 +65,7 @@ export function ActivityChart({ campaigns }: Props) {
       <div className="flex items-center justify-between mb-5">
         <div>
           <h2 className="text-base font-semibold">Campaign Activity</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Emails sent over time
-          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">Emails sent over time</p>
         </div>
         <Button variant="outline" size="sm" asChild className="gap-1.5">
           <Link href="/insights">
@@ -79,15 +75,8 @@ export function ActivityChart({ campaigns }: Props) {
       </div>
 
       <ResponsiveContainer width="100%" height={200}>
-        <AreaChart
-          data={data}
-          margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
-        >
-          <CartesianGrid
-            strokeDasharray="3 3"
-            stroke="var(--color-border)"
-            strokeOpacity={0.5}
-          />
+        <AreaChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.5} />
           <XAxis
             dataKey="name"
             tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
@@ -104,8 +93,7 @@ export function ActivityChart({ campaigns }: Props) {
               background: "var(--color-popover)",
               border: "1px solid var(--color-border)",
               borderRadius: "8px",
-              boxShadow:
-                "0 2px 8px -2px rgba(0,0,0,0.05),0 4px 6px -4px rgba(0,0,0,0.05)",
+              boxShadow: "0 2px 8px -2px rgba(0,0,0,0.05),0 4px 6px -4px rgba(0,0,0,0.05)",
               fontSize: 12,
               color: "var(--color-foreground)",
             }}

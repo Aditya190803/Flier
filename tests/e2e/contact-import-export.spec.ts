@@ -17,9 +17,7 @@ test.describe("Contact Import/Export", () => {
     await expect(page.locator("body")).toBeVisible();
 
     // Should show contacts header
-    const header = page
-      .getByRole("heading", { name: /contacts/i })
-      .or(page.getByText(/contacts/i));
+    const header = page.getByRole("heading", { name: /contacts/i }).or(page.getByText(/contacts/i));
     await expect(header.first()).toBeVisible();
   });
 
@@ -44,9 +42,7 @@ test.describe("Contact Import/Export", () => {
 
       if (await dialog.first().isVisible()) {
         // Check for form fields
-        const nameInput = page
-          .getByPlaceholder(/name/i)
-          .or(page.locator('input[name="name"]'));
+        const nameInput = page.getByPlaceholder(/name/i).or(page.locator('input[name="name"]'));
         await expect(nameInput.first()).toBeVisible();
 
         const emailInput = page
@@ -65,9 +61,7 @@ test.describe("Contact Import/Export", () => {
       await addButton.first().click();
 
       // Try to add contact with invalid email
-      const emailInput = page
-        .getByPlaceholder(/email/i)
-        .or(page.locator('input[type="email"]'));
+      const emailInput = page.getByPlaceholder(/email/i).or(page.locator('input[type="email"]'));
 
       if (await emailInput.first().isVisible()) {
         await emailInput.first().fill("invalid-email");
@@ -133,9 +127,7 @@ test.describe("Contact Import/Export", () => {
   });
 
   test("should search contacts", async ({ page }) => {
-    const searchInput = page
-      .getByPlaceholder(/search/i)
-      .or(page.locator('input[type="search"]'));
+    const searchInput = page.getByPlaceholder(/search/i).or(page.locator('input[type="search"]'));
 
     if (await searchInput.first().isVisible()) {
       await searchInput.first().fill("test@example.com");
@@ -151,9 +143,7 @@ test.describe("Contact Groups", () => {
   });
 
   test("should have groups tab", async ({ page }) => {
-    const groupsTab = page
-      .getByRole("tab", { name: /groups/i })
-      .or(page.getByText(/groups/i));
+    const groupsTab = page.getByRole("tab", { name: /groups/i }).or(page.getByText(/groups/i));
 
     if (await groupsTab.first().isVisible()) {
       await groupsTab.first().click();
@@ -172,7 +162,7 @@ test.describe("Contact Groups", () => {
       // Dialog should open
       const dialog = page.locator('[role="dialog"]');
       if (await dialog.first().isVisible()) {
-        const groupNameInput = page.getByPlaceholder(/group name|name/i);
+        const groupNameInput = dialog.getByRole("textbox", { name: "Group Name *" });
         await expect(groupNameInput.first()).toBeVisible();
       }
     }

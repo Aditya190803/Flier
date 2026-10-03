@@ -8,9 +8,7 @@ test.describe.skip("Full Email Workflow", () => {
     await page.goto("/compose");
   });
 
-  test("should complete the full compose to send workflow", async ({
-    page,
-  }) => {
+  test("should complete the full compose to send workflow", async ({ page }) => {
     // 1. Fill in the subject
     const subjectInput = page.getByPlaceholder(/subject/i);
     await subjectInput.fill("Test Campaign Subject");

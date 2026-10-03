@@ -2,14 +2,7 @@
  * Unit tests for Token Security Module
  */
 
-import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-  afterEach,
-} from "vite-plus/test";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vite-plus/test";
 
 vi.mock("@/lib/logger", async () => {
   const { createMockLoggerModule, createSpyLogger } =
@@ -161,11 +154,7 @@ describe("Token Security", () => {
         }),
       });
 
-      const result = await refreshAccessToken(
-        "refresh-token",
-        "client-id",
-        "client-secret",
-      );
+      const result = await refreshAccessToken("refresh-token", "client-id", "client-secret");
 
       expect(result.success).toBe(true);
       expect(result.accessToken).toBe("new-token");
@@ -182,11 +171,7 @@ describe("Token Security", () => {
         }),
       });
 
-      const result = await refreshAccessToken(
-        "refresh-token",
-        "client-id",
-        "client-secret",
-      );
+      const result = await refreshAccessToken("refresh-token", "client-id", "client-secret");
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("Token has been expired or revoked");
@@ -195,11 +180,7 @@ describe("Token Security", () => {
     it("should handle network errors", async () => {
       mockFetch.mockRejectedValueOnce(new Error("Network error"));
 
-      const result = await refreshAccessToken(
-        "refresh-token",
-        "client-id",
-        "client-secret",
-      );
+      const result = await refreshAccessToken("refresh-token", "client-id", "client-secret");
 
       expect(result.success).toBe(false);
       expect(result.error).toBe("Network error");
@@ -209,9 +190,7 @@ describe("Token Security", () => {
       const result = await refreshAccessToken("", "client-id", "client-secret");
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe(
-        "Missing required credentials for token refresh",
-      );
+      expect(result.error).toBe("Missing required credentials for token refresh");
     });
   });
 

@@ -22,11 +22,7 @@ export async function POST(request: NextRequest) {
     const campaigns = await databases.listDocuments(
       config.databaseId,
       config.campaignsCollectionId,
-      [
-        Query.equal("status", "completed"),
-        Query.limit(50),
-        Query.orderDesc("created_at"),
-      ],
+      [Query.equal("status", "completed"), Query.limit(50), Query.orderDesc("created_at")],
     );
 
     let aggregatedCount = 0;
@@ -70,10 +66,7 @@ export async function POST(request: NextRequest) {
     const oldEvents = await databases.listDocuments(
       config.databaseId,
       config.trackingEventsCollectionId,
-      [
-        Query.lessThan("created_at", ninetyDaysAgo.toISOString()),
-        Query.limit(100),
-      ],
+      [Query.lessThan("created_at", ninetyDaysAgo.toISOString()), Query.limit(100)],
     );
 
     let archivedCount = 0;

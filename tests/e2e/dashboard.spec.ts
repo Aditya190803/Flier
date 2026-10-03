@@ -52,9 +52,7 @@ test.describe("Contacts Page", () => {
 
   test("should display contacts list or empty state", async ({ page }) => {
     // Either shows contacts or empty state message
-    const _content = page
-      .locator("table")
-      .or(page.getByText(/no contacts|empty|add your first/i));
+    const _content = page.locator("table").or(page.getByText(/no contacts|empty|add your first/i));
 
     await expect(page.locator("body")).toBeVisible();
   });

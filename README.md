@@ -1,13 +1,13 @@
 # Flier 📧
 
-[![Built with Next.js](https://img.shields.io/badge/Built%20with-Next.js%2015-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Built with Next.js](https://img.shields.io/badge/Built%20with-Next.js%2016-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Gmail API](https://img.shields.io/badge/Gmail-API-red?style=for-the-badge&logo=gmail)](https://developers.google.com/gmail/api)
 [![Appwrite](https://img.shields.io/badge/Appwrite-FD366E?style=for-the-badge&logo=appwrite&logoColor=white)](https://appwrite.io/)
 
 ## 🚀 Overview
 
-**Flier** is a powerful, modern email marketing platform that seamlessly integrates with Gmail API to send personalized bulk emails. Built with Next.js 15 and TypeScript, it offers a professional-grade solution for businesses and individuals looking to manage email campaigns with Gmail-like formatting and reliability.
+**Flier** is a powerful, modern email marketing platform that seamlessly integrates with Gmail API to send personalized bulk emails. Built with Next.js 16 and TypeScript, it offers a professional-grade solution for businesses and individuals looking to manage email campaigns with Gmail-like formatting and reliability.
 
 ## ✨ Key Features
 
@@ -114,7 +114,7 @@
 
 Before you begin, ensure you have:
 
-- Node.js 24 and npm 11 installed
+- Node.js 24 and the Vite+ `vp` CLI installed
 - PostgreSQL for local scheduled-delivery development
 - Gmail account
 - Google Cloud Project with Gmail API enabled
@@ -132,7 +132,7 @@ cd flier
 ### 2. Install Dependencies
 
 ```bash
-npm install
+vp install
 ```
 
 ### 3. Set Up Environment Variables
@@ -218,7 +218,7 @@ The setup script creates all required collections:
 Create the Postgres tables used by scheduled sending:
 
 ```bash
-npm run db:migrate
+vp run db:migrate
 ```
 
 See [Heroku Deployment](docs/HEROKU_DEPLOYMENT.md) for production setup.
@@ -226,7 +226,7 @@ See [Heroku Deployment](docs/HEROKU_DEPLOYMENT.md) for production setup.
 ### 6. Run the Development Server
 
 ```bash
-npm run dev
+vp run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to see your application.
@@ -299,13 +299,13 @@ The compose form automatically saves drafts:
 
 ### Quick Fixes
 
-| Issue              | Quick Solution                       |
-| ------------------ | ------------------------------------ |
-| App won't start    | `rm -rf node_modules && npm install` |
-| Auth not working   | Clear cookies, sign out/in           |
-| Emails not sending | Check Gmail API quota                |
-| Database errors    | Run `npm run appwrite:setup`         |
-| Build fails        | `npm run lint` then fix errors       |
+| Issue              | Quick Solution                      |
+| ------------------ | ----------------------------------- |
+| App won't start    | `rm -rf node_modules && vp install` |
+| Auth not working   | Clear cookies, sign out/in          |
+| Emails not sending | Check Gmail API quota               |
+| Database errors    | Run `vp run appwrite:setup`         |
+| Build fails        | `vp run lint` then fix errors       |
 
 ### Common Issues
 
@@ -361,7 +361,7 @@ Error: invalid_grant
 **Solution:**
 
 - MJML is server-side only; ensure you're not importing it in client components
-- Run `npm install` to ensure mjml dependencies are installed
+- Run `vp install` to ensure mjml dependencies are installed
 - Check for syntax errors in your email HTML template
 
 **Problem:** Attachments not sending
@@ -377,7 +377,7 @@ Error: invalid_grant
 **Solution:**
 
 1. Verify all Appwrite environment variables are set correctly
-2. Run `npm run appwrite:setup` to create collections
+2. Run `vp run appwrite:setup` to create collections
 3. Check that your Appwrite API key has proper permissions
 4. Ensure the Appwrite endpoint is accessible
 5. Check Appwrite project status in the dashboard
@@ -385,7 +385,7 @@ Error: invalid_grant
 **Problem:** Collection not found errors
 **Solution:**
 
-- Run the setup script: `npm run appwrite:setup`
+- Run the setup script: `vp run appwrite:setup`
 - Verify collection IDs match in `.env.local`
 - Check if collections were deleted in Appwrite console
 
@@ -401,8 +401,8 @@ Error: invalid_grant
 **Problem:** Build fails with type errors
 
 ```bash
-npm run lint        # Check for linting issues
-npm run build       # Attempt production build
+vp run lint        # Check for linting issues
+vp run build       # Attempt production build
 ```
 
 **Problem:** "Module not found" errors
@@ -410,14 +410,14 @@ npm run build       # Attempt production build
 
 ```bash
 rm -rf node_modules .next
-npm install
-npm run dev
+vp install
+vp run dev
 ```
 
 **Problem:** Large bundle size
 
 ```bash
-npm run build:analyze   # Opens bundle analyzer
+vp run build:analyze   # Opens bundle analyzer
 ```
 
 **Problem:** CORS errors in development

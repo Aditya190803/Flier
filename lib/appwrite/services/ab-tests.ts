@@ -64,10 +64,7 @@ export const abTestsService = {
   },
 
   /** Refresh A/B tests periodically. See {@link pollForUpdates} — not realtime. */
-  subscribeToUserTests(
-    _userEmail: string,
-    callback: (response: unknown) => void,
-  ) {
+  subscribeToUserTests(_userEmail: string, callback: (response: unknown) => void) {
     return pollForUpdates(() => callback(undefined));
   },
 };

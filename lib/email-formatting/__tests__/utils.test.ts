@@ -54,8 +54,7 @@ describe("convertEmojisToUnicode", () => {
   });
 
   it("should handle mixed content with emojis and text", () => {
-    const input =
-      '<p>Hello <img class="emoji" alt="👋" src="/wave.png"> world</p>';
+    const input = '<p>Hello <img class="emoji" alt="👋" src="/wave.png"> world</p>';
     expect(convertEmojisToUnicode(input)).toBe("<p>Hello 👋 world</p>");
   });
 
@@ -113,9 +112,7 @@ describe("sanitizeHTML", () => {
 
   it("should preserve semantic HTML structure", () => {
     const input = "<h1>Title</h1><p>Content</p><ul><li>Item</li></ul>";
-    expect(sanitizeHTML(input)).toBe(
-      "<h1>Title</h1><p>Content</p><ul><li>Item</li></ul>",
-    );
+    expect(sanitizeHTML(input)).toBe("<h1>Title</h1><p>Content</p><ul><li>Item</li></ul>");
   });
 
   it("should clean up excessive whitespace", () => {
@@ -145,19 +142,13 @@ describe("validateEmailContent", () => {
   it("should return invalid for content with script tags", () => {
     const result = validateEmailContent("<p>Hello</p><script>bad</script>");
     expect(result.isValid).toBe(false);
-    expect(result.errors).toContain(
-      "Script tags are not allowed in email content",
-    );
+    expect(result.errors).toContain("Script tags are not allowed in email content");
   });
 
   it("should return invalid for content with javascript URLs", () => {
-    const result = validateEmailContent(
-      '<a href="javascript:void(0)">Link</a>',
-    );
+    const result = validateEmailContent('<a href="javascript:void(0)">Link</a>');
     expect(result.isValid).toBe(false);
-    expect(result.errors).toContain(
-      "JavaScript URLs are not allowed in email content",
-    );
+    expect(result.errors).toContain("JavaScript URLs are not allowed in email content");
   });
 
   it("should return valid for clean HTML content", () => {
@@ -167,28 +158,18 @@ describe("validateEmailContent", () => {
   });
 
   it("should warn about event handlers", () => {
-    const result = validateEmailContent(
-      '<button onclick="test">Click</button>',
-    );
-    expect(result.warnings).toContain(
-      "Event handlers will be removed from email content",
-    );
+    const result = validateEmailContent('<button onclick="test">Click</button>');
+    expect(result.warnings).toContain("Event handlers will be removed from email content");
   });
 
   it("should warn about iframes", () => {
-    const result = validateEmailContent(
-      '<iframe src="https://example.com"></iframe>',
-    );
-    expect(result.warnings).toContain(
-      "Iframes are not supported in most email clients",
-    );
+    const result = validateEmailContent('<iframe src="https://example.com"></iframe>');
+    expect(result.warnings).toContain("Iframes are not supported in most email clients");
   });
 
   it("should warn about forms", () => {
     const result = validateEmailContent("<form><input type='text'></form>");
-    expect(result.warnings).toContain(
-      "Forms are not supported in most email clients",
-    );
+    expect(result.warnings).toContain("Forms are not supported in most email clients");
   });
 
   it("should warn about video/audio elements", () => {

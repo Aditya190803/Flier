@@ -22,32 +22,22 @@ async function logAuditEvent(
     }
 
     const ipAddress =
-      request?.headers.get("x-forwarded-for") ||
-      request?.headers.get("x-real-ip") ||
-      "unknown";
+      request?.headers.get("x-forwarded-for") || request?.headers.get("x-real-ip") || "unknown";
     const userAgent = request?.headers.get("user-agent") || "unknown";
 
-    await databases.createDocument(
-      config.databaseId,
-      config.auditLogsCollectionId,
-      ID.unique(),
-      {
-        user_email: userEmail,
-        action,
-        resource_type: resourceType,
-        resource_id: resourceId || null,
-        details: details ? JSON.stringify(details) : null,
-        ip_address: ipAddress,
-        user_agent: userAgent,
-        created_at: new Date().toISOString(),
-      },
-    );
+    await databases.createDocument(config.databaseId, config.auditLogsCollectionId, ID.unique(), {
+      user_email: userEmail,
+      action,
+      resource_type: resourceType,
+      resource_id: resourceId || null,
+      details: details ? JSON.stringify(details) : null,
+      ip_address: ipAddress,
+      user_agent: userAgent,
+      created_at: new Date().toISOString(),
+    });
   } catch (error) {
     // Don't fail the main operation if audit logging fails
-    apiLogger.error(
-      "Failed to log audit event",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Failed to log audit event", error instanceof Error ? error : undefined);
   }
 }
 
@@ -72,8 +62,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         total: 0,
         documents: [],
-        message:
-          "Audit logs collection not configured. Please set up the collection.",
+        message: "Audit logs collection not configured. Please set up the collection.",
       });
     }
 
@@ -114,10 +103,7 @@ export async function GET(request: NextRequest) {
       documents,
     });
   } catch (error: any) {
-    apiLogger.error(
-      "Error fetching audit logs",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error fetching audit logs", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: error.message || "Failed to fetch audit logs" },
       { status: 500 },
@@ -137,27 +123,14 @@ export async function POST(request: NextRequest) {
     const { action, resource_type, resource_id, details } = body;
 
     if (!action || !resource_type) {
-      return NextResponse.json(
-        { error: "Action and resource_type are required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Action and resource_type are required" }, { status: 400 });
     }
 
-    await logAuditEvent(
-      auth.email,
-      action,
-      resource_type,
-      resource_id,
-      details,
-      request,
-    );
+    await logAuditEvent(auth.email, action, resource_type, resource_id, details, request);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    apiLogger.error(
-      "Error creating audit log",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error creating audit log", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: error.message || "Failed to create audit log" },
       { status: 500 },

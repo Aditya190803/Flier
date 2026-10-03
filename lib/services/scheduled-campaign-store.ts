@@ -3,10 +3,7 @@ import { randomUUID } from "node:crypto";
 import { SCHEDULED_STATUS, type ScheduledStatus } from "@/lib/constants";
 import { dbQuery, isDatabaseConfigured } from "@/lib/db";
 import type { AttachmentData } from "@/lib/email/attachment-manager";
-import type {
-  ScheduledCampaign,
-  StoredScheduledAttachment,
-} from "@/types/scheduled-campaign";
+import type { ScheduledCampaign, StoredScheduledAttachment } from "@/types/scheduled-campaign";
 
 import type { QueryResultRow } from "pg";
 
@@ -81,14 +78,10 @@ function iso(value: Date | string | null | undefined): string | undefined {
   if (!value) {
     return undefined;
   }
-  return value instanceof Date
-    ? value.toISOString()
-    : new Date(value).toISOString();
+  return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
 }
 
-export function mapScheduledCampaignRow(
-  row: ScheduledCampaignRow,
-): ScheduledCampaignRecord {
+export function mapScheduledCampaignRow(row: ScheduledCampaignRow): ScheduledCampaignRecord {
   return {
     $id: row.id,
     subject: row.subject,
@@ -106,8 +99,7 @@ export function mapScheduledCampaignRow(
     tracking_enabled: row.tracking_enabled,
     is_marketing: row.is_marketing,
     has_personalized_attachments: row.has_personalized_attachments,
-    personalized_attachment_column:
-      row.personalized_attachment_column || undefined,
+    personalized_attachment_column: row.personalized_attachment_column || undefined,
     sent: row.sent,
     failed: row.failed,
     attempts: row.attempts,
@@ -119,9 +111,7 @@ export function mapScheduledCampaignRow(
   };
 }
 
-export function toAttachmentData(
-  attachments: StoredAttachment[],
-): AttachmentData[] {
+export function toAttachmentData(attachments: StoredAttachment[]): AttachmentData[] {
   return attachments
     .filter((attachment) => attachment.appwrite_file_id || attachment.fileUrl)
     .map((attachment) => ({
@@ -183,9 +173,7 @@ export async function listScheduledCampaignsForUser(
   return result.rows.map(mapScheduledCampaignRow);
 }
 
-export async function getScheduledCampaign(
-  id: string,
-): Promise<ScheduledCampaignRecord | null> {
+export async function getScheduledCampaign(id: string): Promise<ScheduledCampaignRecord | null> {
   if (!isScheduledSendingConfigured()) {
     return null;
   }
@@ -213,18 +201,14 @@ export async function updateScheduledCampaign(
   data: Record<string, unknown>,
   expectedStatus?: ScheduledStatus,
 ): Promise<boolean> {
-  const entries = Object.entries(data).filter(([key]) =>
-    UPDATE_COLUMNS.has(key),
-  );
+  const entries = Object.entries(data).filter(([key]) => UPDATE_COLUMNS.has(key));
   if (!entries.length) {
     return false;
   }
 
   const assignments = entries.map(([key], index) => `${key} = $${index + 2}`);
   const values = [id, ...entries.map(([, value]) => value)];
-  const statusGuard = expectedStatus
-    ? ` AND status = $${values.push(expectedStatus)}`
-    : "";
+  const statusGuard = expectedStatus ? ` AND status = $${values.push(expectedStatus)}` : "";
   const result = await dbQuery(
     `UPDATE scheduled_campaigns
      SET ${assignments.join(", ")}, updated_at = now()
@@ -244,9 +228,7 @@ export async function deleteScheduledCampaign(id: string): Promise<boolean> {
 }
 
 /** Atomically claim the oldest due campaign across all worker dynos. */
-export async function claimNextDueCampaign(
-  now: Date,
-): Promise<ScheduledCampaignRecord | null> {
+export async function claimNextDueCampaign(now: Date): Promise<ScheduledCampaignRecord | null> {
   if (!isScheduledSendingConfigured()) {
     return null;
   }
@@ -274,10 +256,7 @@ export async function claimNextDueCampaign(
   return result.rows[0] ? mapScheduledCampaignRow(result.rows[0]) : null;
 }
 
-export async function reclaimStaleCampaigns(
-  staleBefore: Date,
-  limit: number,
-): Promise<number> {
+export async function reclaimStaleCampaigns(staleBefore: Date, limit: number): Promise<number> {
   if (!isScheduledSendingConfigured()) {
     return 0;
   }
@@ -296,12 +275,7 @@ export async function reclaimStaleCampaigns(
      FROM stale
      WHERE campaign.id = stale.id
      RETURNING campaign.id`,
-    [
-      SCHEDULED_STATUS.PROCESSING,
-      staleBefore,
-      limit,
-      SCHEDULED_STATUS.SCHEDULED,
-    ],
+    [SCHEDULED_STATUS.PROCESSING, staleBefore, limit, SCHEDULED_STATUS.SCHEDULED],
   );
 
   return result.rowCount || 0;

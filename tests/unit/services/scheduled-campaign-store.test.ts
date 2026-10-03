@@ -61,9 +61,7 @@ describe("scheduled campaign storage", () => {
   it("claims due work with a row lock", async () => {
     dbQuery.mockResolvedValue({ rows: [row()], rowCount: 1 });
 
-    const campaign = await claimNextDueCampaign(
-      new Date("2030-01-01T09:00:00.000Z"),
-    );
+    const campaign = await claimNextDueCampaign(new Date("2030-01-01T09:00:00.000Z"));
 
     expect(campaign?.$id).toBe("scheduled-1");
     expect(dbQuery.mock.calls[0]?.[0]).toContain("FOR UPDATE SKIP LOCKED");
@@ -74,19 +72,11 @@ describe("scheduled campaign storage", () => {
     dbQuery.mockResolvedValue({ rows: [], rowCount: 0 });
 
     await expect(
-      updateScheduledCampaign(
-        "scheduled-1",
-        { status: "cancelled" },
-        "scheduled",
-      ),
+      updateScheduledCampaign("scheduled-1", { status: "cancelled" }, "scheduled"),
     ).resolves.toBe(false);
 
     expect(dbQuery.mock.calls[0]?.[0]).toContain("AND status = $3");
-    expect(dbQuery.mock.calls[0]?.[1]).toEqual([
-      "scheduled-1",
-      "cancelled",
-      "scheduled",
-    ]);
+    expect(dbQuery.mock.calls[0]?.[1]).toEqual(["scheduled-1", "cancelled", "scheduled"]);
   });
 
   it("maps stored attachments to deferred Appwrite downloads", () => {

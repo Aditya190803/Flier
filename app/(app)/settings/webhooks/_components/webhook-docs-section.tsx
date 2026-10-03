@@ -17,18 +17,9 @@ import {
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { WEBHOOK_EVENT_TYPES as EVENT_TYPES } from "@/components/webhooks/event-types";
-import {
-  SAMPLE_WEBHOOK_PAYLOAD,
-  SIGNATURE_VERIFICATION_CODE,
-} from "@/lib/webhooks/docs-snippets";
+import { SAMPLE_WEBHOOK_PAYLOAD, SIGNATURE_VERIFICATION_CODE } from "@/lib/webhooks/docs-snippets";
 
 export function WebhookDocsSection() {
   const [showDocsSection, setShowDocsSection] = useState(true);
@@ -48,11 +39,7 @@ export function WebhookDocsSection() {
           <Info className="h-5 w-5 text-primary" />
           How Webhooks Work
         </h2>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowDocsSection(!showDocsSection)}
-        >
+        <Button variant="ghost" size="sm" onClick={() => setShowDocsSection(!showDocsSection)}>
           {showDocsSection ? "Hide" : "Show"} Documentation
         </Button>
       </div>
@@ -70,9 +57,8 @@ export function WebhookDocsSection() {
                   <h3 className="font-semibold">Real-time Events</h3>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Webhooks send instant HTTP POST requests to your server
-                  whenever an event occurs in Flier, enabling real-time
-                  integrations.
+                  Webhooks send instant HTTP POST requests to your server whenever an event occurs
+                  in Flier, enabling real-time integrations.
                 </p>
               </CardContent>
             </Card>
@@ -86,9 +72,8 @@ export function WebhookDocsSection() {
                   <h3 className="font-semibold">Secure Signatures</h3>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Optional HMAC-SHA256 signatures verify that webhook requests
-                  genuinely come from Flier, protecting against spoofed
-                  requests.
+                  Optional HMAC-SHA256 signatures verify that webhook requests genuinely come from
+                  Flier, protecting against spoofed requests.
                 </p>
               </CardContent>
             </Card>
@@ -102,8 +87,8 @@ export function WebhookDocsSection() {
                   <h3 className="font-semibold">Easy Integration</h3>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Standard JSON payloads work with any programming language.
-                  Connect to Slack, Discord, Zapier, or your custom backend.
+                  Standard JSON payloads work with any programming language. Connect to Slack,
+                  Discord, Zapier, or your custom backend.
                 </p>
               </CardContent>
             </Card>
@@ -132,9 +117,7 @@ export function WebhookDocsSection() {
                       <Icon className="h-5 w-5 text-primary mt-0.5" />
                       <div>
                         <p className="font-medium text-sm">{event.label}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {event.description}
-                        </p>
+                        <p className="text-xs text-muted-foreground">{event.description}</p>
                         <code className="text-xs text-primary mt-1 inline-block">
                           {event.value}
                         </code>
@@ -155,9 +138,7 @@ export function WebhookDocsSection() {
                     <Code className="h-5 w-5" />
                     Webhook Payload Format
                   </CardTitle>
-                  <CardDescription>
-                    JSON structure sent with each webhook request
-                  </CardDescription>
+                  <CardDescription>JSON structure sent with each webhook request</CardDescription>
                 </div>
                 <Button
                   variant="outline"
@@ -187,18 +168,14 @@ export function WebhookDocsSection() {
                 <Globe className="h-5 w-5" />
                 HTTP Request Details
               </CardTitle>
-              <CardDescription>
-                Headers included with every webhook request
-              </CardDescription>
+              <CardDescription>Headers included with every webhook request</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
                   <div className="flex-1">
                     <code className="text-sm font-semibold">Content-Type</code>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      application/json
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">application/json</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
@@ -211,9 +188,7 @@ export function WebhookDocsSection() {
                 </div>
                 <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
                   <div className="flex-1">
-                    <code className="text-sm font-semibold">
-                      X-Flier-Timestamp
-                    </code>
+                    <code className="text-sm font-semibold">X-Flier-Timestamp</code>
                     <p className="text-xs text-muted-foreground mt-1">
                       Unix timestamp of when the event occurred
                     </p>
@@ -222,15 +197,10 @@ export function WebhookDocsSection() {
                 <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border border-primary/20">
                   <Key className="h-4 w-4 text-primary mt-0.5" />
                   <div className="flex-1">
-                    <code className="text-sm font-semibold">
-                      X-Flier-Signature
-                    </code>
+                    <code className="text-sm font-semibold">X-Flier-Signature</code>
                     <p className="text-xs text-muted-foreground mt-1">
-                      HMAC-SHA256 signature (only if secret is configured).
-                      Computed as:{" "}
-                      <code className="text-primary">
-                        HMAC-SHA256(secret, payload)
-                      </code>
+                      HMAC-SHA256 signature (only if secret is configured). Computed as:{" "}
+                      <code className="text-primary">HMAC-SHA256(secret, payload)</code>
                     </p>
                   </div>
                 </div>
@@ -247,9 +217,7 @@ export function WebhookDocsSection() {
                     <Shield className="h-5 w-5" />
                     Verifying Webhook Signatures
                   </CardTitle>
-                  <CardDescription>
-                    Example code to verify webhook authenticity
-                  </CardDescription>
+                  <CardDescription>Example code to verify webhook authenticity</CardDescription>
                 </div>
                 <Button
                   variant="outline"
@@ -305,9 +273,7 @@ export function WebhookDocsSection() {
                     <Code className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <p className="font-medium text-sm">
-                      Zapier/Make Integration
-                    </p>
+                    <p className="font-medium text-sm">Zapier/Make Integration</p>
                     <p className="text-xs text-muted-foreground">
                       Trigger automations across 5000+ apps
                     </p>
@@ -338,45 +304,36 @@ export function WebhookDocsSection() {
                 <li className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-primary mt-0.5" />
                   <span>
-                    <strong className="text-foreground">
-                      Use HTTPS endpoints
-                    </strong>{" "}
-                    – Always use secure URLs for your webhook endpoints
+                    <strong className="text-foreground">Use HTTPS endpoints</strong> – Always use
+                    secure URLs for your webhook endpoints
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-primary mt-0.5" />
                   <span>
-                    <strong className="text-foreground">
-                      Verify signatures
-                    </strong>{" "}
-                    – Always verify the X-Flier-Signature header to ensure
-                    authenticity
+                    <strong className="text-foreground">Verify signatures</strong> – Always verify
+                    the X-Flier-Signature header to ensure authenticity
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-primary mt-0.5" />
                   <span>
-                    <strong className="text-foreground">Respond quickly</strong>{" "}
-                    – Return a 200 response within 5 seconds; process
-                    asynchronously if needed
+                    <strong className="text-foreground">Respond quickly</strong> – Return a 200
+                    response within 5 seconds; process asynchronously if needed
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-primary mt-0.5" />
                   <span>
-                    <strong className="text-foreground">
-                      Handle duplicates
-                    </strong>{" "}
-                    – Use the webhook_id to deduplicate events in case of
-                    retries
+                    <strong className="text-foreground">Handle duplicates</strong> – Use the
+                    webhook_id to deduplicate events in case of retries
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-primary mt-0.5" />
                   <span>
-                    <strong className="text-foreground">Log everything</strong>{" "}
-                    – Store webhook payloads for debugging and audit purposes
+                    <strong className="text-foreground">Log everything</strong> – Store webhook
+                    payloads for debugging and audit purposes
                   </span>
                 </li>
               </ul>

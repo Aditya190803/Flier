@@ -27,12 +27,7 @@ interface EmailPreviewProps {
  * It uses the same email formatter that the send API uses to ensure
  * perfect consistency between preview and sent email.
  */
-export function EmailPreview({
-  emails,
-  onSend,
-  onClose,
-  isLoading,
-}: EmailPreviewProps) {
+export function EmailPreview({ emails, onSend, onClose, isLoading }: EmailPreviewProps) {
   const [iframeErrors, setIframeErrors] = useState<Set<number>>(new Set());
   const [previewHtml, setPreviewHtml] = useState<{ [key: number]: string }>({});
   const [loadingPreviews, setLoadingPreviews] = useState(true);
@@ -106,8 +101,7 @@ export function EmailPreview({
           <div className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-base font-semibold">
               <Eye className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              Email Preview ({emails.length}{" "}
-              {emails.length === 1 ? "email" : "emails"})
+              Email Preview ({emails.length} {emails.length === 1 ? "email" : "emails"})
             </CardTitle>
             <Button
               variant="ghost"
@@ -134,8 +128,7 @@ export function EmailPreview({
               ) : (
                 <>
                   <Send className="h-4 w-4 mr-2" />
-                  Send {emails.length}{" "}
-                  {emails.length === 1 ? "Email" : "Emails"}
+                  Send {emails.length} {emails.length === 1 ? "Email" : "Emails"}
                 </>
               )}
             </Button>
@@ -149,10 +142,9 @@ export function EmailPreview({
           {/* Email rendering disclaimer */}
           <div className="bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-200 dark:border-amber-800 text-xs">
             <p className="text-amber-800 dark:text-amber-200">
-              <strong>Note:</strong> This preview approximates how your email
-              will appear. Actual rendering may vary across different email
-              clients (Gmail, Outlook, Apple Mail, etc.) due to their unique
-              HTML/CSS support.
+              <strong>Note:</strong> This preview approximates how your email will appear. Actual
+              rendering may vary across different email clients (Gmail, Outlook, Apple Mail, etc.)
+              due to their unique HTML/CSS support.
             </p>
           </div>
 
@@ -162,8 +154,7 @@ export function EmailPreview({
                 <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                    Generating email previews... ({currentlyLoading}/
-                    {emails.length})
+                    Generating email previews... ({currentlyLoading}/{emails.length})
                   </p>
                   <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                     Formatting exactly as emails will appear in Gmail
@@ -178,8 +169,8 @@ export function EmailPreview({
             <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-xl mb-3 border border-green-100 dark:border-green-800 flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
               <p className="text-xs text-green-800 dark:text-green-300">
-                <strong>Preview matches sent email:</strong> What you see below
-                is exactly how your emails will appear in Gmail.
+                <strong>Preview matches sent email:</strong> What you see below is exactly how your
+                emails will appear in Gmail.
               </p>
             </div>
           )}
@@ -198,10 +189,7 @@ export function EmailPreview({
                     Email #{index + 1}
                   </Badge>
                   {email.attachments && email.attachments.length > 0 && (
-                    <Badge
-                      variant="secondary"
-                      className="flex items-center gap-1 text-xs"
-                    >
+                    <Badge variant="secondary" className="flex items-center gap-1 text-xs">
                       <Paperclip className="h-3 w-3" />
                       {email.attachments.length} attachment
                       {email.attachments.length > 1 ? "s" : ""}
@@ -214,9 +202,7 @@ export function EmailPreview({
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                       Subject
                     </span>
-                    <p className="text-sm font-semibold mt-1 break-words">
-                      {email.subject}
-                    </p>
+                    <p className="text-sm font-semibold mt-1 break-words">{email.subject}</p>
                   </div>
 
                   <div>
@@ -227,9 +213,7 @@ export function EmailPreview({
                       {loadingPreviews ? (
                         <div className="w-full h-80 bg-white dark:bg-zinc-900 flex flex-col items-center justify-center">
                           <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
-                          <p className="text-muted-foreground text-sm">
-                            Formatting preview...
-                          </p>
+                          <p className="text-muted-foreground text-sm">Formatting preview...</p>
                         </div>
                       ) : iframeErrors.has(index) ? (
                         <div
@@ -262,9 +246,7 @@ export function EmailPreview({
                             className="flex items-center gap-2 text-sm text-muted-foreground bg-muted p-2.5 rounded-lg border"
                           >
                             <Paperclip className="h-4 w-4 text-muted-foreground" />
-                            <span className="truncate flex-1">
-                              {attachment.name}
-                            </span>
+                            <span className="truncate flex-1">{attachment.name}</span>
                           </div>
                         ))}
                       </div>

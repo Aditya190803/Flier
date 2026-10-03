@@ -11,9 +11,7 @@ export function createCrudService<TEntity, TCreate, TUpdate>(endpoint: string) {
       });
     },
 
-    async listByUser(
-      _userEmail?: string,
-    ): Promise<{ total: number; documents: TEntity[] }> {
+    async listByUser(_userEmail?: string): Promise<{ total: number; documents: TEntity[] }> {
       return apiRequest<{ total: number; documents: TEntity[] }>(basePath);
     },
 
@@ -25,9 +23,7 @@ export function createCrudService<TEntity, TCreate, TUpdate>(endpoint: string) {
      * resolved to a 404 for every collection.
      */
     async get(id: string): Promise<TEntity> {
-      const response = await apiRequest<TEntity>(
-        `${basePath}?id=${encodeURIComponent(id)}`,
-      );
+      const response = await apiRequest<TEntity>(`${basePath}?id=${encodeURIComponent(id)}`);
 
       if (!response || typeof response !== "object") {
         throw new Error(`Resource not found: ${id}`);

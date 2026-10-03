@@ -223,22 +223,10 @@ export function applyInlineStyles(html: string): string {
 
   // Apply heading styles
   result = result
-    .replace(
-      STYLE_PATTERNS.h1,
-      `<h1$1 style="${styleObjectToString(ELEMENT_STYLES.h1)}">`,
-    )
-    .replace(
-      STYLE_PATTERNS.h2,
-      `<h2$1 style="${styleObjectToString(ELEMENT_STYLES.h2)}">`,
-    )
-    .replace(
-      STYLE_PATTERNS.h3,
-      `<h3$1 style="${styleObjectToString(ELEMENT_STYLES.h3)}">`,
-    )
-    .replace(
-      STYLE_PATTERNS.h4,
-      `<h4$1 style="${styleObjectToString(ELEMENT_STYLES.h4)}">`,
-    );
+    .replace(STYLE_PATTERNS.h1, `<h1$1 style="${styleObjectToString(ELEMENT_STYLES.h1)}">`)
+    .replace(STYLE_PATTERNS.h2, `<h2$1 style="${styleObjectToString(ELEMENT_STYLES.h2)}">`)
+    .replace(STYLE_PATTERNS.h3, `<h3$1 style="${styleObjectToString(ELEMENT_STYLES.h3)}">`)
+    .replace(STYLE_PATTERNS.h4, `<h4$1 style="${styleObjectToString(ELEMENT_STYLES.h4)}">`);
 
   // Apply blockquote styles
   result = result.replace(
@@ -268,33 +256,15 @@ export function applyInlineStyles(html: string): string {
 
   // Apply list styles
   result = result
-    .replace(
-      STYLE_PATTERNS.ul,
-      `<ul$1 style="${styleObjectToString(ELEMENT_STYLES.ul)}">`,
-    )
-    .replace(
-      STYLE_PATTERNS.ol,
-      `<ol$1 style="${styleObjectToString(ELEMENT_STYLES.ol)}">`,
-    )
-    .replace(
-      STYLE_PATTERNS.li,
-      `<li$1 style="${styleObjectToString(ELEMENT_STYLES.li)}">`,
-    );
+    .replace(STYLE_PATTERNS.ul, `<ul$1 style="${styleObjectToString(ELEMENT_STYLES.ul)}">`)
+    .replace(STYLE_PATTERNS.ol, `<ol$1 style="${styleObjectToString(ELEMENT_STYLES.ol)}">`)
+    .replace(STYLE_PATTERNS.li, `<li$1 style="${styleObjectToString(ELEMENT_STYLES.li)}">`);
 
   // Apply table styles
   result = result
-    .replace(
-      STYLE_PATTERNS.table,
-      `<table$1 style="${styleObjectToString(ELEMENT_STYLES.table)}">`,
-    )
-    .replace(
-      STYLE_PATTERNS.th,
-      `<th$1 style="${styleObjectToString(ELEMENT_STYLES.th)}">`,
-    )
-    .replace(
-      STYLE_PATTERNS.td,
-      `<td$1 style="${styleObjectToString(ELEMENT_STYLES.td)}">`,
-    );
+    .replace(STYLE_PATTERNS.table, `<table$1 style="${styleObjectToString(ELEMENT_STYLES.table)}">`)
+    .replace(STYLE_PATTERNS.th, `<th$1 style="${styleObjectToString(ELEMENT_STYLES.th)}">`)
+    .replace(STYLE_PATTERNS.td, `<td$1 style="${styleObjectToString(ELEMENT_STYLES.td)}">`);
 
   // Apply link styles - ensure all links are styled and have proper attributes
   result = result.replace(

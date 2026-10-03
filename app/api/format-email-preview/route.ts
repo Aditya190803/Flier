@@ -18,17 +18,11 @@ export async function POST(request: NextRequest) {
     const { htmlContent } = await request.json();
 
     if (!htmlContent || typeof htmlContent !== "string") {
-      return NextResponse.json(
-        { error: "HTML content is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "HTML content is required" }, { status: 400 });
     }
 
     if (htmlContent.length > 1_000_000) {
-      return NextResponse.json(
-        { error: "HTML content too large" },
-        { status: 413 },
-      );
+      return NextResponse.json({ error: "HTML content too large" }, { status: 413 });
     }
 
     const formattedHTML = formatForEmail(htmlContent);
@@ -40,13 +34,7 @@ export async function POST(request: NextRequest) {
       formattedLength: formattedHTML.length,
     });
   } catch (error) {
-    apiLogger.error(
-      "Email formatting error",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Failed to format email" },
-      { status: 500 },
-    );
+    apiLogger.error("Email formatting error", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Failed to format email" }, { status: 500 });
   }
 }

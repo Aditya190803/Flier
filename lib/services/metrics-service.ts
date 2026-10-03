@@ -60,9 +60,7 @@ export const metricsService = {
     devices: Array<{ name: string; value: number; color: string }>;
     locations: Array<{ name: string; value: number }>;
   }> {
-    return apiRequest(
-      `/api/activity/campaign-stats?campaign_id=${campaignId}&advanced=true`,
-    );
+    return apiRequest(`/api/activity/campaign-stats?campaign_id=${campaignId}&advanced=true`);
   },
 
   /**

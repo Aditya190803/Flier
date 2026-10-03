@@ -9,20 +9,14 @@ interface TrackingTabProps {
   allTrackingEvents: TrackingEvent[];
 }
 
-export function TrackingTab({
-  selectedHeatmapCampaignId,
-  allTrackingEvents,
-}: TrackingTabProps) {
+export function TrackingTab({ selectedHeatmapCampaignId, allTrackingEvents }: TrackingTabProps) {
   if (!selectedHeatmapCampaignId) {
     return (
       <div className="border border-border/50 rounded-xl bg-card p-12 flex flex-col items-center justify-center text-center text-muted-foreground shadow-sm">
         <History className="h-10 w-10 mb-4 opacity-40 text-[var(--color-chart-1)]" />
-        <h3 className="text-lg font-semibold text-foreground mb-1">
-          No Campaign Selected
-        </h3>
+        <h3 className="text-lg font-semibold text-foreground mb-1">No Campaign Selected</h3>
         <p className="max-w-sm text-sm">
-          Select a campaign from the selector above to view its chronological
-          raw event log.
+          Select a campaign from the selector above to view its chronological raw event log.
         </p>
       </div>
     );
@@ -30,10 +24,7 @@ export function TrackingTab({
 
   const events = allTrackingEvents
     .filter((e) => e.campaign_id === selectedHeatmapCampaignId)
-    .sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-    );
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   return (
     <div className="border border-border/50 rounded-xl bg-card shadow-sm flex flex-col">
@@ -47,10 +38,7 @@ export function TrackingTab({
             Real-time chronological log of all interactions.
           </p>
         </div>
-        <Badge
-          variant="secondary"
-          className="font-medium bg-background border shadow-xs px-3 py-1"
-        >
+        <Badge variant="secondary" className="font-medium bg-background border shadow-xs px-3 py-1">
           {events.length} events
         </Badge>
       </div>
@@ -67,20 +55,14 @@ export function TrackingTab({
           <tbody className="divide-y divide-border">
             {events.length === 0 ? (
               <tr>
-                <td
-                  colSpan={4}
-                  className="px-6 py-16 text-center text-muted-foreground"
-                >
+                <td colSpan={4} className="px-6 py-16 text-center text-muted-foreground">
                   <History className="h-8 w-8 mx-auto mb-3 opacity-20" />
                   No tracking events recorded yet.
                 </td>
               </tr>
             ) : (
               events.map((e) => (
-                <tr
-                  key={e.$id}
-                  className="hover:bg-muted/30 transition-colors group"
-                >
+                <tr key={e.$id} className="hover:bg-muted/30 transition-colors group">
                   <td className="px-6 py-4 whitespace-nowrap text-muted-foreground text-[13px] font-medium">
                     {formatDate(e.created_at)}
                     <span className="text-[11px] opacity-70 ml-2 font-mono">
@@ -105,9 +87,7 @@ export function TrackingTab({
                       {e.event_type}
                     </Badge>
                   </td>
-                  <td className="px-6 py-4 font-medium text-foreground">
-                    {e.email}
-                  </td>
+                  <td className="px-6 py-4 font-medium text-foreground">{e.email}</td>
                   <td className="px-6 py-4 text-[13px] text-muted-foreground">
                     {e.event_type === "click" && e.link_url ? (
                       <a
@@ -126,9 +106,7 @@ export function TrackingTab({
                         title={e.user_agent || "Unknown device"}
                       >
                         <span className="truncate max-w-[150px]">
-                          {e.user_agent
-                            ? e.user_agent.split(" ")[0]
-                            : "Unknown device"}
+                          {e.user_agent ? e.user_agent.split(" ")[0] : "Unknown device"}
                         </span>
                         <span className="text-border text-[10px]">•</span>
                         <span className="font-mono text-[11px]">

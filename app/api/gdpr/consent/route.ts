@@ -27,21 +27,17 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const response = await databases.listDocuments(
-      config.databaseId,
-      config.consentsCollectionId,
-      [Query.equal("user_email", auth.email), Query.orderDesc("$createdAt")],
-    );
+    const response = await databases.listDocuments(config.databaseId, config.consentsCollectionId, [
+      Query.equal("user_email", auth.email),
+      Query.orderDesc("$createdAt"),
+    ]);
 
     return NextResponse.json({
       total: response.total,
       documents: response.documents,
     });
   } catch (error: any) {
-    apiLogger.error(
-      "Error fetching consent records",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error fetching consent records", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: error.message || "Failed to fetch consent records" },
       { status: 500 },
@@ -60,12 +56,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { consent_type, given } = body;
 
-    const validConsentTypes = [
-      "marketing",
-      "analytics",
-      "data_processing",
-      "third_party",
-    ];
+    const validConsentTypes = ["marketing", "analytics", "data_processing", "third_party"];
     if (!validConsentTypes.includes(consent_type)) {
       return NextResponse.json(
         {
@@ -76,10 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (typeof given !== "boolean") {
-      return NextResponse.json(
-        { error: "given must be a boolean" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "given must be a boolean" }, { status: 400 });
     }
 
     if (!config.consentsCollectionId) {
@@ -90,9 +78,7 @@ export async function POST(request: NextRequest) {
     }
 
     const ipAddress =
-      request.headers.get("x-forwarded-for") ||
-      request.headers.get("x-real-ip") ||
-      "unknown";
+      request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
     const userAgent = request.headers.get("user-agent") || "unknown";
 
     // Check if consent record exists
@@ -170,10 +156,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error: any) {
-    apiLogger.error(
-      "Error updating consent",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error updating consent", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: error.message || "Failed to update consent" },
       { status: 500 },

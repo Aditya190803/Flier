@@ -1,4 +1,4 @@
 {
-  "*.{js,jsx,ts,tsx}": ["vp lint --fix", "prettier --write"],
-  "*.{json,md,css,scss}": ["prettier --write"]
+  "*.{js,jsx,ts,tsx}": ["vp check --fix"],
+  "*.{json,md,css,scss}": ["vp fmt"]
 }

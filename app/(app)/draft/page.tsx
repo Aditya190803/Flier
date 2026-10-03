@@ -55,12 +55,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  PageShell,
-  PageHeader,
-  EmptyState,
-  StatCard,
-} from "@/components/ui/page-shell";
+import { PageShell, PageHeader, EmptyState, StatCard } from "@/components/ui/page-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { draftEmailsService, type DraftEmail } from "@/lib/appwrite";
@@ -77,8 +72,7 @@ export default function DraftPage() {
   const [previewEmail, setPreviewEmail] = useState<DraftEmail | null>(null);
   const [previewRecipientIndex, setPreviewRecipientIndex] = useState(0);
   const [sendingId, setSendingId] = useState<string | null>(null);
-  const [deleteConfirmEmail, setDeleteConfirmEmail] =
-    useState<DraftEmail | null>(null);
+  const [deleteConfirmEmail, setDeleteConfirmEmail] = useState<DraftEmail | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -110,9 +104,8 @@ export default function DraftPage() {
 
     fetchDraftEmails();
 
-    const unsubscribe = draftEmailsService.subscribeToUserDraftEmails(
-      session.user.email,
-      () => fetchDraftEmails(),
+    const unsubscribe = draftEmailsService.subscribeToUserDraftEmails(session.user.email, () =>
+      fetchDraftEmails(),
     );
 
     return () => {
@@ -129,8 +122,7 @@ export default function DraftPage() {
 
   // Get personalized content for a specific recipient
   const getPreviewContent = (email: DraftEmail, recipientIndex: number) => {
-    const recipientEmail =
-      email.recipients[recipientIndex] || email.recipients[0];
+    const recipientEmail = email.recipients[recipientIndex] || email.recipients[0];
 
     // Try to get recipient data from stored csv_data
     let recipientData: Record<string, string> = { email: recipientEmail };
@@ -138,9 +130,7 @@ export default function DraftPage() {
     if (email.csv_data) {
       try {
         const csvData =
-          typeof email.csv_data === "string"
-            ? JSON.parse(email.csv_data)
-            : email.csv_data;
+          typeof email.csv_data === "string" ? JSON.parse(email.csv_data) : email.csv_data;
         // Case-insensitive email matching
         const row = csvData.find((r: any) => {
           const rowEmail = r.email || r.Email || r.EMAIL || "";
@@ -158,10 +148,7 @@ export default function DraftPage() {
           );
         }
       } catch (e) {
-        componentLogger.error(
-          "Error parsing csv_data",
-          e instanceof Error ? e : undefined,
-        );
+        componentLogger.error("Error parsing csv_data", e instanceof Error ? e : undefined);
       }
     }
 
@@ -179,10 +166,7 @@ export default function DraftPage() {
       toast.success("Draft email cancelled");
       fetchDraftEmails();
     } catch (error) {
-      componentLogger.error(
-        "Error cancelling email",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error cancelling email", error instanceof Error ? error : undefined);
       toast.error("Failed to cancel draft email");
     }
   };
@@ -193,10 +177,7 @@ export default function DraftPage() {
       toast.success("Draft email deleted");
       fetchDraftEmails();
     } catch (error) {
-      componentLogger.error(
-        "Error deleting email",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error deleting email", error instanceof Error ? error : undefined);
       toast.error("Failed to delete draft email");
     }
   };
@@ -235,12 +216,8 @@ export default function DraftPage() {
       }
       fetchDraftEmails();
     } catch (error) {
-      componentLogger.error(
-        "Error sending draft",
-        error instanceof Error ? error : undefined,
-      );
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to send draft";
+      componentLogger.error("Error sending draft", error instanceof Error ? error : undefined);
+      const errorMessage = error instanceof Error ? error.message : "Failed to send draft";
       toast.error(errorMessage);
       fetchDraftEmails(); // Refresh to show updated status
     } finally {
@@ -293,10 +270,7 @@ export default function DraftPage() {
       toast.success("Draft duplicated!");
       fetchDraftEmails();
     } catch (error) {
-      componentLogger.error(
-        "Error duplicating draft",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error duplicating draft", error instanceof Error ? error : undefined);
       toast.error("Failed to duplicate draft");
     }
   };
@@ -313,10 +287,7 @@ export default function DraftPage() {
       toast.success("Draft reset - you can try sending again");
       fetchDraftEmails();
     } catch (error) {
-      componentLogger.error(
-        "Error resetting draft",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error resetting draft", error instanceof Error ? error : undefined);
       toast.error("Failed to reset draft");
     }
   };
@@ -471,8 +442,7 @@ export default function DraftPage() {
               <div>
                 <p className="font-medium text-sm">Manual Sending Required</p>
                 <p className="text-sm text-muted-foreground">
-                  Drafts need to be sent manually. Click "Send Now" when you're
-                  ready to send.
+                  Drafts need to be sent manually. Click "Send Now" when you're ready to send.
                 </p>
               </div>
             </div>
@@ -515,10 +485,7 @@ export default function DraftPage() {
             </h2>
             <div className="space-y-4">
               {pendingEmails.map((email) => (
-                <Card
-                  key={email.$id}
-                  className="group hover:shadow-md transition-shadow"
-                >
+                <Card key={email.$id} className="group hover:shadow-md transition-shadow">
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
@@ -531,20 +498,14 @@ export default function DraftPage() {
                           </span>
                           {/* Show attachment indicator */}
                           {(email.attachments?.length || 0) > 0 && (
-                            <Badge
-                              variant="outline"
-                              className="flex items-center gap-1"
-                            >
+                            <Badge variant="outline" className="flex items-center gap-1">
                               <Paperclip className="h-3 w-3" />
                               {email.attachments?.length}
                             </Badge>
                           )}
                           {/* Show personalized attachment indicator */}
                           {email.has_personalized_attachments && (
-                            <Badge
-                              variant="secondary"
-                              className="flex items-center gap-1 text-xs"
-                            >
+                            <Badge variant="secondary" className="flex items-center gap-1 text-xs">
                               <Mail className="h-3 w-3" />
                               Personalized
                             </Badge>
@@ -589,21 +550,15 @@ export default function DraftPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => setPreviewEmail(email)}
-                            >
+                            <DropdownMenuItem onClick={() => setPreviewEmail(email)}>
                               <Eye className="h-4 w-4 mr-2" />
                               Preview
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => editDraftEmail(email)}
-                            >
+                            <DropdownMenuItem onClick={() => editDraftEmail(email)}>
                               <Edit className="h-4 w-4 mr-2" />
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => duplicateDraftEmail(email)}
-                            >
+                            <DropdownMenuItem onClick={() => duplicateDraftEmail(email)}>
                               <Copy className="h-4 w-4 mr-2" />
                               Duplicate
                             </DropdownMenuItem>
@@ -617,9 +572,7 @@ export default function DraftPage() {
                               ) : (
                                 <Play className="h-4 w-4 mr-2" />
                               )}
-                              {sendingId === email.$id
-                                ? "Sending..."
-                                : "Send Now"}
+                              {sendingId === email.$id ? "Sending..." : "Send Now"}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => cancelDraftEmail(email.$id!)}
@@ -692,22 +645,16 @@ export default function DraftPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => setPreviewEmail(email)}
-                            >
+                            <DropdownMenuItem onClick={() => setPreviewEmail(email)}>
                               <Eye className="h-4 w-4 mr-2" />
                               Preview
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => duplicateDraftEmail(email)}
-                            >
+                            <DropdownMenuItem onClick={() => duplicateDraftEmail(email)}>
                               <Copy className="h-4 w-4 mr-2" />
                               Duplicate as Draft
                             </DropdownMenuItem>
                             {email.status === "failed" && (
-                              <DropdownMenuItem
-                                onClick={() => retryFailedDraft(email)}
-                              >
+                              <DropdownMenuItem onClick={() => retryFailedDraft(email)}>
                                 <RefreshCw className="h-4 w-4 mr-2" />
                                 Retry
                               </DropdownMenuItem>
@@ -763,10 +710,7 @@ export default function DraftPage() {
       </PageShell>
 
       {/* Preview Dialog */}
-      <Dialog
-        open={!!previewEmail}
-        onOpenChange={(open) => !open && setPreviewEmail(null)}
-      >
+      <Dialog open={!!previewEmail} onOpenChange={(open) => !open && setPreviewEmail(null)}>
         <DialogContent
           className="max-w-2xl max-h-[80vh] overflow-y-auto"
           onPointerDownOutside={(e) => e.preventDefault()}
@@ -775,19 +719,15 @@ export default function DraftPage() {
           <DialogHeader>
             <DialogTitle>Email Preview</DialogTitle>
             <DialogDescription>
-              Saved{" "}
-              {previewEmail && format(new Date(previewEmail.saved_at), "PPP p")}
+              Saved {previewEmail && format(new Date(previewEmail.saved_at), "PPP p")}
             </DialogDescription>
           </DialogHeader>
           {previewEmail &&
             (() => {
-              const preview = getPreviewContent(
-                previewEmail,
-                previewRecipientIndex,
+              const preview = getPreviewContent(previewEmail, previewRecipientIndex);
+              const hasPlaceholders = (previewEmail.subject + previewEmail.content).match(
+                /\{\{?\w+\}?\}/,
               );
-              const hasPlaceholders = (
-                previewEmail.subject + previewEmail.content
-              ).match(/\{\{?\w+\}?\}/);
 
               return (
                 <div className="space-y-4">
@@ -798,9 +738,7 @@ export default function DraftPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() =>
-                          setPreviewRecipientIndex(
-                            Math.max(0, previewRecipientIndex - 1),
-                          )
+                          setPreviewRecipientIndex(Math.max(0, previewRecipientIndex - 1))
                         }
                         disabled={previewRecipientIndex === 0}
                       >
@@ -809,8 +747,7 @@ export default function DraftPage() {
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">
-                          Recipient {previewRecipientIndex + 1} of{" "}
-                          {previewEmail.recipients.length}
+                          Recipient {previewRecipientIndex + 1} of {previewEmail.recipients.length}
                         </span>
                       </div>
                       <Button
@@ -818,16 +755,10 @@ export default function DraftPage() {
                         size="sm"
                         onClick={() =>
                           setPreviewRecipientIndex(
-                            Math.min(
-                              previewEmail.recipients.length - 1,
-                              previewRecipientIndex + 1,
-                            ),
+                            Math.min(previewEmail.recipients.length - 1, previewRecipientIndex + 1),
                           )
                         }
-                        disabled={
-                          previewRecipientIndex >=
-                          previewEmail.recipients.length - 1
-                        }
+                        disabled={previewRecipientIndex >= previewEmail.recipients.length - 1}
                       >
                         <ChevronRight className="h-4 w-4" />
                       </Button>
@@ -837,18 +768,12 @@ export default function DraftPage() {
                   {/* Personalization Data Badge */}
                   {hasPlaceholders && Object.keys(preview.data).length > 1 && (
                     <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
-                      <p className="text-sm font-medium text-primary mb-2">
-                        Personalization Data:
-                      </p>
+                      <p className="text-sm font-medium text-primary mb-2">Personalization Data:</p>
                       <div className="flex flex-wrap gap-2">
                         {Object.entries(preview.data)
                           .filter(([key, value]) => value && key !== "email")
                           .map(([key, value]) => (
-                            <Badge
-                              key={key}
-                              variant="outline"
-                              className="text-xs"
-                            >
+                            <Badge key={key} variant="outline" className="text-xs">
                               {key}: {value}
                             </Badge>
                           ))}
@@ -861,15 +786,11 @@ export default function DraftPage() {
                     <p className="font-medium">{preview.email}</p>
                   </div>
                   <div className="border rounded-lg p-4 bg-muted/30">
-                    <p className="text-sm text-muted-foreground mb-1">
-                      Subject
-                    </p>
+                    <p className="text-sm text-muted-foreground mb-1">Subject</p>
                     <p className="font-medium">{preview.subject}</p>
                   </div>
                   <div className="border rounded-lg p-4 bg-white dark:bg-zinc-900">
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Content
-                    </p>
+                    <p className="text-sm text-muted-foreground mb-2">Content</p>
                     <div
                       className="prose dark:prose-invert max-w-none"
                       dangerouslySetInnerHTML={{ __html: preview.content }}
@@ -885,11 +806,7 @@ export default function DraftPage() {
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {previewEmail.attachments?.map((att, idx) => (
-                          <Badge
-                            key={idx}
-                            variant="secondary"
-                            className="flex items-center gap-1"
-                          >
+                          <Badge key={idx} variant="secondary" className="flex items-center gap-1">
                             <Paperclip className="h-3 w-3" />
                             {att.fileName}
                             {att.fileSize && (
@@ -917,8 +834,8 @@ export default function DraftPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Draft Email</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deleteConfirmEmail?.subject}"?
-              This action cannot be undone.
+              Are you sure you want to delete "{deleteConfirmEmail?.subject}"? This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -25,11 +25,7 @@ export const webhooksService = {
   },
 
   // Trigger webhooks is a server-side operation - not exposed here
-  async triggerWebhooks(
-    _userEmail: string,
-    _event: Webhook["events"][number],
-    _payload: any,
-  ) {
+  async triggerWebhooks(_userEmail: string, _event: Webhook["events"][number], _payload: any) {
     clientLogger.warn("triggerWebhooks should be called server-side");
     return [];
   },

@@ -1,11 +1,4 @@
-import {
-  CheckCircle,
-  CloudDownload,
-  Mail,
-  RefreshCw,
-  UserPlus,
-  Users,
-} from "lucide-react";
+import { CheckCircle, CloudDownload, Mail, RefreshCw, UserPlus, Users } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,18 +52,14 @@ export function GmailImportDialog({
             <CloudDownload className="h-5 w-5" />
             Import from Google Contacts
           </DialogTitle>
-          <DialogDescription>
-            Select contacts from your Google account to import
-          </DialogDescription>
+          <DialogDescription>Select contacts from your Google account to import</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
           {isLoadingGmail ? (
             <div className="flex flex-col items-center justify-center py-12">
               <RefreshCw className="h-8 w-8 animate-spin text-primary mb-4" />
-              <p className="text-muted-foreground">
-                Fetching your Google contacts...
-              </p>
+              <p className="text-muted-foreground">Fetching your Google contacts...</p>
             </div>
           ) : gmailImportError ? (
             <div className="text-center py-8">
@@ -99,9 +88,7 @@ export function GmailImportDialog({
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
-                    checked={
-                      selectedGmailContacts.size === gmailContacts.length
-                    }
+                    checked={selectedGmailContacts.size === gmailContacts.length}
                     onChange={onToggleAll}
                     className="rounded border-input"
                   />
@@ -109,9 +96,7 @@ export function GmailImportDialog({
                     Select All ({gmailContacts.length} contacts)
                   </span>
                 </div>
-                <Badge variant="secondary">
-                  {selectedGmailContacts.size} selected
-                </Badge>
+                <Badge variant="secondary">{selectedGmailContacts.size} selected</Badge>
               </div>
 
               <div className="max-h-[40vh] overflow-y-auto space-y-2">
@@ -133,9 +118,7 @@ export function GmailImportDialog({
                       onClick={(event) => event.stopPropagation()}
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">
-                        {contact.name || contact.email}
-                      </p>
+                      <p className="font-medium truncate">{contact.name || contact.email}</p>
                       <p className="text-sm text-muted-foreground truncate">
                         {contact.email}
                         {contact.company && ` • ${contact.company}`}

@@ -1,9 +1,5 @@
 import { extractAttachmentFileName } from "./attachments/metadata";
-import {
-  detectAttachmentColumn,
-  getDirectDownloadUrl,
-  isAttachmentUrl,
-} from "./attachments/url";
+import { detectAttachmentColumn, getDirectDownloadUrl, isAttachmentUrl } from "./attachments/url";
 import { logger } from "./logger";
 
 export interface FetchedAttachment {
@@ -40,22 +36,17 @@ async function fetchWithRetry(
       }
 
       // For non-ok responses, throw to trigger retry
-      throw new Error(
-        `Failed to fetch file: ${response.status} ${response.statusText}`,
-      );
+      throw new Error(`Failed to fetch file: ${response.status} ${response.statusText}`);
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
 
       if (attempt < maxRetries - 1) {
         const delay = initialDelayMs * Math.pow(2, attempt);
-        logger.debug(
-          `Fetch attempt ${attempt + 1} failed, retrying in ${delay}ms`,
-          {
-            error: lastError.message,
-            attempt: attempt + 1,
-            maxRetries,
-          },
-        );
+        logger.debug(`Fetch attempt ${attempt + 1} failed, retrying in ${delay}ms`, {
+          error: lastError.message,
+          attempt: attempt + 1,
+          maxRetries,
+        });
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
@@ -79,8 +70,7 @@ export async function fetchFileFromUrl(
 
   const response = await fetchWithRetry(directUrl);
 
-  const contentType =
-    response.headers.get("content-type") || "application/octet-stream";
+  const contentType = response.headers.get("content-type") || "application/octet-stream";
   const contentDisposition = response.headers.get("content-disposition");
 
   const arrayBuffer = await response.arrayBuffer();
@@ -90,12 +80,7 @@ export async function fetchFileFromUrl(
   // Determine filename
   const fileName =
     customFileName ||
-    extractAttachmentFileName(
-      url,
-      contentDisposition,
-      recipientName,
-      contentType,
-    );
+    extractAttachmentFileName(url, contentDisposition, recipientName, contentType);
 
   logger.debug(`Fetched file`, {
     fileName,

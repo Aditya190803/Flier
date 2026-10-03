@@ -21,10 +21,7 @@ export async function GET(request: NextRequest) {
     const format = searchParams.get("format") || "json";
 
     if (!campaignId) {
-      return NextResponse.json(
-        { error: "Campaign ID is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Campaign ID is required" }, { status: 400 });
     }
 
     // Fetch all events for this campaign
@@ -41,14 +38,7 @@ export async function GET(request: NextRequest) {
     const events = response.documents;
 
     if (format === "csv") {
-      const headers = [
-        "email",
-        "event_type",
-        "link_url",
-        "created_at",
-        "ip_address",
-        "user_agent",
-      ];
+      const headers = ["email", "event_type", "link_url", "created_at", "ip_address", "user_agent"];
       const csvRows = [headers.join(",")];
 
       for (const event of events) {
@@ -73,13 +63,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(events);
   } catch (error) {
-    apiLogger.error(
-      "Error exporting campaign data",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Failed to export campaign data" },
-      { status: 500 },
-    );
+    apiLogger.error("Error exporting campaign data", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Failed to export campaign data" }, { status: 500 });
   }
 }

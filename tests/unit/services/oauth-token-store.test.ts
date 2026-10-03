@@ -57,10 +57,9 @@ describe("offline OAuth token storage", () => {
   it("deletes authorization by user email", async () => {
     await deleteStoredRefreshToken("owner@example.com");
 
-    expect(dbQuery).toHaveBeenCalledWith(
-      "DELETE FROM oauth_tokens WHERE user_email = $1",
-      ["owner@example.com"],
-    );
+    expect(dbQuery).toHaveBeenCalledWith("DELETE FROM oauth_tokens WHERE user_email = $1", [
+      "owner@example.com",
+    ]);
   });
 
   it("accepts only decryptable, non-revoked grants", async () => {
@@ -76,9 +75,7 @@ describe("offline OAuth token storage", () => {
       rowCount: 1,
     });
 
-    await expect(hasUsableRefreshToken("owner@example.com")).resolves.toBe(
-      true,
-    );
+    await expect(hasUsableRefreshToken("owner@example.com")).resolves.toBe(true);
     expect(decryptSecret).toHaveBeenCalledWith("encrypted-token");
   });
 });

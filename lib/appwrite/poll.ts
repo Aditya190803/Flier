@@ -28,10 +28,7 @@ export interface PollOptions {
  * @returns An unsubscribe function, matching the contract call sites already
  *   use in their `useEffect` cleanups.
  */
-export function pollForUpdates(
-  onChange: () => void,
-  options: PollOptions = {},
-): () => void {
+export function pollForUpdates(onChange: () => void, options: PollOptions = {}): () => void {
   const intervalMs = options.intervalMs ?? DEFAULT_POLL_INTERVAL_MS;
 
   // Server render / non-DOM environment: nothing to poll from.

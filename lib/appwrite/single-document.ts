@@ -35,11 +35,10 @@ export async function respondWithOwnedDocument(
 
   let doc: Record<string, any>;
   try {
-    doc = (await databases.getDocument(
-      config.databaseId,
-      collectionId,
-      id,
-    )) as unknown as Record<string, any>;
+    doc = (await databases.getDocument(config.databaseId, collectionId, id)) as unknown as Record<
+      string,
+      any
+    >;
   } catch {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }

@@ -168,15 +168,10 @@ describe("Appwrite Integration Tests", () => {
 
         const results = await Promise.all(
           contacts.map((contact) =>
-            databases.createDocument(
-              config.databaseId,
-              config.contactsCollectionId,
-              ID.unique(),
-              {
-                ...contact,
-                user_email: "owner@test.com",
-              },
-            ),
+            databases.createDocument(config.databaseId, config.contactsCollectionId, ID.unique(), {
+              ...contact,
+              user_email: "owner@test.com",
+            }),
           ),
         );
 
@@ -326,10 +321,7 @@ describe("Appwrite Integration Tests", () => {
       const mockUrl = "https://appwrite.io/storage/files/file-123/download";
       vi.mocked(storage.getFileDownload).mockResolvedValueOnce(mockUrl as any);
 
-      const result = await storage.getFileDownload(
-        config.attachmentsBucketId,
-        "file-123",
-      );
+      const result = await storage.getFileDownload(config.attachmentsBucketId, "file-123");
 
       expect(result).toBe(mockUrl);
     });
@@ -339,10 +331,7 @@ describe("Appwrite Integration Tests", () => {
 
       await storage.deleteFile(config.attachmentsBucketId, "file-123");
 
-      expect(storage.deleteFile).toHaveBeenCalledWith(
-        config.attachmentsBucketId,
-        "file-123",
-      );
+      expect(storage.deleteFile).toHaveBeenCalledWith(config.attachmentsBucketId, "file-123");
     });
   });
 
@@ -356,10 +345,7 @@ describe("Appwrite Integration Tests", () => {
       ];
 
       expect(queries).toHaveLength(4);
-      expect(Query.equal).toHaveBeenCalledWith(
-        "user_email",
-        "test@example.com",
-      );
+      expect(Query.equal).toHaveBeenCalledWith("user_email", "test@example.com");
       expect(Query.orderDesc).toHaveBeenCalledWith("created_at");
     });
   });
@@ -371,40 +357,23 @@ describe("Appwrite Integration Tests", () => {
       );
 
       await expect(
-        databases.listDocuments(
-          config.databaseId,
-          config.contactsCollectionId,
-          [],
-        ),
+        databases.listDocuments(config.databaseId, config.contactsCollectionId, []),
       ).rejects.toThrow("Network error");
     });
 
     it("should handle permission errors", async () => {
-      vi.mocked(databases.deleteDocument).mockRejectedValueOnce(
-        new Error("Permission denied"),
-      );
+      vi.mocked(databases.deleteDocument).mockRejectedValueOnce(new Error("Permission denied"));
 
       await expect(
-        databases.deleteDocument(
-          config.databaseId,
-          config.contactsCollectionId,
-          "id",
-        ),
+        databases.deleteDocument(config.databaseId, config.contactsCollectionId, "id"),
       ).rejects.toThrow("Permission denied");
     });
 
     it("should handle rate limiting", async () => {
-      vi.mocked(databases.createDocument).mockRejectedValueOnce(
-        new Error("Rate limit exceeded"),
-      );
+      vi.mocked(databases.createDocument).mockRejectedValueOnce(new Error("Rate limit exceeded"));
 
       await expect(
-        databases.createDocument(
-          config.databaseId,
-          config.contactsCollectionId,
-          "id",
-          {},
-        ),
+        databases.createDocument(config.databaseId, config.contactsCollectionId, "id", {}),
       ).rejects.toThrow("Rate limit exceeded");
     });
   });

@@ -14,8 +14,7 @@ export interface TrackingTokenPayload {
 }
 
 function getTrackingSecret(): string {
-  const secret =
-    process.env.TRACKING_TOKEN_SECRET || process.env.NEXTAUTH_SECRET;
+  const secret = process.env.TRACKING_TOKEN_SECRET || process.env.NEXTAUTH_SECRET;
 
   if (!secret) {
     throw new Error("Tracking token secret is not configured");
@@ -64,10 +63,7 @@ export function verifyTrackingToken(
 
     const actual = Buffer.from(signature);
     const expected = Buffer.from(expectedSignature);
-    if (
-      actual.length !== expected.length ||
-      !crypto.timingSafeEqual(actual, expected)
-    ) {
+    if (actual.length !== expected.length || !crypto.timingSafeEqual(actual, expected)) {
       return null;
     }
 
@@ -80,11 +76,7 @@ export function verifyTrackingToken(
       return null;
     }
 
-    if (
-      expectedPurpose &&
-      payload.purpose &&
-      payload.purpose !== expectedPurpose
-    ) {
+    if (expectedPurpose && payload.purpose && payload.purpose !== expectedPurpose) {
       return null;
     }
 

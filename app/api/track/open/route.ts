@@ -63,21 +63,14 @@ export async function GET(request: NextRequest) {
       );
       apiLogger.info("Email open tracked", { campaignId: payload.campaignId });
     } catch (error) {
-      apiLogger.error(
-        "Error recording open event",
-        error instanceof Error ? error : undefined,
-        {
-          campaignId: payload.campaignId,
-        },
-      );
+      apiLogger.error("Error recording open event", error instanceof Error ? error : undefined, {
+        campaignId: payload.campaignId,
+      });
     }
 
     return pixelResponse();
   } catch (error) {
-    apiLogger.error(
-      "Tracking pixel error",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Tracking pixel error", error instanceof Error ? error : undefined);
     return pixelResponse();
   }
 }

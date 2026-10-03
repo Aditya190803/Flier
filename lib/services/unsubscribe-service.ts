@@ -1,9 +1,6 @@
 import { databases, config, Query } from "@/lib/appwrite-server";
 
-export async function checkUserUnsubscribed(
-  userEmail: string,
-  email: string,
-): Promise<boolean> {
+export async function checkUserUnsubscribed(userEmail: string, email: string): Promise<boolean> {
   const unsubscribeCheck = await databases.listDocuments(
     config.databaseId,
     config.unsubscribesCollectionId,

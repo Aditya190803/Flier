@@ -14,9 +14,7 @@ describe("Utility Functions", () => {
     });
 
     it("should handle conditional classes", () => {
-      expect(cn("base", true && "active", false && "inactive")).toBe(
-        "base active",
-      );
+      expect(cn("base", true && "active", false && "inactive")).toBe("base active");
     });
 
     it("should merge Tailwind classes correctly", () => {
@@ -53,9 +51,7 @@ describe("Utility Functions", () => {
           { "object-class": true, "skipped-class": false },
           ["array-class-1", "array-class-2"],
         ),
-      ).toBe(
-        "base-class conditional-class object-class array-class-1 array-class-2",
-      );
+      ).toBe("base-class conditional-class object-class array-class-1 array-class-2");
     });
 
     it("should return empty string for no arguments", () => {
@@ -72,15 +68,11 @@ describe("Utility Functions", () => {
     });
 
     it("should handle dark mode variants correctly", () => {
-      expect(cn("dark:bg-gray-800", "dark:bg-gray-900")).toBe(
-        "dark:bg-gray-900",
-      );
+      expect(cn("dark:bg-gray-800", "dark:bg-gray-900")).toBe("dark:bg-gray-900");
     });
 
     it("should preserve non-conflicting utilities", () => {
-      expect(cn("text-red-500 font-bold", "text-lg")).toBe(
-        "text-red-500 font-bold text-lg",
-      );
+      expect(cn("text-red-500 font-bold", "text-lg")).toBe("text-red-500 font-bold text-lg");
     });
   });
 });

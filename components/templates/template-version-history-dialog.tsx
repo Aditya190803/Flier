@@ -64,10 +64,7 @@ export function TemplateVersionHistoryDialog({
           {isLoadingVersions ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-4 p-4 border rounded-lg"
-                >
+                <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
                   <Skeleton className="h-10 w-10 rounded-full" />
                   <div className="flex-1 space-y-2">
                     <Skeleton className="h-4 w-24" />
@@ -82,8 +79,7 @@ export function TemplateVersionHistoryDialog({
               <History className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="font-medium mb-2">No version history</h3>
               <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                Version history will appear here when you save versions while
-                editing this template.
+                Version history will appear here when you save versions while editing this template.
               </p>
             </div>
           ) : (
@@ -118,17 +114,12 @@ export function TemplateVersionHistoryDialog({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">
-                        Version {version.version}
-                      </span>
+                      <span className="font-medium">Version {version.version}</span>
                     </div>
                     <p className="text-sm text-muted-foreground truncate">
-                      {version.change_note ||
-                        `Saved on ${formatDate(version.created_at)}`}
+                      {version.change_note || `Saved on ${formatDate(version.created_at)}`}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      Subject: {version.subject}
-                    </p>
+                    <p className="text-xs text-muted-foreground">Subject: {version.subject}</p>
                   </div>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
@@ -139,13 +130,11 @@ export function TemplateVersionHistoryDialog({
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>
-                          Restore Version {version.version}?
-                        </AlertDialogTitle>
+                        <AlertDialogTitle>Restore Version {version.version}?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          This will replace the current template content with
-                          version {version.version}. The current version will be
-                          saved to history before restoring.
+                          This will replace the current template content with version{" "}
+                          {version.version}. The current version will be saved to history before
+                          restoring.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

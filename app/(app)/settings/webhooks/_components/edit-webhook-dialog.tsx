@@ -47,9 +47,7 @@ export function EditWebhookDialog({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Edit Webhook</DialogTitle>
-          <DialogDescription>
-            Update your webhook configuration
-          </DialogDescription>
+          <DialogDescription>Update your webhook configuration</DialogDescription>
         </DialogHeader>
         {editingWebhook && (
           <div className="space-y-4 pt-4">
@@ -92,17 +90,13 @@ export function EditWebhookDialog({
                   >
                     <input
                       type="checkbox"
-                      checked={editingWebhook.events.includes(
-                        event.value as any,
-                      )}
+                      checked={editingWebhook.events.includes(event.value as any)}
                       onChange={() => toggleEditEvent(event.value as any)}
                       className="mt-1"
                     />
                     <div>
                       <p className="font-medium">{event.label}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {event.description}
-                      </p>
+                      <p className="text-sm text-muted-foreground">{event.description}</p>
                     </div>
                   </label>
                 ))}

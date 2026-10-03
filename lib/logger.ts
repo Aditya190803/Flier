@@ -60,9 +60,7 @@ class Logger {
   }
 
   private shouldLog(level: LogLevel): boolean {
-    return (
-      LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[this.config.minLevel]
-    );
+    return LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[this.config.minLevel];
   }
 
   private formatEntry(entry: LogEntry): string {
@@ -97,12 +95,7 @@ class Logger {
     return parts.join(" ");
   }
 
-  private log(
-    level: LogLevel,
-    message: string,
-    context?: LogContext,
-    error?: Error,
-  ): void {
+  private log(level: LogLevel, message: string, context?: LogContext, error?: Error): void {
     if (!this.shouldLog(level)) {
       return;
     }
@@ -178,9 +171,7 @@ class Logger {
     } else {
       // Both are context or undefined
       const mergedContext =
-        contextOrError || errorOrContext
-          ? { ...contextOrError, ...errorOrContext }
-          : undefined;
+        contextOrError || errorOrContext ? { ...contextOrError, ...errorOrContext } : undefined;
       this.log("warn", message, mergedContext);
     }
   }
@@ -206,9 +197,7 @@ class Logger {
     } else {
       // Both are context or undefined
       const mergedContext =
-        contextOrError || errorOrContext
-          ? { ...contextOrError, ...errorOrContext }
-          : undefined;
+        contextOrError || errorOrContext ? { ...contextOrError, ...errorOrContext } : undefined;
       this.log("error", message, mergedContext);
     }
   }
@@ -220,12 +209,7 @@ class Logger {
     const childLogger = new Logger(this.config);
     const originalLog = childLogger.log.bind(childLogger);
 
-    childLogger.log = (
-      level: LogLevel,
-      message: string,
-      context?: LogContext,
-      error?: Error,
-    ) => {
+    childLogger.log = (level: LogLevel, message: string, context?: LogContext, error?: Error) => {
       originalLog(level, message, { ...defaultContext, ...context }, error);
     };
 

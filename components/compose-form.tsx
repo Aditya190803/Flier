@@ -31,10 +31,7 @@ import { DraftRecoveryDialog } from "@/components/compose/draft-recovery-dialog"
 import { PreviewStep } from "@/components/compose/preview-step";
 import { RecipientsStep } from "@/components/compose/recipients-step";
 import { SendingStatusDialog } from "@/components/compose/sending-status-dialog";
-import {
-  StickyActionBar,
-  type ComposeSectionId,
-} from "@/components/compose/sticky-action-bar";
+import { StickyActionBar, type ComposeSectionId } from "@/components/compose/sticky-action-bar";
 import { useComposeContacts } from "@/components/compose/use-compose-contacts";
 import { useComposePreview } from "@/components/compose/use-compose-preview";
 import { useComposeRecipients } from "@/components/compose/use-compose-recipients";
@@ -45,11 +42,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-shell";
 import { useEmailSend } from "@/hooks/useEmailSend";
-import {
-  campaignsService,
-  templatesService,
-  type EmailTemplate,
-} from "@/lib/appwrite";
+import { campaignsService, templatesService, type EmailTemplate } from "@/lib/appwrite";
 import { componentLogger } from "@/lib/client-logger";
 
 export function ComposeForm() {
@@ -247,12 +240,7 @@ export function ComposeForm() {
   });
 
   // Send / save-as-draft orchestration
-  const {
-    handleSend,
-    isPreparingSend,
-    showSendingDialog,
-    setShowSendingDialog,
-  } = useComposeSend({
+  const { handleSend, isPreparingSend, showSendingDialog, setShowSendingDialog } = useComposeSend({
     router,
     session,
     subject,
@@ -340,9 +328,7 @@ export function ComposeForm() {
           // Trigger save via button click simulation
           handleSend();
         } else {
-          toast.error(
-            "Please fill in subject, content, and at least one recipient",
-          );
+          toast.error("Please fill in subject, content, and at least one recipient");
         }
       }
 
@@ -380,10 +366,7 @@ export function ComposeForm() {
         })) as EmailTemplate[],
       );
     } catch (error) {
-      componentLogger.error(
-        "Error loading templates",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error loading templates", error instanceof Error ? error : undefined);
     }
     setIsLoadingTemplates(false);
   }, [session?.user?.email]);
@@ -412,9 +395,7 @@ export function ComposeForm() {
         const result = await processAttachmentFile(file, tempId);
         if (result.success && result.update) {
           setAttachments((prev) =>
-            prev.map((a) =>
-              a.tempId === tempId ? { ...a, ...result.update } : a,
-            ),
+            prev.map((a) => (a.tempId === tempId ? { ...a, ...result.update } : a)),
           );
         } else if (!result.success) {
           setAttachments((prev) => prev.filter((a) => a.tempId !== tempId));
@@ -457,8 +438,7 @@ export function ComposeForm() {
     },
   } as const;
 
-  const activeStep =
-    stepMeta[activeTab as keyof typeof stepMeta] ?? stepMeta.compose;
+  const activeStep = stepMeta[activeTab as keyof typeof stepMeta] ?? stepMeta.compose;
   const activeSection = activeTab as ComposeSectionId;
 
   return (
@@ -473,15 +453,10 @@ export function ComposeForm() {
           <div className="flex items-center gap-2 sm:gap-3">
             <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-warning flex-shrink-0" />
             <div className="min-w-0">
-              <p className="font-medium text-xs sm:text-sm">
-                Incomplete Campaign Found
-              </p>
+              <p className="font-medium text-xs sm:text-sm">Incomplete Campaign Found</p>
               <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
-                {savedCampaignInfo.subject
-                  ? `"${savedCampaignInfo.subject}" - `
-                  : ""}
-                {savedCampaignInfo.remaining} of {savedCampaignInfo.total}{" "}
-                emails remaining
+                {savedCampaignInfo.subject ? `"${savedCampaignInfo.subject}" - ` : ""}
+                {savedCampaignInfo.remaining} of {savedCampaignInfo.total} emails remaining
               </p>
             </div>
           </div>
@@ -525,9 +500,7 @@ export function ComposeForm() {
             ) : draftSyncStatus === "saved" ? (
               <>
                 <CheckCircle className="h-4 w-4 text-success" />
-                <span className="text-success">
-                  Saved {lastSaved ? getTimeAgo(lastSaved) : ""}
-                </span>
+                <span className="text-success">Saved {lastSaved ? getTimeAgo(lastSaved) : ""}</span>
               </>
             ) : draftSyncStatus === "error" ? (
               <>
@@ -542,9 +515,7 @@ export function ComposeForm() {
             ) : lastSaved ? (
               <>
                 <Save className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">
-                  Draft saved {getTimeAgo(lastSaved)}
-                </span>
+                <span className="text-muted-foreground">Draft saved {getTimeAgo(lastSaved)}</span>
               </>
             ) : null}
             {!isSavingDraft &&
@@ -581,11 +552,7 @@ export function ComposeForm() {
               variant="ghost"
               size="sm"
               onClick={() => {
-                if (
-                  confirm(
-                    "Are you sure you want to clear this draft? This cannot be undone.",
-                  )
-                ) {
+                if (confirm("Are you sure you want to clear this draft? This cannot be undone.")) {
                   setSubject("");
                   setContent("");
                   setRecipients([]);
@@ -629,16 +596,8 @@ export function ComposeForm() {
                   },
                 ].map((s, i) => {
                   const isActive = s.id === activeTab;
-                  const stepIndex = [
-                    "recipients",
-                    "compose",
-                    "preview",
-                  ].indexOf(s.id);
-                  const currentIndex = [
-                    "recipients",
-                    "compose",
-                    "preview",
-                  ].indexOf(activeTab);
+                  const stepIndex = ["recipients", "compose", "preview"].indexOf(s.id);
+                  const currentIndex = ["recipients", "compose", "preview"].indexOf(activeTab);
                   const isCompleted = stepIndex < currentIndex;
                   return (
                     <button
@@ -673,9 +632,7 @@ export function ComposeForm() {
                           {s.desc}
                         </p>
                       </div>
-                      <span className="md:hidden text-sm font-medium ml-2">
-                        {s.label}
-                      </span>
+                      <span className="md:hidden text-sm font-medium ml-2">{s.label}</span>
                     </button>
                   );
                 })}
@@ -698,16 +655,13 @@ export function ComposeForm() {
                     <p className="text-sm font-semibold text-foreground truncate">
                       {activeStep.label}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {activeStep.desc}
-                    </p>
+                    <p className="text-xs text-muted-foreground truncate">{activeStep.desc}</p>
                   </div>
                 </div>
               </div>
               <div className="shrink-0 hidden sm:flex items-center gap-2">
                 <Badge variant="outline" className="bg-background/60">
-                  Step{" "}
-                  {["recipients", "compose", "preview"].indexOf(activeTab) + 1}
+                  Step {["recipients", "compose", "preview"].indexOf(activeTab) + 1}
                   /3
                 </Badge>
               </div>
@@ -739,9 +693,7 @@ export function ComposeForm() {
             </div>
 
             {/* Compose Tab */}
-            <div
-              className={activeTab === "compose" ? "block space-y-6" : "hidden"}
-            >
+            <div className={activeTab === "compose" ? "block space-y-6" : "hidden"}>
               <ComposeStep
                 showHtmlImport={showHtmlImport}
                 htmlImportCode={htmlImportCode}
@@ -830,22 +782,14 @@ export function ComposeForm() {
         canGoBack={activeTab !== "recipients"}
         canGoNext={activeTab !== "preview"}
         onBack={() => {
-          const steps: ComposeSectionId[] = [
-            "recipients",
-            "compose",
-            "preview",
-          ];
+          const steps: ComposeSectionId[] = ["recipients", "compose", "preview"];
           const idx = steps.indexOf(activeSection);
           if (idx > 0) {
             setActiveTab(steps[idx - 1]);
           }
         }}
         onNext={() => {
-          const steps: ComposeSectionId[] = [
-            "recipients",
-            "compose",
-            "preview",
-          ];
+          const steps: ComposeSectionId[] = ["recipients", "compose", "preview"];
           const idx = steps.indexOf(activeSection);
           if (idx < steps.length - 1) {
             setActiveTab(steps[idx + 1]);

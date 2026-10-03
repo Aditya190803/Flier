@@ -19,15 +19,11 @@ import type { Contact } from "./compose-types";
  */
 export function useComposeContacts(userEmail: string | undefined | null) {
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [selectedContacts, setSelectedContacts] = useState<Set<string>>(
-    new Set(),
-  );
+  const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
   const [groups, setGroups] = useState<ContactGroup[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
   const [signatures, setSignatures] = useState<EmailSignature[]>([]);
-  const [selectedSignature, setSelectedSignature] = useState<string | null>(
-    null,
-  );
+  const [selectedSignature, setSelectedSignature] = useState<string | null>(null);
 
   useEffect(() => {
     const loadContactsGroupsAndSignatures = async () => {
@@ -36,20 +32,17 @@ export function useComposeContacts(userEmail: string | undefined | null) {
       }
 
       try {
-        const [contactsResponse, groupsResponse, signaturesResponse] =
-          await Promise.all([
-            contactsService.listByUser(userEmail),
-            contactGroupsService.listByUser(userEmail),
-            signaturesService.listByUser(userEmail),
-          ]);
+        const [contactsResponse, groupsResponse, signaturesResponse] = await Promise.all([
+          contactsService.listByUser(userEmail),
+          contactGroupsService.listByUser(userEmail),
+          signaturesService.listByUser(userEmail),
+        ]);
         setContacts(contactsResponse.documents as any[]);
         setGroups(groupsResponse.documents);
         setSignatures(signaturesResponse.documents);
 
         // Set default signature if available
-        const defaultSig = signaturesResponse.documents.find(
-          (s) => s.is_default,
-        );
+        const defaultSig = signaturesResponse.documents.find((s) => s.is_default);
         if (defaultSig) {
           setSelectedSignature(defaultSig.$id!);
         }

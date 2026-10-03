@@ -26,13 +26,7 @@ import { toast } from "sonner";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -53,15 +47,9 @@ import { componentLogger } from "@/lib/client-logger";
 export default function ABTestingPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const {
-    tests,
-    loading,
-    contacts,
-    submitting,
-    fetchTests,
-    createTest,
-    startTest,
-  } = useAbTests(session?.user?.email ?? undefined);
+  const { tests, loading, contacts, submitting, fetchTests, createTest, startTest } = useAbTests(
+    session?.user?.email ?? undefined,
+  );
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [selectedTest, setSelectedTest] = useState<ABTest | null>(null);
@@ -131,10 +119,7 @@ export default function ABTestingPage() {
       toast.success("A/B test deleted");
       fetchTests();
     } catch (error) {
-      componentLogger.error(
-        "Error deleting A/B test",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error deleting A/B test", error instanceof Error ? error : undefined);
       toast.error("Failed to delete A/B test");
     }
   };
@@ -299,9 +284,7 @@ export default function ABTestingPage() {
                         >
                           <div className="flex items-center justify-between mb-3">
                             <span className="font-medium">Variant A</span>
-                            {test.winner === "A" && (
-                              <Trophy className="h-4 w-4 text-success" />
-                            )}
+                            {test.winner === "A" && <Trophy className="h-4 w-4 text-success" />}
                           </div>
                           <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                             {test.variant_a_subject}
@@ -311,28 +294,17 @@ export default function ABTestingPage() {
                               <div className="text-lg font-semibold">
                                 {test.variant_a_recipients?.length || 0}
                               </div>
-                              <div className="text-xs text-muted-foreground">
-                                Recipients
-                              </div>
+                              <div className="text-xs text-muted-foreground">Recipients</div>
+                            </div>
+                            <div>
+                              <div className="text-lg font-semibold">{test.variant_a_opens}</div>
+                              <div className="text-xs text-muted-foreground">Opens</div>
                             </div>
                             <div>
                               <div className="text-lg font-semibold">
-                                {test.variant_a_opens}
+                                {calculateRate(test.variant_a_opens, test.variant_a_sent)}
                               </div>
-                              <div className="text-xs text-muted-foreground">
-                                Opens
-                              </div>
-                            </div>
-                            <div>
-                              <div className="text-lg font-semibold">
-                                {calculateRate(
-                                  test.variant_a_opens,
-                                  test.variant_a_sent,
-                                )}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                Rate
-                              </div>
+                              <div className="text-xs text-muted-foreground">Rate</div>
                             </div>
                           </div>
                         </div>
@@ -343,9 +315,7 @@ export default function ABTestingPage() {
                         >
                           <div className="flex items-center justify-between mb-3">
                             <span className="font-medium">Variant B</span>
-                            {test.winner === "B" && (
-                              <Trophy className="h-4 w-4 text-success" />
-                            )}
+                            {test.winner === "B" && <Trophy className="h-4 w-4 text-success" />}
                           </div>
                           <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                             {test.variant_b_subject}
@@ -355,28 +325,17 @@ export default function ABTestingPage() {
                               <div className="text-lg font-semibold">
                                 {test.variant_b_recipients?.length || 0}
                               </div>
-                              <div className="text-xs text-muted-foreground">
-                                Recipients
-                              </div>
+                              <div className="text-xs text-muted-foreground">Recipients</div>
+                            </div>
+                            <div>
+                              <div className="text-lg font-semibold">{test.variant_b_opens}</div>
+                              <div className="text-xs text-muted-foreground">Opens</div>
                             </div>
                             <div>
                               <div className="text-lg font-semibold">
-                                {test.variant_b_opens}
+                                {calculateRate(test.variant_b_opens, test.variant_b_sent)}
                               </div>
-                              <div className="text-xs text-muted-foreground">
-                                Opens
-                              </div>
-                            </div>
-                            <div>
-                              <div className="text-lg font-semibold">
-                                {calculateRate(
-                                  test.variant_b_opens,
-                                  test.variant_b_sent,
-                                )}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                Rate
-                              </div>
+                              <div className="text-xs text-muted-foreground">Rate</div>
                             </div>
                           </div>
                         </div>
@@ -400,11 +359,7 @@ export default function ABTestingPage() {
                           Complete
                         </Button>
                       )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => viewTestDetails(test)}
-                      >
+                      <Button size="sm" variant="outline" onClick={() => viewTestDetails(test)}>
                         <BarChart3 className="h-4 w-4 mr-1" />
                         Details
                       </Button>
@@ -432,9 +387,7 @@ export default function ABTestingPage() {
               <Beaker className="h-5 w-5 text-primary" />
               Create A/B Test
             </DialogTitle>
-            <DialogDescription>
-              Set up a split test to compare two email variants
-            </DialogDescription>
+            <DialogDescription>Set up a split test to compare two email variants</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
@@ -542,9 +495,7 @@ export default function ABTestingPage() {
 
             {/* Recipients */}
             <div className="space-y-3">
-              <Label>
-                Test Recipients ({selectedContacts.length} selected)
-              </Label>
+              <Label>Test Recipients ({selectedContacts.length} selected)</Label>
               <p className="text-sm text-muted-foreground">
                 Recipients will be randomly split between variants A and B
               </p>
@@ -568,9 +519,7 @@ export default function ABTestingPage() {
                         }
                       }}
                     >
-                      {selectedContacts.length === contacts.length
-                        ? "Deselect All"
-                        : "Select All"}
+                      {selectedContacts.length === contacts.length ? "Deselect All" : "Select All"}
                     </Button>
                     {contacts.map((email) => (
                       <label
@@ -584,9 +533,7 @@ export default function ABTestingPage() {
                             if (e.target.checked) {
                               setSelectedContacts([...selectedContacts, email]);
                             } else {
-                              setSelectedContacts(
-                                selectedContacts.filter((c) => c !== email),
-                              );
+                              setSelectedContacts(selectedContacts.filter((c) => c !== email));
                             }
                           }}
                           className="rounded border-input"
@@ -604,18 +551,12 @@ export default function ABTestingPage() {
                 <div className="flex items-center gap-4 text-sm">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-primary" />
-                    <span>
-                      Variant A: {Math.ceil(selectedContacts.length / 2)}{" "}
-                      recipients
-                    </span>
+                    <span>Variant A: {Math.ceil(selectedContacts.length / 2)} recipients</span>
                   </div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground" />
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-secondary" />
-                    <span>
-                      Variant B: {Math.floor(selectedContacts.length / 2)}{" "}
-                      recipients
-                    </span>
+                    <span>Variant B: {Math.floor(selectedContacts.length / 2)} recipients</span>
                   </div>
                 </div>
               </div>
@@ -623,10 +564,7 @@ export default function ABTestingPage() {
           </div>
 
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowCreateDialog(false)}
-            >
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
               Cancel
             </Button>
             <Button onClick={handleCreateTest} disabled={submitting}>
@@ -645,9 +583,7 @@ export default function ABTestingPage() {
               <BarChart3 className="h-5 w-5 text-primary" />
               Test Results: {selectedTest?.name}
             </DialogTitle>
-            <DialogDescription>
-              Detailed comparison of both variants
-            </DialogDescription>
+            <DialogDescription>Detailed comparison of both variants</DialogDescription>
           </DialogHeader>
 
           {selectedTest && (
@@ -660,8 +596,7 @@ export default function ABTestingPage() {
                 </Badge>
                 {selectedTest.created_at && (
                   <span className="text-sm text-muted-foreground">
-                    Created{" "}
-                    {new Date(selectedTest.created_at).toLocaleDateString()}
+                    Created {new Date(selectedTest.created_at).toLocaleDateString()}
                   </span>
                 )}
               </div>
@@ -669,11 +604,7 @@ export default function ABTestingPage() {
               {/* Comparison Cards */}
               <div className="grid grid-cols-2 gap-6">
                 {/* Variant A */}
-                <Card
-                  className={
-                    selectedTest.winner === "A" ? "border-success border-2" : ""
-                  }
-                >
+                <Card className={selectedTest.winner === "A" ? "border-success border-2" : ""}>
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-base flex items-center gap-2">
@@ -683,10 +614,7 @@ export default function ABTestingPage() {
                         Variant A
                       </CardTitle>
                       {selectedTest.winner === "A" && (
-                        <Badge
-                          variant="success"
-                          className="flex items-center gap-1"
-                        >
+                        <Badge variant="success" className="flex items-center gap-1">
                           <Trophy className="h-3 w-3" />
                           Winner
                         </Badge>
@@ -704,43 +632,27 @@ export default function ABTestingPage() {
                           <div className="text-2xl font-bold">
                             {selectedTest.variant_a_recipients?.length || 0}
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            Recipients
-                          </div>
+                          <div className="text-xs text-muted-foreground">Recipients</div>
                         </div>
                         <div className="text-center p-3 bg-muted/50 rounded-lg">
                           <Mail className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-                          <div className="text-2xl font-bold">
-                            {selectedTest.variant_a_sent}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Sent
-                          </div>
+                          <div className="text-2xl font-bold">{selectedTest.variant_a_sent}</div>
+                          <div className="text-xs text-muted-foreground">Sent</div>
                         </div>
                         <div className="text-center p-3 bg-muted/50 rounded-lg">
                           <Eye className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-                          <div className="text-2xl font-bold">
-                            {selectedTest.variant_a_opens}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Opens
-                          </div>
+                          <div className="text-2xl font-bold">{selectedTest.variant_a_opens}</div>
+                          <div className="text-xs text-muted-foreground">Opens</div>
                         </div>
                         <div className="text-center p-3 bg-muted/50 rounded-lg">
                           <MousePointerClick className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-                          <div className="text-2xl font-bold">
-                            {selectedTest.variant_a_clicks}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Clicks
-                          </div>
+                          <div className="text-2xl font-bold">{selectedTest.variant_a_clicks}</div>
+                          <div className="text-xs text-muted-foreground">Clicks</div>
                         </div>
                       </div>
                       <div className="pt-2 border-t">
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">
-                            Open Rate
-                          </span>
+                          <span className="text-muted-foreground">Open Rate</span>
                           <span className="font-semibold">
                             {calculateRate(
                               selectedTest.variant_a_opens,
@@ -749,9 +661,7 @@ export default function ABTestingPage() {
                           </span>
                         </div>
                         <div className="flex justify-between text-sm mt-1">
-                          <span className="text-muted-foreground">
-                            Click Rate
-                          </span>
+                          <span className="text-muted-foreground">Click Rate</span>
                           <span className="font-semibold">
                             {calculateRate(
                               selectedTest.variant_a_clicks,
@@ -765,11 +675,7 @@ export default function ABTestingPage() {
                 </Card>
 
                 {/* Variant B */}
-                <Card
-                  className={
-                    selectedTest.winner === "B" ? "border-success border-2" : ""
-                  }
-                >
+                <Card className={selectedTest.winner === "B" ? "border-success border-2" : ""}>
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-base flex items-center gap-2">
@@ -779,10 +685,7 @@ export default function ABTestingPage() {
                         Variant B
                       </CardTitle>
                       {selectedTest.winner === "B" && (
-                        <Badge
-                          variant="success"
-                          className="flex items-center gap-1"
-                        >
+                        <Badge variant="success" className="flex items-center gap-1">
                           <Trophy className="h-3 w-3" />
                           Winner
                         </Badge>
@@ -800,43 +703,27 @@ export default function ABTestingPage() {
                           <div className="text-2xl font-bold">
                             {selectedTest.variant_b_recipients?.length || 0}
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            Recipients
-                          </div>
+                          <div className="text-xs text-muted-foreground">Recipients</div>
                         </div>
                         <div className="text-center p-3 bg-muted/50 rounded-lg">
                           <Mail className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-                          <div className="text-2xl font-bold">
-                            {selectedTest.variant_b_sent}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Sent
-                          </div>
+                          <div className="text-2xl font-bold">{selectedTest.variant_b_sent}</div>
+                          <div className="text-xs text-muted-foreground">Sent</div>
                         </div>
                         <div className="text-center p-3 bg-muted/50 rounded-lg">
                           <Eye className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-                          <div className="text-2xl font-bold">
-                            {selectedTest.variant_b_opens}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Opens
-                          </div>
+                          <div className="text-2xl font-bold">{selectedTest.variant_b_opens}</div>
+                          <div className="text-xs text-muted-foreground">Opens</div>
                         </div>
                         <div className="text-center p-3 bg-muted/50 rounded-lg">
                           <MousePointerClick className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-                          <div className="text-2xl font-bold">
-                            {selectedTest.variant_b_clicks}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Clicks
-                          </div>
+                          <div className="text-2xl font-bold">{selectedTest.variant_b_clicks}</div>
+                          <div className="text-xs text-muted-foreground">Clicks</div>
                         </div>
                       </div>
                       <div className="pt-2 border-t">
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">
-                            Open Rate
-                          </span>
+                          <span className="text-muted-foreground">Open Rate</span>
                           <span className="font-semibold">
                             {calculateRate(
                               selectedTest.variant_b_opens,
@@ -845,9 +732,7 @@ export default function ABTestingPage() {
                           </span>
                         </div>
                         <div className="flex justify-between text-sm mt-1">
-                          <span className="text-muted-foreground">
-                            Click Rate
-                          </span>
+                          <span className="text-muted-foreground">Click Rate</span>
                           <span className="font-semibold">
                             {calculateRate(
                               selectedTest.variant_b_clicks,
@@ -872,29 +757,22 @@ export default function ABTestingPage() {
                     {selectedTest.winner === "tie" ? (
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <AlertTriangle className="h-4 w-4" />
-                        Results were too close to determine a clear winner
-                        (within 5% difference)
+                        Results were too close to determine a clear winner (within 5% difference)
                       </div>
                     ) : (
                       <div className="space-y-2">
                         <p>
-                          <strong>Variant {selectedTest.winner}</strong>{" "}
-                          performed better with a{" "}
+                          <strong>Variant {selectedTest.winner}</strong> performed better with a{" "}
                           {Math.abs(
-                            (selectedTest.variant_a_opens /
-                              (selectedTest.variant_a_sent || 1)) *
+                            (selectedTest.variant_a_opens / (selectedTest.variant_a_sent || 1)) *
                               100 -
-                              (selectedTest.variant_b_opens /
-                                (selectedTest.variant_b_sent || 1)) *
+                              (selectedTest.variant_b_opens / (selectedTest.variant_b_sent || 1)) *
                                 100,
                           ).toFixed(1)}
                           % difference in open rates.
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Consider using{" "}
-                          {selectedTest.winner === "A"
-                            ? "Variant A"
-                            : "Variant B"}
+                          Consider using {selectedTest.winner === "A" ? "Variant A" : "Variant B"}
                           's approach for future campaigns.
                         </p>
                       </div>
@@ -906,10 +784,7 @@ export default function ABTestingPage() {
           )}
 
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowDetailsDialog(false)}
-            >
+            <Button variant="outline" onClick={() => setShowDetailsDialog(false)}>
               Close
             </Button>
           </DialogFooter>

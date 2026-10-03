@@ -14,10 +14,7 @@ interface Props {
 
 export function LinkPerformanceTable({ events, uniqueOpens }: Props) {
   const linkStats = useMemo(() => {
-    const map = new Map<
-      string,
-      { totalClicks: number; uniqueClickers: Set<string> }
-    >();
+    const map = new Map<string, { totalClicks: number; uniqueClickers: Set<string> }>();
 
     events.forEach((ev) => {
       if (ev.event_type === "click" && ev.link_url) {
@@ -46,12 +43,10 @@ export function LinkPerformanceTable({ events, uniqueOpens }: Props) {
     return (
       <div className="border border-border/50 rounded-xl bg-card p-12 flex flex-col items-center justify-center text-center text-muted-foreground shadow-sm h-full min-h-[400px]">
         <Link2 className="h-10 w-10 mb-4 opacity-40 text-[var(--color-chart-1)]" />
-        <h3 className="text-lg font-semibold text-foreground mb-1">
-          No Link Clicks Yet
-        </h3>
+        <h3 className="text-lg font-semibold text-foreground mb-1">No Link Clicks Yet</h3>
         <p className="max-w-sm text-sm">
-          When recipients click links in this campaign, the specific URLs and
-          performance map will appear here.
+          When recipients click links in this campaign, the specific URLs and performance map will
+          appear here.
         </p>
       </div>
     );
@@ -71,10 +66,7 @@ export function LinkPerformanceTable({ events, uniqueOpens }: Props) {
             Which links are driving the most engagement.
           </p>
         </div>
-        <Badge
-          variant="secondary"
-          className="font-medium bg-background border shadow-xs px-3 py-1"
-        >
+        <Badge variant="secondary" className="font-medium bg-background border shadow-xs px-3 py-1">
           {linkStats.length} Unique Links
         </Badge>
       </div>
@@ -92,18 +84,12 @@ export function LinkPerformanceTable({ events, uniqueOpens }: Props) {
           <tbody className="divide-y divide-border">
             {linkStats.map((stat, i) => {
               const ctor =
-                uniqueOpens > 0
-                  ? ((stat.uniqueClicks / uniqueOpens) * 100).toFixed(1)
-                  : "0.0";
+                uniqueOpens > 0 ? ((stat.uniqueClicks / uniqueOpens) * 100).toFixed(1) : "0.0";
               const barWidth = `${(stat.totalClicks / maxTotalClicks) * 100}%`;
               let safeUrl = "#";
               try {
                 const parsed = new URL(stat.url);
-                if (
-                  ["http:", "https:", "mailto:", "tel:"].includes(
-                    parsed.protocol,
-                  )
-                ) {
+                if (["http:", "https:", "mailto:", "tel:"].includes(parsed.protocol)) {
                   safeUrl = parsed.href;
                 }
               } catch {
@@ -111,10 +97,7 @@ export function LinkPerformanceTable({ events, uniqueOpens }: Props) {
               }
 
               return (
-                <tr
-                  key={i}
-                  className="hover:bg-muted/30 transition-colors group"
-                >
+                <tr key={i} className="hover:bg-muted/30 transition-colors group">
                   <td className="px-6 py-4 max-w-[300px]">
                     <a
                       href={safeUrl}
@@ -132,9 +115,7 @@ export function LinkPerformanceTable({ events, uniqueOpens }: Props) {
                   </td>
                   <td className="px-6 py-4 text-muted-foreground">
                     {stat.uniqueClicks.toLocaleString()}
-                    <span className="text-xs ml-1 opacity-50 inline-block">
-                      (users)
-                    </span>
+                    <span className="text-xs ml-1 opacity-50 inline-block">(users)</span>
                   </td>
                   <td className="px-6 py-4 font-mono text-[13px] text-[var(--color-chart-3)]">
                     {ctor}%

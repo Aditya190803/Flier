@@ -51,12 +51,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  EmptyState,
-  PageHeader,
-  PageShell,
-  StatCard,
-} from "@/components/ui/page-shell";
+import { EmptyState, PageHeader, PageShell, StatCard } from "@/components/ui/page-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { componentLogger } from "@/lib/client-logger";
@@ -121,11 +116,8 @@ export default function ScheduledPage() {
   const [campaigns, setCampaigns] = useState<ScheduledCampaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<ScheduledCampaign | null>(
-    null,
-  );
-  const [rescheduleTarget, setRescheduleTarget] =
-    useState<ScheduledCampaign | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ScheduledCampaign | null>(null);
+  const [rescheduleTarget, setRescheduleTarget] = useState<ScheduledCampaign | null>(null);
   const [rescheduleValue, setRescheduleValue] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -146,11 +138,7 @@ export default function ScheduledPage() {
         "Error fetching scheduled campaigns",
         error instanceof Error ? error : undefined,
       );
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to load scheduled campaigns",
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to load scheduled campaigns");
     }
     setIsLoading(false);
   }, [session?.user?.email]);
@@ -180,9 +168,7 @@ export default function ScheduledPage() {
       toast.success("Campaign cancelled");
       await fetchCampaigns();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to cancel campaign",
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to cancel campaign");
     } finally {
       setBusyId(null);
     }
@@ -197,9 +183,7 @@ export default function ScheduledPage() {
       toast.success("Scheduled campaign deleted");
       await fetchCampaigns();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to delete campaign",
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to delete campaign");
     }
   };
 
@@ -230,9 +214,7 @@ export default function ScheduledPage() {
       setRescheduleTarget(null);
       await fetchCampaigns();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to reschedule",
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to reschedule");
     } finally {
       setBusyId(null);
     }
@@ -308,8 +290,8 @@ export default function ScheduledPage() {
               <div>
                 <p className="font-medium text-sm">Sent without you</p>
                 <p className="text-sm text-muted-foreground">
-                  These are dispatched server-side, so you can close the app.
-                  Times shown are in your local zone ({getBrowserTimeZone()}).
+                  These are dispatched server-side, so you can close the app. Times shown are in
+                  your local zone ({getBrowserTimeZone()}).
                 </p>
               </div>
             </div>
@@ -353,10 +335,7 @@ export default function ScheduledPage() {
                 const sendAt = new Date(campaign.scheduled_at);
                 const isProcessing = campaign.status === "processing";
                 return (
-                  <Card
-                    key={campaign.$id}
-                    className="group hover:shadow-md transition-shadow"
-                  >
+                  <Card key={campaign.$id} className="group hover:shadow-md transition-shadow">
                     <CardContent className="p-5">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
@@ -368,10 +347,7 @@ export default function ScheduledPage() {
                               })}
                             </span>
                             {(campaign.attachments?.length || 0) > 0 && (
-                              <Badge
-                                variant="outline"
-                                className="flex items-center gap-1"
-                              >
+                              <Badge variant="outline" className="flex items-center gap-1">
                                 <Paperclip className="h-3 w-3" />
                                 {campaign.attachments?.length}
                               </Badge>
@@ -451,8 +427,8 @@ export default function ScheduledPage() {
                       </div>
                       {isProcessing && (
                         <p className="mt-3 text-xs text-muted-foreground">
-                          This campaign is being sent right now — it can't be
-                          changed until it finishes.
+                          This campaign is being sent right now — it can't be changed until it
+                          finishes.
                         </p>
                       )}
                     </CardContent>
@@ -529,16 +505,12 @@ export default function ScheduledPage() {
         )}
       </PageShell>
 
-      <Dialog
-        open={!!rescheduleTarget}
-        onOpenChange={(open) => !open && setRescheduleTarget(null)}
-      >
+      <Dialog open={!!rescheduleTarget} onOpenChange={(open) => !open && setRescheduleTarget(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Reschedule campaign</DialogTitle>
             <DialogDescription>
-              "{rescheduleTarget?.subject}" will be sent at the new time
-              instead.
+              "{rescheduleTarget?.subject}" will be sent at the new time instead.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 py-2">
@@ -559,32 +531,23 @@ export default function ScheduledPage() {
             <Button variant="outline" onClick={() => setRescheduleTarget(null)}>
               Cancel
             </Button>
-            <Button
-              onClick={submitReschedule}
-              disabled={busyId === rescheduleTarget?.$id}
-            >
+            <Button onClick={submitReschedule} disabled={busyId === rescheduleTarget?.$id}>
               Save new time
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-      >
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete scheduled campaign</AlertDialogTitle>
             <AlertDialogDescription>
-              "{deleteTarget?.subject}" will be removed and never sent. This
-              cannot be undone.
+              "{deleteTarget?.subject}" will be removed and never sent. This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteTarget(null)}>
-              Keep it
-            </AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setDeleteTarget(null)}>Keep it</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (deleteTarget) {

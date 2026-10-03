@@ -2,14 +2,7 @@
 
 import * as React from "react";
 
-import {
-  CalendarClock,
-  ChevronLeft,
-  ChevronRight,
-  Loader2,
-  Save,
-  Send,
-} from "lucide-react";
+import { CalendarClock, ChevronLeft, ChevronRight, Loader2, Save, Send } from "lucide-react";
 import { createPortal } from "react-dom";
 
 import { Badge } from "@/components/ui/badge";
@@ -27,26 +20,24 @@ const sectionLabels: Record<ComposeSectionId, string> = {
 };
 
 /** The primary button says what will actually happen, per delivery mode. */
-const dispatchLabels: Record<
-  DeliveryMode,
-  { idle: string; busy: string; icon: React.ReactNode }
-> = {
-  now: {
-    idle: "Dispatch",
-    busy: "Dispatching…",
-    icon: <Send className="h-4 w-4 mr-2" />,
-  },
-  schedule: {
-    idle: "Schedule",
-    busy: "Scheduling…",
-    icon: <CalendarClock className="h-4 w-4 mr-2" />,
-  },
-  draft: {
-    idle: "Save draft",
-    busy: "Saving…",
-    icon: <Save className="h-4 w-4 mr-2" />,
-  },
-};
+const dispatchLabels: Record<DeliveryMode, { idle: string; busy: string; icon: React.ReactNode }> =
+  {
+    now: {
+      idle: "Dispatch",
+      busy: "Dispatching…",
+      icon: <Send className="h-4 w-4 mr-2" />,
+    },
+    schedule: {
+      idle: "Schedule",
+      busy: "Scheduling…",
+      icon: <CalendarClock className="h-4 w-4 mr-2" />,
+    },
+    draft: {
+      idle: "Save draft",
+      busy: "Saving…",
+      icon: <Save className="h-4 w-4 mr-2" />,
+    },
+  };
 
 export function StickyActionBar({
   activeSection,
@@ -102,8 +93,7 @@ export function StickyActionBar({
               {sectionLabels[activeSection]}
             </Badge>
             <span className="hidden sm:inline text-sm text-muted-foreground">
-              {recipientsCount}{" "}
-              {recipientsCount === 1 ? "recipient" : "recipients"}
+              {recipientsCount} {recipientsCount === 1 ? "recipient" : "recipients"}
             </span>
           </div>
 
@@ -137,11 +127,7 @@ export function StickyActionBar({
                 )}
               </Button>
             ) : (
-              <Button
-                onClick={onNext}
-                disabled={!canGoNext}
-                className="shadow-sm"
-              >
+              <Button onClick={onNext} disabled={!canGoNext} className="shadow-sm">
                 Next
                 <ChevronRight className="h-4 w-4 ml-2" />
               </Button>

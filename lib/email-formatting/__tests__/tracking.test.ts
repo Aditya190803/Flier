@@ -5,16 +5,13 @@ import { verifyTrackingToken } from "@/lib/tracking-token";
 import { injectTracking } from "../tracking";
 
 beforeAll(() => {
-  process.env.NEXTAUTH_SECRET =
-    process.env.NEXTAUTH_SECRET || "test-auth-secret";
-  process.env.TRACKING_TOKEN_SECRET =
-    process.env.TRACKING_TOKEN_SECRET || "test-tracking-secret";
+  process.env.NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET || "test-auth-secret";
+  process.env.TRACKING_TOKEN_SECRET = process.env.TRACKING_TOKEN_SECRET || "test-tracking-secret";
 });
 
 describe("injectTracking", () => {
   it("embeds signed open pixel and unsubscribe links", () => {
-    const html =
-      '<html><body><p>Hi</p><a href="https://example.com">x</a></body></html>';
+    const html = '<html><body><p>Hi</p><a href="https://example.com">x</a></body></html>';
     const out = injectTracking(
       html,
       {
@@ -33,10 +30,7 @@ describe("injectTracking", () => {
 
     const openMatch = out.match(/\/api\/track\/open\?t=([^"&]+)/);
     expect(openMatch).toBeTruthy();
-    const openPayload = verifyTrackingToken(
-      decodeURIComponent(openMatch![1]),
-      "open",
-    );
+    const openPayload = verifyTrackingToken(decodeURIComponent(openMatch![1]), "open");
     expect(openPayload?.campaignId).toBe("camp-1");
     expect(openPayload?.recipientEmail).toBe("user@example.com");
   });

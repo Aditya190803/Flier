@@ -16,13 +16,10 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/80",
         outline: "text-foreground hover:bg-muted",
-        success:
-          "border-transparent bg-success/15 text-success dark:bg-success/20",
-        warning:
-          "border-transparent bg-warning/15 text-warning dark:bg-warning/20",
+        success: "border-transparent bg-success/15 text-success dark:bg-success/20",
+        warning: "border-transparent bg-warning/15 text-warning dark:bg-warning/20",
         info: "border-transparent bg-primary/15 text-primary dark:bg-primary/20",
-        ghost:
-          "border-transparent bg-muted text-muted-foreground hover:bg-muted/80",
+        ghost: "border-transparent bg-muted text-muted-foreground hover:bg-muted/80",
       },
     },
     defaultVariants: {
@@ -32,25 +29,15 @@ const badgeVariants = cva(
 );
 
 export interface BadgeProps
-  extends
-    React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {
+  extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {
   dot?: boolean;
   dotColor?: string;
 }
 
-function Badge({
-  className,
-  variant,
-  dot,
-  dotColor = "bg-current",
-  ...props
-}: BadgeProps) {
+function Badge({ className, variant, dot, dotColor = "bg-current", ...props }: BadgeProps) {
   return (
     <div className={cn(badgeVariants({ variant }), className)} {...props}>
-      {dot && (
-        <span className={cn("w-1.5 h-1.5 rounded-full mr-1.5", dotColor)} />
-      )}
+      {dot && <span className={cn("w-1.5 h-1.5 rounded-full mr-1.5", dotColor)} />}
       {props.children}
     </div>
   );

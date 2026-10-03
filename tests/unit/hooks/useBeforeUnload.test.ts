@@ -3,14 +3,7 @@
  */
 
 import { renderHook } from "@testing-library/react";
-import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-  afterEach,
-} from "vite-plus/test";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vite-plus/test";
 
 import { useBeforeUnload } from "@/hooks/useBeforeUnload";
 
@@ -32,19 +25,13 @@ describe("useBeforeUnload Hook", () => {
     it("should add beforeunload listener when shouldWarn is true", () => {
       renderHook(() => useBeforeUnload(true));
 
-      expect(addEventListenerSpy).toHaveBeenCalledWith(
-        "beforeunload",
-        expect.any(Function),
-      );
+      expect(addEventListenerSpy).toHaveBeenCalledWith("beforeunload", expect.any(Function));
     });
 
     it("should not add listener when shouldWarn is false", () => {
       renderHook(() => useBeforeUnload(false));
 
-      expect(addEventListenerSpy).not.toHaveBeenCalledWith(
-        "beforeunload",
-        expect.any(Function),
-      );
+      expect(addEventListenerSpy).not.toHaveBeenCalledWith("beforeunload", expect.any(Function));
     });
 
     it("should remove listener on unmount", () => {
@@ -52,31 +39,19 @@ describe("useBeforeUnload Hook", () => {
 
       unmount();
 
-      expect(removeEventListenerSpy).toHaveBeenCalledWith(
-        "beforeunload",
-        expect.any(Function),
-      );
+      expect(removeEventListenerSpy).toHaveBeenCalledWith("beforeunload", expect.any(Function));
     });
 
     it("should update listener when shouldWarn changes", () => {
-      const { rerender } = renderHook(
-        ({ shouldWarn }) => useBeforeUnload(shouldWarn),
-        {
-          initialProps: { shouldWarn: false },
-        },
-      );
+      const { rerender } = renderHook(({ shouldWarn }) => useBeforeUnload(shouldWarn), {
+        initialProps: { shouldWarn: false },
+      });
 
-      expect(addEventListenerSpy).not.toHaveBeenCalledWith(
-        "beforeunload",
-        expect.any(Function),
-      );
+      expect(addEventListenerSpy).not.toHaveBeenCalledWith("beforeunload", expect.any(Function));
 
       rerender({ shouldWarn: true });
 
-      expect(addEventListenerSpy).toHaveBeenCalledWith(
-        "beforeunload",
-        expect.any(Function),
-      );
+      expect(addEventListenerSpy).toHaveBeenCalledWith("beforeunload", expect.any(Function));
     });
   });
 
@@ -84,15 +59,11 @@ describe("useBeforeUnload Hook", () => {
     it("should prevent default and set returnValue when shouldWarn is true", () => {
       let capturedHandler: (e: BeforeUnloadEvent) => void = () => {};
 
-      addEventListenerSpy.mockImplementation(
-        (event: string, handler: EventListener) => {
-          if (event === "beforeunload") {
-            capturedHandler = handler as unknown as (
-              e: BeforeUnloadEvent,
-            ) => void;
-          }
-        },
-      );
+      addEventListenerSpy.mockImplementation((event: string, handler: EventListener) => {
+        if (event === "beforeunload") {
+          capturedHandler = handler as unknown as (e: BeforeUnloadEvent) => void;
+        }
+      });
 
       renderHook(() => useBeforeUnload(true));
 
@@ -111,15 +82,11 @@ describe("useBeforeUnload Hook", () => {
       const customMessage = "You have unsaved work!";
       let capturedHandler: (e: BeforeUnloadEvent) => void = () => {};
 
-      addEventListenerSpy.mockImplementation(
-        (event: string, handler: EventListener) => {
-          if (event === "beforeunload") {
-            capturedHandler = handler as unknown as (
-              e: BeforeUnloadEvent,
-            ) => void;
-          }
-        },
-      );
+      addEventListenerSpy.mockImplementation((event: string, handler: EventListener) => {
+        if (event === "beforeunload") {
+          capturedHandler = handler as unknown as (e: BeforeUnloadEvent) => void;
+        }
+      });
 
       renderHook(() => useBeforeUnload(true, customMessage));
 
@@ -137,15 +104,11 @@ describe("useBeforeUnload Hook", () => {
     it("should use default message when no custom message provided", () => {
       let capturedHandler: (e: BeforeUnloadEvent) => void = () => {};
 
-      addEventListenerSpy.mockImplementation(
-        (event: string, handler: EventListener) => {
-          if (event === "beforeunload") {
-            capturedHandler = handler as unknown as (
-              e: BeforeUnloadEvent,
-            ) => void;
-          }
-        },
-      );
+      addEventListenerSpy.mockImplementation((event: string, handler: EventListener) => {
+        if (event === "beforeunload") {
+          capturedHandler = handler as unknown as (e: BeforeUnloadEvent) => void;
+        }
+      });
 
       renderHook(() => useBeforeUnload(true));
 
@@ -162,12 +125,9 @@ describe("useBeforeUnload Hook", () => {
 
   describe("edge cases", () => {
     it("should handle rapid shouldWarn toggling", () => {
-      const { rerender } = renderHook(
-        ({ shouldWarn }) => useBeforeUnload(shouldWarn),
-        {
-          initialProps: { shouldWarn: true },
-        },
-      );
+      const { rerender } = renderHook(({ shouldWarn }) => useBeforeUnload(shouldWarn), {
+        initialProps: { shouldWarn: true },
+      });
 
       rerender({ shouldWarn: false });
       rerender({ shouldWarn: true });
@@ -181,15 +141,11 @@ describe("useBeforeUnload Hook", () => {
     it("should handle empty message", () => {
       let capturedHandler: (e: BeforeUnloadEvent) => void = () => {};
 
-      addEventListenerSpy.mockImplementation(
-        (event: string, handler: EventListener) => {
-          if (event === "beforeunload") {
-            capturedHandler = handler as unknown as (
-              e: BeforeUnloadEvent,
-            ) => void;
-          }
-        },
-      );
+      addEventListenerSpy.mockImplementation((event: string, handler: EventListener) => {
+        if (event === "beforeunload") {
+          capturedHandler = handler as unknown as (e: BeforeUnloadEvent) => void;
+        }
+      });
 
       renderHook(() => useBeforeUnload(true, ""));
 

@@ -254,14 +254,8 @@ export class EmailService {
       };
 
       // Apply personalization to subject and body
-      const personalizedSubject = replacePlaceholders(
-        content.subject,
-        personalizationData,
-      );
-      let personalizedBody = replacePlaceholders(
-        content.body,
-        personalizationData,
-      );
+      const personalizedSubject = replacePlaceholders(content.subject, personalizationData);
+      let personalizedBody = replacePlaceholders(content.body, personalizationData);
 
       // Append signature if provided
       if (content.signature) {
@@ -269,16 +263,12 @@ export class EmailService {
       }
 
       // Pre-resolve attachments if needed
-      const resolvedAttachments = attachments
-        ? await preResolveAttachments(attachments)
-        : [];
+      const resolvedAttachments = attachments ? await preResolveAttachments(attachments) : [];
 
       // Handle personalized attachment if present
       if (recipient.personalizedAttachment) {
         try {
-          const fileData = await fetchFileFromUrl(
-            recipient.personalizedAttachment.url,
-          );
+          const fileData = await fetchFileFromUrl(recipient.personalizedAttachment.url);
           resolvedAttachments.push({
             name: recipient.personalizedAttachment.fileName || "attachment",
             data: fileData.base64,
@@ -321,8 +311,7 @@ export class EmailService {
         messageId: result.id,
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
 
       // Record "failed" event
       await this.recordEvent("failed", recipient.email, tracking, errorMessage);
@@ -384,11 +373,7 @@ export class EmailService {
           status: "skipped",
           error: `Verification failed: ${item.reason}`,
         });
-        onEmailResult?.(
-          item.recipient.email,
-          false,
-          `Verification failed: ${item.reason}`,
-        );
+        onEmailResult?.(item.recipient.email, false, `Verification failed: ${item.reason}`);
       }
 
       emailLogger.info("Verification completed", {
@@ -415,14 +400,10 @@ export class EmailService {
       // (all emails have same subject/body with no placeholders)
       // ALSO if tracking is enabled, we can't use bulk optimization because each email needs a unique pixel/links
       // AND if we need to check unsubscribes per-recipient, we can't use bulk optimization
-      const hasPlaceholders =
-        content.subject.includes("{{") || content.body.includes("{{");
+      const hasPlaceholders = content.subject.includes("{{") || content.body.includes("{{");
 
       const canUseBulkOptimization =
-        useBulkOptimization &&
-        !hasPlaceholders &&
-        !tracking?.enabled &&
-        !checkUnsubscribe;
+        useBulkOptimization && !hasPlaceholders && !tracking?.enabled && !checkUnsubscribe;
 
       if (canUseBulkOptimization) {
         // Use template-based bulk sending for maximum efficiency
@@ -514,11 +495,7 @@ export class EmailService {
           status: "skipped",
           error: `Verification failed: ${item.reason}`,
         });
-        onEmailResult?.(
-          item.recipient.email,
-          false,
-          `Verification failed: ${item.reason}`,
-        );
+        onEmailResult?.(item.recipient.email, false, `Verification failed: ${item.reason}`);
       }
 
       emailLogger.info("Verification completed", {
@@ -573,9 +550,7 @@ export class EmailService {
         // Handle personalized attachment if present
         if (email.personalizedAttachment) {
           try {
-            const fileData = await fetchFileFromUrl(
-              email.personalizedAttachment.url,
-            );
+            const fileData = await fetchFileFromUrl(email.personalizedAttachment.url);
             resolvedAttachments.push({
               name: email.personalizedAttachment.fileName || "attachment",
               data: fileData.base64,
@@ -597,14 +572,8 @@ export class EmailService {
           email: email.to,
           ...email.originalRowData,
         };
-        const personalizedSubject = replacePlaceholders(
-          email.subject,
-          personalizationData,
-        );
-        const personalizedMessage = replacePlaceholders(
-          email.message,
-          personalizationData,
-        );
+        const personalizedSubject = replacePlaceholders(email.subject, personalizationData);
+        const personalizedMessage = replacePlaceholders(email.message, personalizationData);
 
         // Send the email
         try {
@@ -643,8 +612,7 @@ export class EmailService {
 
           onEmailResult?.(email.to, true);
         } catch (error) {
-          const errorMessage =
-            error instanceof Error ? error.message : "Unknown error";
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
 
           results.push({
             email: email.to,
@@ -712,12 +680,7 @@ export class EmailService {
     }
 
     // Pre-build template once
-    await preBuildEmailTemplate(
-      this.fromEmail,
-      content.subject,
-      body,
-      attachments,
-    );
+    await preBuildEmailTemplate(this.fromEmail, content.subject, body, attachments);
 
     // Send to each recipient
     for (let i = 0; i < recipients.length; i++) {
@@ -747,8 +710,7 @@ export class EmailService {
 
         onEmailResult?.(recipient.email, true);
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown error";
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
         results.push({
           email: recipient.email,
           status: "error",
@@ -829,11 +791,7 @@ export class EmailService {
       );
       results.push(result);
 
-      onEmailResult?.(
-        recipient.email,
-        result.status === "success",
-        result.error,
-      );
+      onEmailResult?.(recipient.email, result.status === "success", result.error);
       onProgress?.(i + 1, recipients.length, recipient.email);
 
       // Delay between emails (except last)
@@ -920,10 +878,7 @@ export class EmailService {
  * Create an EmailService instance with the given access token
  * Factory function for convenience
  */
-export function createEmailService(
-  accessToken: string,
-  fromEmail: string,
-): EmailService {
+export function createEmailService(accessToken: string, fromEmail: string): EmailService {
   return new EmailService(accessToken, fromEmail);
 }
 

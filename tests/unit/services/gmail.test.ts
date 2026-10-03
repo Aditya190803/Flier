@@ -176,10 +176,8 @@ describe("Attachment handling", () => {
         "document.pdf": "application/pdf",
         "image.png": "image/png",
         "photo.jpg": "image/jpeg",
-        "spreadsheet.xlsx":
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "document.docx":
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "spreadsheet.xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "document.docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       };
 
       Object.entries(mimeTypes).forEach(([_filename, expectedType]) => {
@@ -210,11 +208,7 @@ describe("Error handling", () => {
     });
 
     it("should identify authentication errors", () => {
-      const authErrors = [
-        "Invalid credentials",
-        "401 Unauthorized",
-        "Token expired",
-      ];
+      const authErrors = ["Invalid credentials", "401 Unauthorized", "Token expired"];
 
       authErrors.forEach((error) => {
         const isAuthError =
@@ -243,15 +237,8 @@ describe("Error handling", () => {
       ];
 
       const isRetryable = (error: string): boolean => {
-        const nonRetryable = [
-          "Invalid email",
-          "413",
-          "Session expired",
-          "Unauthorized",
-        ];
-        return !nonRetryable.some((e) =>
-          error.toLowerCase().includes(e.toLowerCase()),
-        );
+        const nonRetryable = ["Invalid email", "413", "Session expired", "Unauthorized"];
+        return !nonRetryable.some((e) => error.toLowerCase().includes(e.toLowerCase()));
       };
 
       nonRetryableErrors.forEach((error) => {

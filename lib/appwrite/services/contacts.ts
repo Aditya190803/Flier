@@ -1,8 +1,4 @@
-import type {
-  Contact,
-  ContactGroup,
-  Unsubscribe,
-} from "@/types/appwrite-client";
+import type { Contact, ContactGroup, Unsubscribe } from "@/types/appwrite-client";
 
 import { apiRequest } from "../api-request";
 import { pollForUpdates } from "../poll";
@@ -24,10 +20,7 @@ export const contactsService = {
   // Real-time subscriptions are not available via API routes
   // Components should poll or use a different approach
   /** Refresh contacts periodically. See {@link pollForUpdates} — not realtime. */
-  subscribeToUserContacts(
-    _userEmail: string,
-    callback: (response: unknown) => void,
-  ) {
+  subscribeToUserContacts(_userEmail: string, callback: (response: unknown) => void) {
     return pollForUpdates(() => callback(undefined));
   },
 };
@@ -50,9 +43,7 @@ export const contactGroupsService = {
   // or moving this logic to a server-side transaction.
   async addContacts(groupId: string, contactIds: string[]) {
     const group = await contactGroupsCrudService.get(groupId);
-    const currentIds = Array.isArray(group.contact_ids)
-      ? group.contact_ids
-      : [];
+    const currentIds = Array.isArray(group.contact_ids) ? group.contact_ids : [];
     const existingIds = new Set(currentIds);
     contactIds.forEach((id) => existingIds.add(id));
     return contactGroupsCrudService.update(groupId, {
@@ -66,9 +57,7 @@ export const contactGroupsService = {
   async removeContacts(groupId: string, contactIds: string[]) {
     const group = await contactGroupsCrudService.get(groupId);
     const idsToRemove = new Set(contactIds);
-    const currentIds = Array.isArray(group.contact_ids)
-      ? group.contact_ids
-      : [];
+    const currentIds = Array.isArray(group.contact_ids) ? group.contact_ids : [];
     const updatedIds = currentIds.filter((id) => !idsToRemove.has(id));
     return contactGroupsCrudService.update(groupId, {
       contact_ids: updatedIds,
@@ -76,10 +65,7 @@ export const contactGroupsService = {
   },
 
   /** Refresh groups periodically. See {@link pollForUpdates} — not realtime. */
-  subscribeToUserGroups(
-    _userEmail: string,
-    callback: (response: unknown) => void,
-  ) {
+  subscribeToUserGroups(_userEmail: string, callback: (response: unknown) => void) {
     return pollForUpdates(() => callback(undefined));
   },
 };
@@ -104,17 +90,11 @@ export const unsubscribesService = {
     return response.isUnsubscribed;
   },
 
-  async filterUnsubscribed(
-    _userEmail: string,
-    emails: string[],
-  ): Promise<string[]> {
-    const response = await apiRequest<{ emails: string[] }>(
-      "/api/appwrite/unsubscribes",
-      {
-        method: "PATCH",
-        body: JSON.stringify({ emails }),
-      },
-    );
+  async filterUnsubscribed(_userEmail: string, emails: string[]): Promise<string[]> {
+    const response = await apiRequest<{ emails: string[] }>("/api/appwrite/unsubscribes", {
+      method: "PATCH",
+      body: JSON.stringify({ emails }),
+    });
     return response.emails;
   },
 };

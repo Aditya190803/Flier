@@ -8,10 +8,7 @@ export const TEMPLATE_CATEGORIES = [
 ];
 
 export function getCategoryInfo(category?: string) {
-  return (
-    TEMPLATE_CATEGORIES.find((c) => c.value === category) ||
-    TEMPLATE_CATEGORIES[5]
-  );
+  return TEMPLATE_CATEGORIES.find((c) => c.value === category) || TEMPLATE_CATEGORIES[5];
 }
 
 // Default templates that users can quickly add

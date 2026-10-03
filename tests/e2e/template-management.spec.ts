@@ -83,9 +83,7 @@ test.describe("Template Management", () => {
   });
 
   test("should search templates", async ({ page }) => {
-    const searchInput = page
-      .getByPlaceholder(/search/i)
-      .or(page.locator('input[type="search"]'));
+    const searchInput = page.getByPlaceholder(/search/i).or(page.locator('input[type="search"]'));
 
     if (await searchInput.first().isVisible()) {
       await searchInput.first().fill("welcome");
@@ -111,14 +109,10 @@ test.describe("Template Actions", () => {
 
   test("should use template", async ({ page }) => {
     // Look for use button on a template
-    const useButton = page.getByRole("button", { name: /use/i });
-
-    if (await useButton.first().isVisible()) {
-      await useButton.first().click();
-
-      // Should navigate to compose with template
-      await page.waitForURL(/\/compose/);
-    }
+    const useButton = page.getByRole("button", { name: "Use", exact: true }).first();
+    await expect(useButton).toBeVisible();
+    await useButton.click();
+    await expect(page).toHaveURL(/\/compose/);
   });
 
   test("should duplicate template", async ({ page }) => {
@@ -241,9 +235,7 @@ test.describe("Template Rich Text Editor", () => {
       await createButton.first().click();
 
       // Look for rich text editor
-      const _editor = page
-        .locator('[contenteditable="true"]')
-        .or(page.locator(".ProseMirror"));
+      const _editor = page.locator('[contenteditable="true"]').or(page.locator(".ProseMirror"));
 
       await expect(page.locator("body")).toBeVisible();
     }

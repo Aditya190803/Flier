@@ -5,10 +5,7 @@ import { getServerSession } from "next-auth";
 import { describe, it, expect, vi, beforeEach } from "vite-plus/test";
 
 import { databases } from "@/lib/appwrite-server";
-import {
-  createMockLoggerModule,
-  createSpyLogger,
-} from "@/tests/helpers/mockLoggerModule";
+import { createMockLoggerModule, createSpyLogger } from "@/tests/helpers/mockLoggerModule";
 
 // Mock next-auth
 vi.mock("next-auth", () => ({
@@ -98,9 +95,7 @@ describe("Export Report API", () => {
         ],
       };
 
-      vi.mocked(databases.listDocuments).mockResolvedValueOnce(
-        mockCampaigns as any,
-      );
+      vi.mocked(databases.listDocuments).mockResolvedValueOnce(mockCampaigns as any);
 
       const result = await databases.listDocuments("test-db", "campaigns", []);
 
@@ -120,15 +115,9 @@ describe("Export Report API", () => {
         created_at: "2024-01-15T10:00:00Z",
       };
 
-      vi.mocked(databases.getDocument).mockResolvedValueOnce(
-        mockCampaign as any,
-      );
+      vi.mocked(databases.getDocument).mockResolvedValueOnce(mockCampaign as any);
 
-      const result = await databases.getDocument(
-        "test-db",
-        "campaigns",
-        "campaign-1",
-      );
+      const result = await databases.getDocument("test-db", "campaigns", "campaign-1");
 
       expect(result.$id).toBe("campaign-1");
       expect((result as any).subject).toBe("Test Campaign");
@@ -151,9 +140,7 @@ describe("Export Report API", () => {
         ],
       };
 
-      vi.mocked(databases.listDocuments).mockResolvedValueOnce(
-        mockCampaigns as any,
-      );
+      vi.mocked(databases.listDocuments).mockResolvedValueOnce(mockCampaigns as any);
 
       const result = await databases.listDocuments("test-db", "campaigns", []);
 
@@ -179,18 +166,10 @@ describe("Export Report API", () => {
         return `${((sent / total) * 100).toFixed(1)}%`;
       };
 
-      expect(calculateSuccessRate(campaigns[0].sent, campaigns[0].failed)).toBe(
-        "100.0%",
-      );
-      expect(calculateSuccessRate(campaigns[1].sent, campaigns[1].failed)).toBe(
-        "80.0%",
-      );
-      expect(calculateSuccessRate(campaigns[2].sent, campaigns[2].failed)).toBe(
-        "0.0%",
-      );
-      expect(calculateSuccessRate(campaigns[3].sent, campaigns[3].failed)).toBe(
-        "N/A",
-      );
+      expect(calculateSuccessRate(campaigns[0].sent, campaigns[0].failed)).toBe("100.0%");
+      expect(calculateSuccessRate(campaigns[1].sent, campaigns[1].failed)).toBe("80.0%");
+      expect(calculateSuccessRate(campaigns[2].sent, campaigns[2].failed)).toBe("0.0%");
+      expect(calculateSuccessRate(campaigns[3].sent, campaigns[3].failed)).toBe("N/A");
     });
   });
 
@@ -219,9 +198,7 @@ describe("Export Report API", () => {
         ],
       };
 
-      vi.mocked(databases.listDocuments).mockResolvedValueOnce(
-        mockCampaigns as any,
-      );
+      vi.mocked(databases.listDocuments).mockResolvedValueOnce(mockCampaigns as any);
 
       const result = await databases.listDocuments("test-db", "campaigns", []);
 
@@ -238,23 +215,19 @@ describe("Export Report API", () => {
     });
 
     it("should handle database errors", async () => {
-      vi.mocked(databases.listDocuments).mockRejectedValueOnce(
-        new Error("Database error"),
-      );
+      vi.mocked(databases.listDocuments).mockRejectedValueOnce(new Error("Database error"));
 
-      await expect(
-        databases.listDocuments("test-db", "campaigns", []),
-      ).rejects.toThrow("Database error");
+      await expect(databases.listDocuments("test-db", "campaigns", [])).rejects.toThrow(
+        "Database error",
+      );
     });
 
     it("should handle campaign not found", async () => {
-      vi.mocked(databases.getDocument).mockRejectedValueOnce(
-        new Error("Document not found"),
-      );
+      vi.mocked(databases.getDocument).mockRejectedValueOnce(new Error("Document not found"));
 
-      await expect(
-        databases.getDocument("test-db", "campaigns", "nonexistent"),
-      ).rejects.toThrow("Document not found");
+      await expect(databases.getDocument("test-db", "campaigns", "nonexistent")).rejects.toThrow(
+        "Document not found",
+      );
     });
   });
 });

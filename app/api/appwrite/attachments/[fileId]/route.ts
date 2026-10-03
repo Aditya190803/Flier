@@ -26,10 +26,7 @@ export async function GET(
     const fileInfo = await storage.getFile(config.attachmentsBucketId, fileId);
 
     // Get file content
-    const fileBuffer = await storage.getFileDownload(
-      config.attachmentsBucketId,
-      fileId,
-    );
+    const fileBuffer = await storage.getFileDownload(config.attachmentsBucketId, fileId);
 
     // Convert ArrayBuffer to Buffer
     const buffer = Buffer.from(fileBuffer);
@@ -59,20 +56,13 @@ export async function GET(
       type?: string;
       message?: string;
     };
-    apiLogger.error(
-      "Error fetching attachment",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error fetching attachment", error instanceof Error ? error : undefined);
 
-    if (
-      appwriteError.code === 404 ||
-      appwriteError.type === "storage_file_not_found"
-    ) {
+    if (appwriteError.code === 404 || appwriteError.type === "storage_file_not_found") {
       return NextResponse.json({ error: "File not found" }, { status: 404 });
     }
 
-    const errorMessage =
-      error instanceof Error ? error.message : "Failed to fetch attachment";
+    const errorMessage = error instanceof Error ? error.message : "Failed to fetch attachment";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

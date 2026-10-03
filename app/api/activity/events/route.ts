@@ -45,13 +45,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    apiLogger.error(
-      "Error fetching tracking events",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Failed to fetch tracking events" },
-      { status: 500 },
-    );
+    apiLogger.error("Error fetching tracking events", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Failed to fetch tracking events" }, { status: 500 });
   }
 }

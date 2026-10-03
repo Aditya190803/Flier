@@ -1,14 +1,7 @@
 import { resolve } from "path";
 
 import { config as dotenvConfig } from "dotenv";
-import {
-  Client,
-  Databases,
-  Storage,
-  ID as _ID,
-  Permission,
-  Role,
-} from "node-appwrite";
+import { Client, Databases, Storage, ID as _ID, Permission, Role } from "node-appwrite";
 
 // Load environment variables from .env.local
 dotenvConfig({ path: resolve(process.cwd(), ".env.local") });
@@ -22,12 +15,7 @@ const config = {
 };
 
 // Validate required config
-if (
-  !config.endpoint ||
-  !config.projectId ||
-  !config.apiKey ||
-  !config.databaseId
-) {
+if (!config.endpoint || !config.projectId || !config.apiKey || !config.databaseId) {
   console.error("❌ Missing required environment variables!");
   console.error("Please ensure .env.local contains:");
   console.error("  - NEXT_PUBLIC_APPWRITE_ENDPOINT");
@@ -108,9 +96,7 @@ const collections = [
       { key: "created_at", type: "string", size: 50, required: false },
       { key: "updated_at", type: "string", size: 50, required: false },
     ],
-    indexes: [
-      { key: "user_email_idx", type: "key", attributes: ["user_email"] },
-    ],
+    indexes: [{ key: "user_email_idx", type: "key", attributes: ["user_email"] }],
   },
   {
     id: "template_versions",
@@ -143,9 +129,7 @@ const collections = [
       { key: "user_email", type: "string", size: 255, required: true },
       { key: "created_at", type: "string", size: 50, required: false },
     ],
-    indexes: [
-      { key: "user_email_idx", type: "key", attributes: ["user_email"] },
-    ],
+    indexes: [{ key: "user_email_idx", type: "key", attributes: ["user_email"] }],
   },
   {
     id: "draft_emails",
@@ -222,9 +206,7 @@ const collections = [
       { key: "created_at", type: "string", size: 50, required: false },
       { key: "last_triggered", type: "string", size: 50, required: false },
     ],
-    indexes: [
-      { key: "user_email_idx", type: "key", attributes: ["user_email"] },
-    ],
+    indexes: [{ key: "user_email_idx", type: "key", attributes: ["user_email"] }],
   },
   {
     id: "tracking_events",
@@ -309,9 +291,7 @@ const collections = [
       { key: "created_at", type: "string", size: 50, required: false },
       { key: "updated_at", type: "string", size: 50, required: false },
     ],
-    indexes: [
-      { key: "owner_email_idx", type: "key", attributes: ["owner_email"] },
-    ],
+    indexes: [{ key: "owner_email_idx", type: "key", attributes: ["owner_email"] }],
   },
   {
     id: "team_members",
@@ -502,10 +482,7 @@ async function createCollection(collection: (typeof collections)[0]) {
         if (error.code === 409) {
           console.log(`  ℹ️  Attribute "${attr.key}" already exists`);
         } else {
-          console.error(
-            `  ❌ Failed to create attribute "${attr.key}":`,
-            error.message,
-          );
+          console.error(`  ❌ Failed to create attribute "${attr.key}":`, error.message);
         }
       }
     });
@@ -517,13 +494,8 @@ async function createCollection(collection: (typeof collections)[0]) {
   let allAvailable = false;
   let attempts = 0;
   while (!allAvailable && attempts < 30) {
-    const result = await databases.listAttributes(
-      config.databaseId,
-      collection.id,
-    );
-    allAvailable = result.attributes.every(
-      (attr: any) => attr.status === "available",
-    );
+    const result = await databases.listAttributes(config.databaseId, collection.id);
+    allAvailable = result.attributes.every((attr: any) => attr.status === "available");
     if (!allAvailable) {
       await sleep(1000);
       attempts++;
@@ -556,10 +528,7 @@ async function createCollection(collection: (typeof collections)[0]) {
       if (error.code === 409) {
         console.log(`  ℹ️  Index "${index.key}" already exists`);
       } else {
-        console.error(
-          `  ❌ Failed to create index "${index.key}":`,
-          error.message,
-        );
+        console.error(`  ❌ Failed to create index "${index.key}":`, error.message);
       }
     }
   }
@@ -598,19 +567,13 @@ async function generateEnvVariables() {
   console.log(`NEXT_PUBLIC_APPWRITE_CONTACTS_COLLECTION_ID=contacts`);
   console.log(`NEXT_PUBLIC_APPWRITE_CAMPAIGNS_COLLECTION_ID=campaigns`);
   console.log(`NEXT_PUBLIC_APPWRITE_TEMPLATES_COLLECTION_ID=templates`);
-  console.log(
-    `NEXT_PUBLIC_APPWRITE_TEMPLATE_VERSIONS_COLLECTION_ID=template_versions`,
-  );
-  console.log(
-    `NEXT_PUBLIC_APPWRITE_CONTACT_GROUPS_COLLECTION_ID=contact_groups`,
-  );
+  console.log(`NEXT_PUBLIC_APPWRITE_TEMPLATE_VERSIONS_COLLECTION_ID=template_versions`);
+  console.log(`NEXT_PUBLIC_APPWRITE_CONTACT_GROUPS_COLLECTION_ID=contact_groups`);
   console.log(`NEXT_PUBLIC_APPWRITE_DRAFT_EMAILS_COLLECTION_ID=draft_emails`);
   console.log(`NEXT_PUBLIC_APPWRITE_SIGNATURES_COLLECTION_ID=signatures`);
   console.log(`NEXT_PUBLIC_APPWRITE_UNSUBSCRIBES_COLLECTION_ID=unsubscribes`);
   console.log(`NEXT_PUBLIC_APPWRITE_WEBHOOKS_COLLECTION_ID=webhooks`);
-  console.log(
-    `NEXT_PUBLIC_APPWRITE_TRACKING_EVENTS_COLLECTION_ID=tracking_events`,
-  );
+  console.log(`NEXT_PUBLIC_APPWRITE_TRACKING_EVENTS_COLLECTION_ID=tracking_events`);
   console.log(`NEXT_PUBLIC_APPWRITE_AB_TESTS_COLLECTION_ID=ab_tests`);
   console.log(`NEXT_PUBLIC_APPWRITE_ATTACHMENTS_BUCKET_ID=attachments`);
   console.log("");
@@ -652,9 +615,7 @@ async function main() {
     await generateEnvVariables();
 
     console.log("\n✅ Setup complete!");
-    console.log(
-      "\n⚠️  Remember to update your .env.local file with the collection IDs above.",
-    );
+    console.log("\n⚠️  Remember to update your .env.local file with the collection IDs above.");
   } catch (error) {
     console.error("\n❌ Setup failed:", error);
     process.exit(1);

@@ -4,10 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { generateWeekOverWeekComparison } from "@/lib/activity/comparison";
 import { aggregateDeviceData } from "@/lib/activity/devices";
-import {
-  calculateSummary,
-  transformCampaignToAnalytics,
-} from "@/lib/activity/export";
+import { calculateSummary, transformCampaignToAnalytics } from "@/lib/activity/export";
 import { aggregateClickData } from "@/lib/activity/heatmap";
 import { buildHistoryData, type HistoryData } from "@/lib/activity/history";
 import { getRecipientsArray } from "@/lib/activity/recipients";
@@ -25,9 +22,7 @@ import type {
 
 export function useInsightsData(userEmail: string | undefined) {
   const [historyData, setHistoryData] = useState<HistoryData | null>(null);
-  const [insightsCampaigns, setInsightsCampaigns] = useState<
-    CampaignAnalytics[]
-  >([]);
+  const [insightsCampaigns, setInsightsCampaigns] = useState<CampaignAnalytics[]>([]);
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [comparison, setComparison] = useState<ComparisonReport | null>(null);
   const [deviceDistribution, setDeviceDistribution] = useState<
@@ -35,12 +30,8 @@ export function useInsightsData(userEmail: string | undefined) {
   >([]);
   const [heatmap, setHeatmap] = useState<ClickHeatmapData | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(true);
-  const [allTrackingEvents, setAllTrackingEvents] = useState<TrackingEvent[]>(
-    [],
-  );
-  const [selectedHeatmapCampaignId, setSelectedHeatmapCampaignId] = useState<
-    string | null
-  >(null);
+  const [allTrackingEvents, setAllTrackingEvents] = useState<TrackingEvent[]>([]);
+  const [selectedHeatmapCampaignId, setSelectedHeatmapCampaignId] = useState<string | null>(null);
 
   const fetchHistory = useCallback(async () => {
     if (!userEmail) {
@@ -81,10 +72,7 @@ export function useInsightsData(userEmail: string | undefined) {
 
       setHistoryData(buildHistoryData(campaigns));
     } catch (error) {
-      componentLogger.error(
-        "Error fetching history",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error fetching history", error instanceof Error ? error : undefined);
     } finally {
       setIsLoadingData(false);
     }
@@ -95,12 +83,9 @@ export function useInsightsData(userEmail: string | undefined) {
       return;
     }
     fetchHistory();
-    const unsubscribe = campaignsService.subscribeToUserCampaigns(
-      userEmail,
-      () => {
-        fetchHistory();
-      },
-    );
+    const unsubscribe = campaignsService.subscribeToUserCampaigns(userEmail, () => {
+      fetchHistory();
+    });
     return () => {
       if (unsubscribe) {
         unsubscribe();
@@ -111,9 +96,7 @@ export function useInsightsData(userEmail: string | undefined) {
   const selectHeatmapCampaign = useCallback(
     (campaignId: string, heatmapData?: ClickHeatmapData | null) => {
       setSelectedHeatmapCampaignId(campaignId);
-      setHeatmap(
-        heatmapData ?? aggregateClickData(allTrackingEvents, campaignId),
-      );
+      setHeatmap(heatmapData ?? aggregateClickData(allTrackingEvents, campaignId));
     },
     [allTrackingEvents],
   );

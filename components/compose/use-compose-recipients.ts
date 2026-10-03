@@ -36,9 +36,7 @@ export function useComposeRecipients({
   // Manual email entry state
   const [manualEmail, setManualEmail] = useState("");
   const [manualName, setManualName] = useState("");
-  const [manualEntries, setManualEntries] = useState<
-    { email: string; name: string }[]
-  >([]);
+  const [manualEntries, setManualEntries] = useState<{ email: string; name: string }[]>([]);
 
   // CSV data
   const [csvData, setCsvData] = useState<any[]>([]);
@@ -46,8 +44,7 @@ export function useComposeRecipients({
 
   // PDF attachment column (for personalized certificates)
   const [pdfColumn, setPdfColumn] = useState<string | null>(null);
-  const [showPersonalizedAttachments, setShowPersonalizedAttachments] =
-    useState(false);
+  const [showPersonalizedAttachments, setShowPersonalizedAttachments] = useState(false);
 
   // Handle CSV data
   const handleCsvData = (data: CSVRow[]) => {
@@ -67,8 +64,7 @@ export function useComposeRecipients({
         const hasValidUrls = data.some((row) => isPdfUrl(row[detectedPdfCol]));
         if (hasValidUrls) {
           toast.success(`Detected certificate column: "${detectedPdfCol}"`, {
-            description:
-              "Each recipient will receive their personalized PDF attachment",
+            description: "Each recipient will receive their personalized PDF attachment",
           });
         }
       } else {
@@ -77,9 +73,7 @@ export function useComposeRecipients({
     }
 
     // Extract emails from CSV
-    const emails = data
-      .map((row) => row.email)
-      .filter((email) => email && email.includes("@"));
+    const emails = data.map((row) => row.email).filter((email) => email && email.includes("@"));
 
     if (emails.length > 0) {
       setRecipients(emails);

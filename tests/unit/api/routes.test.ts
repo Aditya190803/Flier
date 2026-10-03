@@ -46,9 +46,7 @@ describe("API Routes - Authentication", () => {
 
     // Simulate what the API would return for null session
     const session = await getServerSession();
-    const response = session
-      ? { status: 200 }
-      : { error: "Unauthorized", status: 401 };
+    const response = session ? { status: 200 } : { error: "Unauthorized", status: 401 };
 
     expect(response.status).toBe(401);
     expect(response.error).toBe("Unauthorized");
@@ -100,9 +98,7 @@ describe("API Routes - Contacts", () => {
         ],
       };
 
-      vi.mocked(databases.listDocuments).mockResolvedValueOnce(
-        mockContacts as any,
-      );
+      vi.mocked(databases.listDocuments).mockResolvedValueOnce(mockContacts as any);
 
       const result = await databases.listDocuments("test-db", "contacts", []);
 
@@ -124,12 +120,7 @@ describe("API Routes - Contacts", () => {
         ...newContact,
       } as any);
 
-      const result = await databases.createDocument(
-        "test-db",
-        "contacts",
-        ID.unique(),
-        newContact,
-      );
+      const result = await databases.createDocument("test-db", "contacts", ID.unique(), newContact);
 
       expect(result.$id).toBe("new-id");
       expect(databases.createDocument).toHaveBeenCalled();
@@ -146,11 +137,7 @@ describe("API Routes - Contacts", () => {
       vi.mocked(databases.deleteDocument).mockResolvedValueOnce({} as any);
 
       // Verify ownership
-      const doc = await databases.getDocument(
-        "test-db",
-        "contacts",
-        "contact-1",
-      );
+      const doc = await databases.getDocument("test-db", "contacts", "contact-1");
       expect((doc as any).user_email).toBe("test@example.com");
 
       // Delete
@@ -164,11 +151,7 @@ describe("API Routes - Contacts", () => {
         user_email: "other@example.com",
       } as any);
 
-      const doc = await databases.getDocument(
-        "test-db",
-        "contacts",
-        "contact-1",
-      );
+      const doc = await databases.getDocument("test-db", "contacts", "contact-1");
 
       expect((doc as any).user_email).not.toBe("test@example.com");
     });
@@ -201,12 +184,7 @@ describe("API Routes - Campaigns", () => {
         ...campaign,
       } as any);
 
-      const result = await databases.createDocument(
-        "test-db",
-        "campaigns",
-        ID.unique(),
-        campaign,
-      );
+      const result = await databases.createDocument("test-db", "campaigns", ID.unique(), campaign);
 
       expect(result.$id).toBe("campaign-1");
       expect(JSON.parse((result as any).recipients)).toHaveLength(2);
@@ -237,22 +215,13 @@ describe("API Routes - Templates", () => {
       } as any);
 
       // Verify ownership
-      const doc = await databases.getDocument(
-        "test-db",
-        "templates",
-        "template-1",
-      );
+      const doc = await databases.getDocument("test-db", "templates", "template-1");
       expect((doc as any).user_email).toBe("test@example.com");
 
       // Update
-      const result = await databases.updateDocument(
-        "test-db",
-        "templates",
-        "template-1",
-        {
-          name: "New Name",
-        },
-      );
+      const result = await databases.updateDocument("test-db", "templates", "template-1", {
+        name: "New Name",
+      });
 
       expect((result as any).name).toBe("New Name");
     });
@@ -261,22 +230,18 @@ describe("API Routes - Templates", () => {
 
 describe("API Routes - Error Handling", () => {
   it("should handle database errors gracefully", async () => {
-    vi.mocked(databases.listDocuments).mockRejectedValueOnce(
-      new Error("Database error"),
-    );
+    vi.mocked(databases.listDocuments).mockRejectedValueOnce(new Error("Database error"));
 
-    await expect(
-      databases.listDocuments("test-db", "contacts", []),
-    ).rejects.toThrow("Database error");
+    await expect(databases.listDocuments("test-db", "contacts", [])).rejects.toThrow(
+      "Database error",
+    );
   });
 
   it("should handle invalid document IDs", async () => {
-    vi.mocked(databases.getDocument).mockRejectedValueOnce(
-      new Error("Document not found"),
-    );
+    vi.mocked(databases.getDocument).mockRejectedValueOnce(new Error("Document not found"));
 
-    await expect(
-      databases.getDocument("test-db", "contacts", "invalid-id"),
-    ).rejects.toThrow("Document not found");
+    await expect(databases.getDocument("test-db", "contacts", "invalid-id")).rejects.toThrow(
+      "Document not found",
+    );
   });
 });

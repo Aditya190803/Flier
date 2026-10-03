@@ -39,8 +39,7 @@ export function Providers({ children }: { children: ReactNode }) {
           <Toaster
             position="top-right"
             toastOptions={{
-              className:
-                "border border-border bg-card text-card-foreground shadow-lg",
+              className: "border border-border bg-card text-card-foreground shadow-lg",
               duration: 4000,
             }}
             richColors

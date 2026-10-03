@@ -23,8 +23,7 @@ export default function ComposePage() {
     // Redirect if unauthenticated OR if there's a session error (token refresh failed)
     if (
       isClient &&
-      (status === "unauthenticated" ||
-        (status === "authenticated" && session?.error))
+      (status === "unauthenticated" || (status === "authenticated" && session?.error))
     ) {
       router.push("/");
     }
@@ -33,10 +32,7 @@ export default function ComposePage() {
   if (!isClient || status === "loading") {
     return (
       <PageShell>
-        <PageHeader
-          title="New Campaign"
-          description="Write and send a personalised campaign"
-        />
+        <PageHeader title="New Campaign" description="Write and send a personalised campaign" />
         <div className="flex flex-col md:flex-row gap-6 md:gap-8 min-h-[600px]">
           <div className="w-full md:w-64 shrink-0 space-y-3">
             <Skeleton className="h-5 w-24" />
@@ -79,17 +75,12 @@ export default function ComposePage() {
   if (status === "unauthenticated") {
     return (
       <PageShell>
-        <PageHeader
-          title="New Campaign"
-          description="Write and send a personalised campaign"
-        />
+        <PageHeader title="New Campaign" description="Write and send a personalised campaign" />
         <div className="flex items-center justify-center p-4">
           <Card className="w-full max-w-sm">
             <CardContent className="flex items-center justify-center p-8">
               <div className="text-center">
-                <p className="text-destructive mb-4">
-                  Please sign in to access the email composer
-                </p>
+                <p className="text-destructive mb-4">Please sign in to access the email composer</p>
                 <Button asChild>
                   <Link href="/">Return to Home</Link>
                 </Button>

@@ -18,14 +18,11 @@ export default function ApiDocsPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <main className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8">
         <header className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">
-            API & Webhooks Documentation
-          </h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">API & Webhooks Documentation</h1>
           <p className="text-muted-foreground">
-            Interactive API and Webhooks documentation for the Flier email
-            campaign platform. API endpoints require authentication via active
-            session or API keys. Webhooks can be configured in your account
-            settings.
+            Interactive API and Webhooks documentation for the Flier email campaign platform. API
+            endpoints require authentication via active session or API keys. Webhooks can be
+            configured in your account settings.
           </p>
         </header>
 
@@ -48,10 +45,7 @@ export default function ApiDocsPage() {
               API Markdown Documentation
             </Link>{" "}
             or the{" "}
-            <Link
-              href="/docs/DEVELOPER_GUIDE.md"
-              className="text-primary hover:underline"
-            >
+            <Link href="/docs/DEVELOPER_GUIDE.md" className="text-primary hover:underline">
               Developer Guide
             </Link>
           </p>

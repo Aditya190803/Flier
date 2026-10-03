@@ -35,9 +35,7 @@ class ClientLogger {
     ) {
       return level === "error"; // Always log errors
     }
-    return (
-      LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[this.config.minLevel]
-    );
+    return LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[this.config.minLevel];
   }
 
   private formatMessage(level: LogLevel, message: string): string {

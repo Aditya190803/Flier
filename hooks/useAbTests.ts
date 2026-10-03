@@ -23,10 +23,7 @@ export function useAbTests(userEmail: string | undefined) {
       const response = await abTestsService.listByUser(userEmail);
       setTests(response.documents);
     } catch (error) {
-      componentLogger.error(
-        "Error fetching A/B tests",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error fetching A/B tests", error instanceof Error ? error : undefined);
       toast.error("Failed to load A/B tests");
     } finally {
       setLoading(false);
@@ -41,10 +38,7 @@ export function useAbTests(userEmail: string | undefined) {
       const response = await contactsService.listByUser(userEmail);
       setContacts(response.documents.map((c) => c.email));
     } catch (error) {
-      componentLogger.error(
-        "Error fetching contacts",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error fetching contacts", error instanceof Error ? error : undefined);
     }
   }, [userEmail]);
 
@@ -90,9 +84,7 @@ export function useAbTests(userEmail: string | undefined) {
 
     setSubmitting(true);
     try {
-      const shuffled = [...input.selectedContacts].sort(
-        () => Math.random() - 0.5,
-      );
+      const shuffled = [...input.selectedContacts].sort(() => Math.random() - 0.5);
       const midpoint = Math.ceil(shuffled.length / 2);
 
       await abTestsService.create({
@@ -107,8 +99,7 @@ export function useAbTests(userEmail: string | undefined) {
           input.testType === "subject"
             ? input.variantBSubject
             : input.variantASubject || "A/B Test Email",
-        variant_a_content:
-          input.variantAContent || "<p>Test content for variant A</p>",
+        variant_a_content: input.variantAContent || "<p>Test content for variant A</p>",
         variant_b_content:
           input.testType === "content"
             ? input.variantBContent
@@ -122,10 +113,7 @@ export function useAbTests(userEmail: string | undefined) {
       await fetchTests();
       return true;
     } catch (error) {
-      componentLogger.error(
-        "Error creating A/B test",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error creating A/B test", error instanceof Error ? error : undefined);
       toast.error("Failed to create A/B test");
       return false;
     } finally {
@@ -187,10 +175,7 @@ export function useAbTests(userEmail: string | undefined) {
       await fetchTests();
       return true;
     } catch (error) {
-      componentLogger.error(
-        "Error starting A/B test",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error starting A/B test", error instanceof Error ? error : undefined);
       toast.error("Failed to start A/B test");
       try {
         if (test.$id) {

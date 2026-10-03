@@ -21,10 +21,7 @@ export async function GET(request: NextRequest) {
     const campaignId = searchParams.get("campaign_id");
 
     if (!campaignId) {
-      return NextResponse.json(
-        { error: "Campaign ID is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Campaign ID is required" }, { status: 400 });
     }
 
     const limit = parseInt(searchParams.get("limit") || "100");
@@ -99,9 +96,6 @@ export async function GET(request: NextRequest) {
       "Error fetching recipient engagement",
       error instanceof Error ? error : undefined,
     );
-    return NextResponse.json(
-      { error: "Failed to fetch recipient engagement" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch recipient engagement" }, { status: 500 });
   }
 }

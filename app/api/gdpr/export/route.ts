@@ -63,23 +63,6 @@ interface TrackingEventDocument extends Models.Document {
   created_at?: string;
 }
 
-// Helper to sanitize data for export (remove internal fields) - kept for potential future use
-function _sanitizeDocument(
-  doc: Record<string, unknown>,
-): Record<string, unknown> {
-  const {
-    $id: _$id,
-    $createdAt: _$createdAt,
-    $updatedAt: _$updatedAt,
-    $permissions: _$permissions,
-    $databaseId: _$databaseId,
-    $collectionId: _$collectionId,
-    user_email: _user_email,
-    ...rest
-  } = doc;
-  return rest;
-}
-
 // GET /api/gdpr/export - Export all user data (GDPR compliant)
 export async function GET(request: NextRequest) {
   try {
@@ -92,78 +75,70 @@ export async function GET(request: NextRequest) {
     const userName = auth.name || undefined;
 
     // Gather all user data from different collections
-    const [
-      contacts,
-      campaigns,
-      templates,
-      drafts,
-      signatures,
-      _groups,
-      trackingEvents,
-    ] = await Promise.all([
-      // Contacts
-      databases
-        .listDocuments(config.databaseId, config.contactsCollectionId, [
-          Query.equal("user_email", userEmail),
-          Query.limit(5000),
-        ])
-        .catch(() => ({ documents: [] })),
+    const [contacts, campaigns, templates, drafts, signatures, _groups, trackingEvents] =
+      await Promise.all([
+        // Contacts
+        databases
+          .listDocuments(config.databaseId, config.contactsCollectionId, [
+            Query.equal("user_email", userEmail),
+            Query.limit(5000),
+          ])
+          .catch(() => ({ documents: [] })),
 
-      // Campaigns
-      databases
-        .listDocuments(config.databaseId, config.campaignsCollectionId, [
-          Query.equal("user_email", userEmail),
-          Query.limit(5000),
-        ])
-        .catch(() => ({ documents: [] })),
+        // Campaigns
+        databases
+          .listDocuments(config.databaseId, config.campaignsCollectionId, [
+            Query.equal("user_email", userEmail),
+            Query.limit(5000),
+          ])
+          .catch(() => ({ documents: [] })),
 
-      // Templates
-      databases
-        .listDocuments(config.databaseId, config.templatesCollectionId, [
-          Query.equal("user_email", userEmail),
-          Query.limit(5000),
-        ])
-        .catch(() => ({ documents: [] })),
+        // Templates
+        databases
+          .listDocuments(config.databaseId, config.templatesCollectionId, [
+            Query.equal("user_email", userEmail),
+            Query.limit(5000),
+          ])
+          .catch(() => ({ documents: [] })),
 
-      // Drafts
-      config.draftEmailsCollectionId
-        ? databases
-            .listDocuments(config.databaseId, config.draftEmailsCollectionId, [
-              Query.equal("user_email", userEmail),
-              Query.limit(5000),
-            ])
-            .catch(() => ({ documents: [] }))
-        : { documents: [] },
+        // Drafts
+        config.draftEmailsCollectionId
+          ? databases
+              .listDocuments(config.databaseId, config.draftEmailsCollectionId, [
+                Query.equal("user_email", userEmail),
+                Query.limit(5000),
+              ])
+              .catch(() => ({ documents: [] }))
+          : { documents: [] },
 
-      // Signatures
-      config.signaturesCollectionId
-        ? databases
-            .listDocuments(config.databaseId, config.signaturesCollectionId, [
-              Query.equal("user_email", userEmail),
-              Query.limit(5000),
-            ])
-            .catch(() => ({ documents: [] }))
-        : { documents: [] },
+        // Signatures
+        config.signaturesCollectionId
+          ? databases
+              .listDocuments(config.databaseId, config.signaturesCollectionId, [
+                Query.equal("user_email", userEmail),
+                Query.limit(5000),
+              ])
+              .catch(() => ({ documents: [] }))
+          : { documents: [] },
 
-      // Contact Groups
-      databases
-        .listDocuments(config.databaseId, config.contactGroupsCollectionId, [
-          Query.equal("user_email", userEmail),
-          Query.limit(5000),
-        ])
-        .catch(() => ({ documents: [] })),
+        // Contact Groups
+        databases
+          .listDocuments(config.databaseId, config.contactGroupsCollectionId, [
+            Query.equal("user_email", userEmail),
+            Query.limit(5000),
+          ])
+          .catch(() => ({ documents: [] })),
 
-      // Tracking Events
-      config.trackingEventsCollectionId
-        ? databases
-            .listDocuments(
-              config.databaseId,
-              config.trackingEventsCollectionId,
-              [Query.equal("user_email", userEmail), Query.limit(5000)],
-            )
-            .catch(() => ({ documents: [] }))
-        : { documents: [] },
-    ]);
+        // Tracking Events
+        config.trackingEventsCollectionId
+          ? databases
+              .listDocuments(config.databaseId, config.trackingEventsCollectionId, [
+                Query.equal("user_email", userEmail),
+                Query.limit(5000),
+              ])
+              .catch(() => ({ documents: [] }))
+          : { documents: [] },
+      ]);
 
     // Get consent records if available
     let consentRecords: ConsentRecordDocument[] = [];
@@ -200,9 +175,7 @@ export async function GET(request: NextRequest) {
         })),
         campaigns: (campaigns.documents as ExportCampaignDoc[]).map((doc) => {
           const recipients =
-            typeof doc.recipients === "string"
-              ? JSON.parse(doc.recipients)
-              : doc.recipients;
+            typeof doc.recipients === "string" ? JSON.parse(doc.recipients) : doc.recipients;
           return {
             subject: doc.subject || "",
             recipients_count: recipients?.length || 0,
@@ -220,31 +193,25 @@ export async function GET(request: NextRequest) {
         })),
         drafts: (drafts.documents as ExportDraftDoc[]).map((doc) => {
           const recipients =
-            typeof doc.recipients === "string"
-              ? JSON.parse(doc.recipients)
-              : doc.recipients;
+            typeof doc.recipients === "string" ? JSON.parse(doc.recipients) : doc.recipients;
           return {
             subject: doc.subject || "",
             recipients_count: recipients?.length || 0,
             created_at: doc.created_at || doc.$createdAt,
           };
         }),
-        signatures: (signatures.documents as ExportSignatureDoc[]).map(
-          (doc) => ({
-            name: doc.name || "",
-            is_default: doc.is_default || false,
-            created_at: doc.created_at || doc.$createdAt,
-          }),
-        ),
+        signatures: (signatures.documents as ExportSignatureDoc[]).map((doc) => ({
+          name: doc.name || "",
+          is_default: doc.is_default || false,
+          created_at: doc.created_at || doc.$createdAt,
+        })),
         consent_records: consentRecords.map((doc) => ({
           consent_type: doc.consent_type,
           granted: doc.granted,
           granted_at: doc.granted_at,
           revoked_at: doc.revoked_at,
         })),
-        tracking_events: (
-          trackingEvents.documents as TrackingEventDocument[]
-        ).map((doc) => ({
+        tracking_events: (trackingEvents.documents as TrackingEventDocument[]).map((doc) => ({
           event_type: doc.event_type,
           campaign_id: doc.campaign_id,
           recipient_email: doc.recipient_email,
@@ -259,9 +226,7 @@ export async function GET(request: NextRequest) {
     if (config.auditLogsCollectionId) {
       try {
         const ipAddress =
-          request.headers.get("x-forwarded-for") ||
-          request.headers.get("x-real-ip") ||
-          "unknown";
+          request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
         await databases.createDocument(
           config.databaseId,
           config.auditLogsCollectionId,
@@ -294,15 +259,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    apiLogger.error(
-      "Error exporting user data",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error exporting user data", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          (error instanceof Error ? error.message : undefined) ||
-          "Failed to export user data",
+        error: (error instanceof Error ? error.message : undefined) || "Failed to export user data",
       },
       { status: 500 },
     );

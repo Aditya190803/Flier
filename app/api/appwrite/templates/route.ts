@@ -39,11 +39,7 @@ export async function GET(request: NextRequest) {
         const response = await databases.listDocuments(
           config.databaseId,
           config.templatesCollectionId,
-          [
-            Query.equal("user_email", userEmail),
-            Query.orderDesc("$updatedAt"),
-            Query.limit(100),
-          ],
+          [Query.equal("user_email", userEmail), Query.orderDesc("$updatedAt"), Query.limit(100)],
         );
         return {
           total: response.total,
@@ -55,14 +51,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error fetching templates",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error fetching templates", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to fetch templates",
+        error: error instanceof Error ? error.message : "Failed to fetch templates",
       },
       { status: 500 },
     );
@@ -102,14 +94,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error creating template",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error creating template", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to create template",
+        error: error instanceof Error ? error.message : "Failed to create template",
       },
       { status: 500 },
     );
@@ -125,14 +113,10 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, name, subject, content, category, saveVersion, changeNote } =
-      body;
+    const { id, name, subject, content, category, saveVersion, changeNote } = body;
 
     if (!id) {
-      return NextResponse.json(
-        { error: "Template ID required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Template ID required" }, { status: 400 });
     }
 
     // Verify ownership
@@ -173,10 +157,7 @@ export async function PUT(request: NextRequest) {
           code?: number;
           message?: string;
         };
-        if (
-          appwriteError.code !== 404 &&
-          !appwriteError.message?.includes("Collection")
-        ) {
+        if (appwriteError.code !== 404 && !appwriteError.message?.includes("Collection")) {
           apiLogger.warn("Failed to save template version", {
             error: appwriteError.message,
           });
@@ -203,14 +184,10 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error updating template",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error updating template", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to update template",
+        error: error instanceof Error ? error.message : "Failed to update template",
       },
       { status: 500 },
     );
@@ -229,10 +206,7 @@ export async function DELETE(request: NextRequest) {
     const templateId = searchParams.get("id");
 
     if (!templateId) {
-      return NextResponse.json(
-        { error: "Template ID required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Template ID required" }, { status: 400 });
     }
 
     // Verify ownership
@@ -246,25 +220,17 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    await databases.deleteDocument(
-      config.databaseId,
-      config.templatesCollectionId,
-      templateId,
-    );
+    await databases.deleteDocument(config.databaseId, config.templatesCollectionId, templateId);
 
     // Invalidate cache
     await cache.delete(CacheKeys.userTemplates(auth.email));
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error deleting template",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error deleting template", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to delete template",
+        error: error instanceof Error ? error.message : "Failed to delete template",
       },
       { status: 500 },
     );

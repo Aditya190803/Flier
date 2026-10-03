@@ -37,10 +37,7 @@ export const acquireLock = (): boolean => {
     try {
       const lock = JSON.parse(existingLock);
       // Lock is valid if it's ours or if it hasn't expired
-      if (
-        now - lock.timestamp < LOCK_TIMEOUT_MS &&
-        lock.tabId !== currentTabId
-      ) {
+      if (now - lock.timestamp < LOCK_TIMEOUT_MS && lock.tabId !== currentTabId) {
         return false;
       }
     } catch {

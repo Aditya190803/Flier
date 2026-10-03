@@ -19,9 +19,7 @@ export function fileToBase64(file: File): Promise<string> {
   });
 }
 
-export function createProcessingAttachments(
-  files: FileList | File[],
-): ComposeAttachment[] {
+export function createProcessingAttachments(files: FileList | File[]): ComposeAttachment[] {
   const list = Array.from(files);
   return list.map((file, i) => ({
     tempId: `temp_${Date.now()}_${i}`,
@@ -106,9 +104,7 @@ export async function processAttachmentFile(
 }
 
 /** Upload base64 attachment for draft persistence. */
-export async function ensureAppwriteAttachment(
-  attachment: ComposeAttachment,
-): Promise<{
+export async function ensureAppwriteAttachment(attachment: ComposeAttachment): Promise<{
   fileName: string;
   fileUrl: string;
   fileSize: number;
@@ -125,11 +121,11 @@ export async function ensureAppwriteAttachment(
 
   if (attachment.data && attachment.data !== "appwrite") {
     const byteCharacters = atob(attachment.data);
-    const byteNumbers = new Array(byteCharacters.length);
+    const byteNumbers = new Uint8Array(byteCharacters.length);
     for (let i = 0; i < byteCharacters.length; i++) {
       byteNumbers[i] = byteCharacters.charCodeAt(i);
     }
-    const blob = new Blob([new Uint8Array(byteNumbers)], {
+    const blob = new Blob([byteNumbers], {
       type: attachment.type,
     });
     const file = new File([blob], attachment.name, { type: attachment.type });

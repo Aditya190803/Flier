@@ -66,10 +66,7 @@ export async function getEmailPreview(html: string): Promise<string> {
       throw new Error(result.error || "Failed to format email");
     }
   } catch (error) {
-    clientLogger.error(
-      "Failed to fetch email preview",
-      error instanceof Error ? error : undefined,
-    );
+    clientLogger.error("Failed to fetch email preview", error instanceof Error ? error : undefined);
     // Return basic fallback preview
     return getInstantPreview(html);
   }

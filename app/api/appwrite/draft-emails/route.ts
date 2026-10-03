@@ -126,26 +126,19 @@ export async function GET(request: NextRequest) {
     const response = await databases.listDocuments(
       config.databaseId,
       config.draftEmailsCollectionId,
-      [
-        Query.equal("user_email", auth.email),
-        Query.orderDesc("saved_at"),
-        Query.limit(100),
-      ],
+      [Query.equal("user_email", auth.email), Query.orderDesc("saved_at"), Query.limit(100)],
     );
 
-    const documents = (
-      response.documents as unknown as DraftEmailDocument[]
-    ).map((doc) => mapDraftDocument(doc));
+    const documents = (response.documents as unknown as DraftEmailDocument[]).map((doc) =>
+      mapDraftDocument(doc),
+    );
 
     return NextResponse.json({ total: response.total, documents });
   } catch (error: unknown) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Failed to fetch draft emails";
+    const errorMessage = error instanceof Error ? error.message : "Failed to fetch draft emails";
     apiLogger.error(
       "Error fetching draft emails",
-      error instanceof Error
-        ? { message: error.message, stack: error.stack }
-        : undefined,
+      error instanceof Error ? { message: error.message, stack: error.stack } : undefined,
     );
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
@@ -160,16 +153,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const {
-      subject,
-      content,
-      recipients,
-      saved_at,
-      attachments,
-      csv_data,
-      cc,
-      bcc,
-    } = body;
+    const { subject, content, recipients, saved_at, attachments, csv_data, cc, bcc } = body;
 
     const result = await databases.createDocument(
       config.databaseId,
@@ -192,13 +176,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error: unknown) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Failed to create draft email";
+    const errorMessage = error instanceof Error ? error.message : "Failed to create draft email";
     apiLogger.error(
       "Error creating draft email",
-      error instanceof Error
-        ? { message: error.message, stack: error.stack }
-        : undefined,
+      error instanceof Error ? { message: error.message, stack: error.stack } : undefined,
     );
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
@@ -287,13 +268,10 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error: unknown) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Failed to update draft email";
+    const errorMessage = error instanceof Error ? error.message : "Failed to update draft email";
     apiLogger.error(
       "Error updating draft email",
-      error instanceof Error
-        ? { message: error.message, stack: error.stack }
-        : undefined,
+      error instanceof Error ? { message: error.message, stack: error.stack } : undefined,
     );
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
@@ -325,21 +303,14 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    await databases.deleteDocument(
-      config.databaseId,
-      config.draftEmailsCollectionId,
-      emailId,
-    );
+    await databases.deleteDocument(config.databaseId, config.draftEmailsCollectionId, emailId);
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Failed to delete draft email";
+    const errorMessage = error instanceof Error ? error.message : "Failed to delete draft email";
     apiLogger.error(
       "Error deleting draft email",
-      error instanceof Error
-        ? { message: error.message, stack: error.stack }
-        : undefined,
+      error instanceof Error ? { message: error.message, stack: error.stack } : undefined,
     );
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }

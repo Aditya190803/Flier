@@ -43,10 +43,7 @@ export async function POST(request: NextRequest) {
           appwrite_file_id: result.fileId,
         });
       } catch (error) {
-        apiLogger.error(
-          `Error uploading ${file.name}`,
-          error instanceof Error ? error : undefined,
-        );
+        apiLogger.error(`Error uploading ${file.name}`, error instanceof Error ? error : undefined);
         uploadResults.push({
           fileName: file.name,
           error: `Failed to upload: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -59,13 +56,7 @@ export async function POST(request: NextRequest) {
       uploads: uploadResults,
     });
   } catch (error) {
-    apiLogger.error(
-      "Upload API error",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    apiLogger.error("Upload API error", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

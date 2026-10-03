@@ -23,10 +23,7 @@ import type { QueryResultRow } from "pg";
 const ACCESS_TOKEN_SKEW_MS = 60_000;
 
 /** Reuse fresh access tokens within a warm worker process. */
-const accessTokenCache = new Map<
-  string,
-  { accessToken: string; expiresAt: number }
->();
+const accessTokenCache = new Map<string, { accessToken: string; expiresAt: number }>();
 
 type StoredTokenRow = QueryResultRow & {
   user_email: string;
@@ -63,9 +60,7 @@ export async function persistRefreshToken(input: {
   }
 
   if (!canEncryptSecrets()) {
-    authLogger.warn(
-      "Refresh token not stored: no TOKEN_ENCRYPTION_KEY or NEXTAUTH_SECRET",
-    );
+    authLogger.warn("Refresh token not stored: no TOKEN_ENCRYPTION_KEY or NEXTAUTH_SECRET");
     return;
   }
 
@@ -95,9 +90,7 @@ export async function persistRefreshToken(input: {
  * change, consent withdrawn) so the worker stops retrying and the UI can tell
  * the user to sign in again.
  */
-export async function markRefreshTokenRevoked(
-  userEmail: string,
-): Promise<void> {
+export async function markRefreshTokenRevoked(userEmail: string): Promise<void> {
   accessTokenCache.delete(userEmail);
 
   if (!isDatabaseConfigured()) {
@@ -117,9 +110,7 @@ export async function markRefreshTokenRevoked(
 }
 
 /** Delete a user's stored token (sign-out / GDPR erasure). */
-export async function deleteStoredRefreshToken(
-  userEmail: string,
-): Promise<void> {
+export async function deleteStoredRefreshToken(userEmail: string): Promise<void> {
   accessTokenCache.delete(userEmail);
 
   if (!isDatabaseConfigured()) {
@@ -127,9 +118,7 @@ export async function deleteStoredRefreshToken(
   }
 
   try {
-    await dbQuery("DELETE FROM oauth_tokens WHERE user_email = $1", [
-      userEmail,
-    ]);
+    await dbQuery("DELETE FROM oauth_tokens WHERE user_email = $1", [userEmail]);
   } catch (error) {
     authLogger.error("Failed to delete stored refresh token", {
       error: error instanceof Error ? error.message : String(error),
@@ -138,9 +127,7 @@ export async function deleteStoredRefreshToken(
 }
 
 /** Whether a usable (non-revoked, decryptable) token exists for a user. */
-export async function hasUsableRefreshToken(
-  userEmail: string,
-): Promise<boolean> {
+export async function hasUsableRefreshToken(userEmail: string): Promise<boolean> {
   if (!isDatabaseConfigured()) {
     return false;
   }
@@ -171,9 +158,7 @@ export type OfflineTokenResult =
  *
  * @param userEmail - The account the campaign sends as.
  */
-export async function getOfflineAccessToken(
-  userEmail: string,
-): Promise<OfflineTokenResult> {
+export async function getOfflineAccessToken(userEmail: string): Promise<OfflineTokenResult> {
   const cached = accessTokenCache.get(userEmail);
   if (cached && cached.expiresAt - ACCESS_TOKEN_SKEW_MS > Date.now()) {
     return {

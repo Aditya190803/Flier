@@ -109,9 +109,7 @@ export class VerificationService {
    * @param emails - Array of email addresses
    * @returns Map of email to verification result
    */
-  static async verifyBatch(
-    emails: string[],
-  ): Promise<Map<string, VerificationResult>> {
+  static async verifyBatch(emails: string[]): Promise<Map<string, VerificationResult>> {
     const results = new Map<string, VerificationResult>();
 
     // Process in parallel with a limit if needed, but for now just Promise.all

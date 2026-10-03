@@ -85,10 +85,7 @@ export const gdprService = {
   },
 
   // Update consent
-  async updateConsent(
-    consentType: string,
-    given: boolean,
-  ): Promise<Record<string, unknown>> {
+  async updateConsent(consentType: string, given: boolean): Promise<Record<string, unknown>> {
     return apiRequest("/api/gdpr/consent", {
       method: "POST",
       body: JSON.stringify({ consent_type: consentType, given }),

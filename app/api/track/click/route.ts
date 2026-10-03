@@ -55,21 +55,14 @@ export async function GET(request: NextRequest) {
       );
       apiLogger.info("Link click tracked", { campaignId: payload.campaignId });
     } catch (error) {
-      apiLogger.error(
-        "Error recording click event",
-        error instanceof Error ? error : undefined,
-        {
-          campaignId: payload.campaignId,
-        },
-      );
+      apiLogger.error("Error recording click event", error instanceof Error ? error : undefined, {
+        campaignId: payload.campaignId,
+      });
     }
 
     return safeRedirect(payload.targetUrl, request);
   } catch (error) {
-    apiLogger.error(
-      "Link tracking error",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Link tracking error", error instanceof Error ? error : undefined);
     return NextResponse.redirect(new URL("/", request.url));
   }
 }

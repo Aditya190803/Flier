@@ -156,11 +156,7 @@ export function ContactListTab({
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button
-            variant={
-              selectedGroup === null && selectedTag === null
-                ? "secondary"
-                : "outline"
-            }
+            variant={selectedGroup === null && selectedTag === null ? "secondary" : "outline"}
             size="sm"
             onClick={onResetFilters}
           >
@@ -179,9 +175,7 @@ export function ContactListTab({
                 onClick={() => onSelectGroup(groupId)}
                 className="flex items-center gap-2"
               >
-                <span
-                  className={`w-2 h-2 rounded-full ${getGroupColor(group.color)}`}
-                />
+                <span className={`w-2 h-2 rounded-full ${getGroupColor(group.color)}`} />
                 {group.name}
                 <Badge variant="secondary" className="ml-1 text-xs">
                   {group.contact_ids?.length ?? 0}
@@ -194,9 +188,7 @@ export function ContactListTab({
 
       {getAllTags().length > 0 && (
         <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-sm text-muted-foreground mr-2">
-            Filter by tag:
-          </span>
+          <span className="text-sm text-muted-foreground mr-2">Filter by tag:</span>
           {getAllTags().map((tag) => (
             <Badge
               key={tag}
@@ -228,16 +220,11 @@ export function ContactListTab({
               {viewMode === "grid" ? (
                 <>
                   Showing {contactsPagination.startIndex + 1} to{" "}
-                  {Math.min(
-                    contactsPagination.endIndex + 1,
-                    filteredContacts.length,
-                  )}{" "}
-                  of {filteredContacts.length} contacts
+                  {Math.min(contactsPagination.endIndex + 1, filteredContacts.length)} of{" "}
+                  {filteredContacts.length} contacts
                 </>
               ) : (
-                <>
-                  Showing {filteredContacts.length} contacts (Virtual Scrolling)
-                </>
+                <>Showing {filteredContacts.length} contacts (Virtual Scrolling)</>
               )}
               {selectedGroupName && ` in "${selectedGroupName}"`}
             </p>
@@ -245,9 +232,7 @@ export function ContactListTab({
 
           {viewMode === "grid" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {contactsPagination.paginatedItems.map((contact) =>
-                renderContactCard(contact),
-              )}
+              {contactsPagination.paginatedItems.map((contact) => renderContactCard(contact))}
             </div>
           ) : (
             <div
@@ -276,11 +261,7 @@ export function ContactListTab({
                     <div className="h-full bg-background rounded-lg border shadow-sm p-4 flex items-center justify-between group">
                       <div className="flex items-center gap-4 min-w-0">
                         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold flex-shrink-0">
-                          {(
-                            virtualItem.data.name ||
-                            virtualItem.data.email ||
-                            "?"
-                          )
+                          {(virtualItem.data.name || virtualItem.data.email || "?")
                             .charAt(0)
                             .toUpperCase()}
                         </div>
@@ -308,9 +289,7 @@ export function ContactListTab({
                           className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100"
                           asChild
                         >
-                          <Link
-                            href={`/compose?to=${encodeURIComponent(virtualItem.data.email)}`}
-                          >
+                          <Link href={`/compose?to=${encodeURIComponent(virtualItem.data.email)}`}>
                             <Send className="h-4 w-4 mr-1" />
                             Send
                           </Link>
@@ -343,16 +322,12 @@ export function ContactListTab({
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               onClick={() => {
-                                void onDeleteContact(
-                                  virtualItem.data.$id,
-                                ).catch((error) => {
+                                void onDeleteContact(virtualItem.data.$id).catch((error) => {
                                   clientLogger.error(
                                     "Failed to delete contact",
                                     error instanceof Error ? error : undefined,
                                   );
-                                  toast.error(
-                                    "Failed to delete contact. Please try again.",
-                                  );
+                                  toast.error("Failed to delete contact. Please try again.");
                                 });
                               }}
                               className="text-destructive"
@@ -370,24 +345,23 @@ export function ContactListTab({
             </div>
           )}
 
-          {viewMode === "grid" &&
-            filteredContacts.length > contactsPagination.pageSize && (
-              <div className="mt-6">
-                <Pagination
-                  currentPage={contactsPagination.currentPage}
-                  totalPages={contactsPagination.totalPages}
-                  pageSize={contactsPagination.pageSize}
-                  totalItems={contactsPagination.totalItems}
-                  hasPreviousPage={contactsPagination.hasPreviousPage}
-                  hasNextPage={contactsPagination.hasNextPage}
-                  onPageChange={contactsPagination.goToPage}
-                  onPageSizeChange={contactsPagination.setPageSize}
-                  getPageNumbers={contactsPagination.getPageNumbers}
-                  startIndex={contactsPagination.startIndex}
-                  endIndex={contactsPagination.endIndex}
-                />
-              </div>
-            )}
+          {viewMode === "grid" && filteredContacts.length > contactsPagination.pageSize && (
+            <div className="mt-6">
+              <Pagination
+                currentPage={contactsPagination.currentPage}
+                totalPages={contactsPagination.totalPages}
+                pageSize={contactsPagination.pageSize}
+                totalItems={contactsPagination.totalItems}
+                hasPreviousPage={contactsPagination.hasPreviousPage}
+                hasNextPage={contactsPagination.hasNextPage}
+                onPageChange={contactsPagination.goToPage}
+                onPageSizeChange={contactsPagination.setPageSize}
+                getPageNumbers={contactsPagination.getPageNumbers}
+                startIndex={contactsPagination.startIndex}
+                endIndex={contactsPagination.endIndex}
+              />
+            </div>
+          )}
         </>
       ) : (
         <Card>

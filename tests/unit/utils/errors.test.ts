@@ -199,9 +199,7 @@ describe("Assertion Helpers", () => {
 
     it("should throw ValidationError when condition is false", () => {
       expect(() => assert(false, "Validation failed")).toThrow(ValidationError);
-      expect(() => assert(false, "Validation failed")).toThrow(
-        "Validation failed",
-      );
+      expect(() => assert(false, "Validation failed")).toThrow("Validation failed");
     });
   });
 
@@ -222,9 +220,7 @@ describe("Assertion Helpers", () => {
     });
 
     it("should use custom message", () => {
-      expect(() => assertDefined(null, "Custom message")).toThrow(
-        "Custom message",
-      );
+      expect(() => assertDefined(null, "Custom message")).toThrow("Custom message");
     });
   });
 });

@@ -17,13 +17,7 @@ export function injectTracking(
     return "";
   }
 
-  const {
-    campaignId,
-    recipientEmail,
-    userEmail,
-    isTransactional,
-    trackingEnabled = true,
-  } = params;
+  const { campaignId, recipientEmail, userEmail, isTransactional, trackingEnabled = true } = params;
 
   const recipientId = generateRecipientId(recipientEmail);
 
@@ -61,10 +55,7 @@ export function injectTracking(
         return match;
       }
 
-      if (
-        url.includes("/api/track/click") ||
-        url.includes("/api/unsubscribe")
-      ) {
+      if (url.includes("/api/track/click") || url.includes("/api/unsubscribe")) {
         return match;
       }
 

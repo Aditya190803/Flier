@@ -53,13 +53,10 @@ export function EmailHeatmapOverlay({
       const linkId = link.getAttribute("data-link-id");
 
       // Find matching stat
-      const stat = linkStats.find(
-        (s) => s.link_id === linkId || s.url === href,
-      );
+      const stat = linkStats.find((s) => s.link_id === linkId || s.url === href);
 
       if (stat && stat.clicks > 0) {
-        const percentage =
-          totalClicks > 0 ? (stat.clicks / totalClicks) * 100 : 0;
+        const percentage = totalClicks > 0 ? (stat.clicks / totalClicks) * 100 : 0;
 
         // Create overlay badge
         const badge = doc.createElement("span");
@@ -71,12 +68,7 @@ export function EmailHeatmapOverlay({
           position: "absolute",
           top: "-10px",
           right: "-10px",
-          backgroundColor:
-            percentage > 50
-              ? "#ef4444"
-              : percentage > 20
-                ? "#f97316"
-                : "#3b82f6",
+          backgroundColor: percentage > 50 ? "#ef4444" : percentage > 20 ? "#f97316" : "#3b82f6",
           color: "white",
           borderRadius: "10px",
           padding: "2px 6px",
@@ -98,9 +90,7 @@ export function EmailHeatmapOverlay({
         link.style.outline = `2px solid ${percentage > 50 ? "#ef4444" : percentage > 20 ? "#f97316" : "#3b82f6"}`;
         link.style.outlineOffset = "2px";
         link.style.backgroundColor =
-          percentage > 50
-            ? "rgba(239, 68, 68, 0.1)"
-            : "rgba(59, 130, 246, 0.1)";
+          percentage > 50 ? "rgba(239, 68, 68, 0.1)" : "rgba(59, 130, 246, 0.1)";
       }
     });
   }, [linkStats, totalClicks]);
@@ -141,6 +131,7 @@ export function EmailHeatmapOverlay({
         <div className="relative w-full aspect-[4/5] sm:aspect-[16/10]">
           <iframe
             ref={iframeRef}
+            title="Email click heatmap"
             className="w-full h-full border-0"
             srcDoc={`
               <!DOCTYPE html>

@@ -29,13 +29,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { PageShell, PageHeader } from "@/components/ui/page-shell";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -71,15 +65,13 @@ const consentTypes = [
   {
     type: "marketing",
     title: "Marketing Communications",
-    description:
-      "Receive updates about new features, tips, and promotional offers from Flier.",
+    description: "Receive updates about new features, tips, and promotional offers from Flier.",
     required: false,
   },
   {
     type: "third_party",
     title: "Third-Party Integrations",
-    description:
-      "Allow data sharing with integrated third-party services you connect to Flier.",
+    description: "Allow data sharing with integrated third-party services you connect to Flier.",
     required: false,
   },
 ];
@@ -119,18 +111,12 @@ export default function GDPRPage() {
         setConsents({
           ...consents,
           ...Object.fromEntries(
-            Object.entries(data.defaults).map(([k, v]: [string, any]) => [
-              k,
-              v.given,
-            ]),
+            Object.entries(data.defaults).map(([k, v]: [string, any]) => [k, v.given]),
           ),
         });
       }
     } catch (error) {
-      componentLogger.error(
-        "Failed to fetch consents",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Failed to fetch consents", error instanceof Error ? error : undefined);
     } finally {
       setIsLoading(false);
     }
@@ -262,21 +248,14 @@ export default function GDPRPage() {
               <Download className="h-5 w-5 text-primary" />
               Export Your Data
             </CardTitle>
-            <CardDescription>
-              Download a copy of all your data stored in Flier
-            </CardDescription>
+            <CardDescription>Download a copy of all your data stored in Flier</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              Your export will include contacts, email campaigns, templates,
-              drafts, signatures, and all other data associated with your
-              account in JSON format.
+              Your export will include contacts, email campaigns, templates, drafts, signatures, and
+              all other data associated with your account in JSON format.
             </p>
-            <Button
-              onClick={handleExportData}
-              disabled={isExporting}
-              className="gap-2"
-            >
+            <Button onClick={handleExportData} disabled={isExporting} className="gap-2">
               {isExporting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -318,19 +297,13 @@ export default function GDPRPage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {consent.description}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{consent.description}</p>
                 </div>
                 <Switch
                   id={consent.type}
                   checked={consents[consent.type] ?? false}
-                  onCheckedChange={(checked: boolean) =>
-                    handleConsentChange(consent.type, checked)
-                  }
-                  disabled={
-                    consent.required || updatingConsent === consent.type
-                  }
+                  onCheckedChange={(checked: boolean) => handleConsentChange(consent.type, checked)}
+                  disabled={consent.required || updatingConsent === consent.type}
                 />
               </div>
             ))}
@@ -344,14 +317,12 @@ export default function GDPRPage() {
               <Eye className="h-5 w-5 text-secondary" />
               Activity History
             </CardTitle>
-            <CardDescription>
-              View a log of all actions performed on your account
-            </CardDescription>
+            <CardDescription>View a log of all actions performed on your account</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              Access a detailed audit trail of all activities including logins,
-              data modifications, exports, and more.
+              Access a detailed audit trail of all activities including logins, data modifications,
+              exports, and more.
             </p>
             <Button variant="outline" asChild>
               <Link href="/settings/audit-logs" className="gap-2">
@@ -369,9 +340,7 @@ export default function GDPRPage() {
               <Trash2 className="h-5 w-5" />
               Delete Your Data
             </CardTitle>
-            <CardDescription>
-              Permanently delete all your data from Flier
-            </CardDescription>
+            <CardDescription>Permanently delete all your data from Flier</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-4">
@@ -382,9 +351,8 @@ export default function GDPRPage() {
                     Warning: This action cannot be undone
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    All your contacts, campaigns, templates, drafts, and other
-                    data will be permanently deleted. You will not be able to
-                    recover this data.
+                    All your contacts, campaigns, templates, drafts, and other data will be
+                    permanently deleted. You will not be able to recover this data.
                   </p>
                 </div>
               </div>
@@ -409,9 +377,7 @@ export default function GDPRPage() {
                       <li>All signatures and settings</li>
                       <li>All uploaded attachments</li>
                     </ul>
-                    <p className="font-semibold mt-4">
-                      This action cannot be undone.
-                    </p>
+                    <p className="font-semibold mt-4">This action cannot be undone.</p>
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

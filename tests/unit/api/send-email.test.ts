@@ -6,10 +6,7 @@ import { describe, it, expect, vi, beforeEach } from "vite-plus/test";
 
 import { fetchFileFromUrl } from "@/lib/attachment-fetcher";
 import { sendEmailViaAPI, replacePlaceholders } from "@/lib/gmail";
-import {
-  createMockLoggerModule,
-  createSpyLogger,
-} from "@/tests/helpers/mockLoggerModule";
+import { createMockLoggerModule, createSpyLogger } from "@/tests/helpers/mockLoggerModule";
 
 // Mock next-auth
 vi.mock("next-auth", () => ({
@@ -135,9 +132,7 @@ describe("Send Email API", () => {
       const personalizedMessage = replacePlaceholders(message, data);
 
       expect(personalizedSubject).toBe("Hello John!");
-      expect(personalizedMessage).toBe(
-        "<p>Welcome, John! Your email is john@example.com.</p>",
-      );
+      expect(personalizedMessage).toBe("<p>Welcome, John! Your email is john@example.com.</p>");
     });
   });
 
@@ -156,19 +151,15 @@ describe("Send Email API", () => {
       const result = await fetchFileFromUrl("https://example.com/document.pdf");
 
       expect(result).toEqual(mockAttachment);
-      expect(fetchFileFromUrl).toHaveBeenCalledWith(
-        "https://example.com/document.pdf",
-      );
+      expect(fetchFileFromUrl).toHaveBeenCalledWith("https://example.com/document.pdf");
     });
 
     it("should handle attachment fetch failure", async () => {
-      vi.mocked(fetchFileFromUrl).mockRejectedValueOnce(
-        new Error("Failed to fetch"),
-      );
+      vi.mocked(fetchFileFromUrl).mockRejectedValueOnce(new Error("Failed to fetch"));
 
-      await expect(
-        fetchFileFromUrl("https://example.com/missing.pdf"),
-      ).rejects.toThrow("Failed to fetch");
+      await expect(fetchFileFromUrl("https://example.com/missing.pdf")).rejects.toThrow(
+        "Failed to fetch",
+      );
     });
   });
 

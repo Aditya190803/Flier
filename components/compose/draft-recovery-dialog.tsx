@@ -65,17 +65,11 @@ export function DraftRecoveryDialog({
           <div className="space-y-4 py-4">
             <div className="border rounded-lg p-4 bg-muted/30 space-y-3">
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                  Subject
-                </p>
-                <p className="font-medium truncate">
-                  {draft.subject || "(No subject)"}
-                </p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Subject</p>
+                <p className="font-medium truncate">{draft.subject || "(No subject)"}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                  Recipients
-                </p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Recipients</p>
                 <p className="text-sm">
                   {draft.recipients.length > 0
                     ? `${draft.recipients.length} recipient${draft.recipients.length > 1 ? "s" : ""}`
@@ -84,9 +78,7 @@ export function DraftRecoveryDialog({
               </div>
               {draft.content && (
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                    Preview
-                  </p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Preview</p>
                   <div
                     className="text-sm text-muted-foreground line-clamp-3 prose prose-sm dark:prose-invert max-w-none"
                     dangerouslySetInnerHTML={{

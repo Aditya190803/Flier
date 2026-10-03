@@ -22,21 +22,15 @@ export function RecipientsTab({
     return (
       <div className="border border-border/50 rounded-xl bg-card p-12 flex flex-col items-center justify-center text-center text-muted-foreground shadow-sm">
         <Users className="h-10 w-10 mb-4 opacity-40 text-primary" />
-        <h3 className="text-lg font-semibold text-foreground mb-1">
-          No Campaign Selected
-        </h3>
+        <h3 className="text-lg font-semibold text-foreground mb-1">No Campaign Selected</h3>
         <p className="max-w-sm text-sm">
-          Select a campaign from the selector above to view its recipient
-          leaderboard.
+          Select a campaign from the selector above to view its recipient leaderboard.
         </p>
       </div>
     );
   }
 
-  const recs: Record<
-    string,
-    { opens: number; clicks: number; lastAction: Date }
-  > = {};
+  const recs: Record<string, { opens: number; clicks: number; lastAction: Date }> = {};
   allTrackingEvents
     .filter((e) => e.campaign_id === selectedHeatmapCampaignId)
     .forEach((e) => {
@@ -59,9 +53,7 @@ export function RecipientsTab({
     });
 
   const entries = Object.entries(recs)
-    .filter(([email]) =>
-      email.toLowerCase().includes(recipientSearch.toLowerCase()),
-    )
+    .filter(([email]) => email.toLowerCase().includes(recipientSearch.toLowerCase()))
     .sort((a, b) => b[1].lastAction.getTime() - a[1].lastAction.getTime());
 
   return (
@@ -91,30 +83,20 @@ export function RecipientsTab({
                 <th className="px-6 py-3 font-medium">Recipient</th>
                 <th className="px-6 py-3 font-medium">Status</th>
                 <th className="px-6 py-3 font-medium">Clicks</th>
-                <th className="px-6 py-3 font-medium text-right">
-                  Last Action
-                </th>
+                <th className="px-6 py-3 font-medium text-right">Last Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {entries.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={4}
-                    className="px-6 py-8 text-center text-muted-foreground"
-                  >
+                  <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
                     No recipients found
                   </td>
                 </tr>
               ) : (
                 entries.map(([email, stats]) => (
-                  <tr
-                    key={email}
-                    className="hover:bg-muted/10 transition-colors"
-                  >
-                    <td className="px-6 py-3 font-medium text-foreground">
-                      {email}
-                    </td>
+                  <tr key={email} className="hover:bg-muted/10 transition-colors">
+                    <td className="px-6 py-3 font-medium text-foreground">{email}</td>
                     <td className="px-6 py-3">
                       <Badge
                         variant={stats.opens > 0 ? "success" : "secondary"}
@@ -123,9 +105,7 @@ export function RecipientsTab({
                         {stats.opens > 0 ? "Opened" : "Not Opened"}
                       </Badge>
                     </td>
-                    <td className="px-6 py-3 text-muted-foreground">
-                      {stats.clicks} clicks
-                    </td>
+                    <td className="px-6 py-3 text-muted-foreground">{stats.clicks} clicks</td>
                     <td className="px-6 py-3 text-right whitespace-nowrap text-muted-foreground">
                       {stats.lastAction.getTime() > 0
                         ? formatDate(stats.lastAction.toISOString())

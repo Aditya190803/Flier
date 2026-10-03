@@ -22,10 +22,7 @@ import { isValidEmail } from "@/lib/validation";
 import type { CSVRow } from "@/types/email";
 
 import { ensureAppwriteAttachment } from "./attachment-upload";
-import {
-  buildPersonalizedEmails,
-  buildRecipientFields,
-} from "./recipient-data";
+import { buildPersonalizedEmails, buildRecipientFields } from "./recipient-data";
 
 import type { ComposeAttachment, Contact } from "./compose-types";
 import type { DeliveryMode } from "./delivery-options";
@@ -207,15 +204,12 @@ export function useComposeSend({
           bcc: bccList,
           tracking_enabled: trackingEnabled,
           is_marketing: isMarketing,
-          has_personalized_attachments:
-            !!pdfColumn && showPersonalizedAttachments,
+          has_personalized_attachments: !!pdfColumn && showPersonalizedAttachments,
           personalized_attachment_column: pdfColumn || undefined,
         });
 
         clearDraft();
-        toast.success(
-          `Campaign scheduled for ${scheduleCheck.date.toLocaleString()}`,
-        );
+        toast.success(`Campaign scheduled for ${scheduleCheck.date.toLocaleString()}`);
         router.push("/scheduled");
         return;
       } catch (error) {
@@ -223,11 +217,7 @@ export function useComposeSend({
           "Error scheduling campaign",
           error instanceof Error ? error : undefined,
         );
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Failed to schedule campaign",
-        );
+        toast.error(error instanceof Error ? error.message : "Failed to schedule campaign");
         return;
       } finally {
         setIsPreparingSend(false);
@@ -264,8 +254,7 @@ export function useComposeSend({
           cc: ccList,
           bcc: bccList,
           // Save personalized attachment settings
-          has_personalized_attachments:
-            !!pdfColumn && showPersonalizedAttachments,
+          has_personalized_attachments: !!pdfColumn && showPersonalizedAttachments,
           personalized_attachment_column: pdfColumn || undefined,
         };
 
@@ -284,10 +273,7 @@ export function useComposeSend({
         router.push("/draft");
         return;
       } catch (error) {
-        componentLogger.error(
-          "Error saving draft",
-          error instanceof Error ? error : undefined,
-        );
+        componentLogger.error("Error saving draft", error instanceof Error ? error : undefined);
         toast.error("Failed to save draft");
         return;
       } finally {
@@ -350,8 +336,7 @@ export function useComposeSend({
             error: r.error,
           })),
           // Save personalized attachment info
-          has_personalized_attachments:
-            !!pdfColumn && showPersonalizedAttachments,
+          has_personalized_attachments: !!pdfColumn && showPersonalizedAttachments,
           personalized_attachment_column: pdfColumn || undefined,
         });
       }
@@ -359,14 +344,9 @@ export function useComposeSend({
       // Clear draft after successful send
       clearDraft();
 
-      toast.success(
-        `Campaign complete! ${successCount} sent, ${failCount} failed`,
-      );
+      toast.success(`Campaign complete! ${successCount} sent, ${failCount} failed`);
     } catch (error) {
-      componentLogger.error(
-        "Send error",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Send error", error instanceof Error ? error : undefined);
       toast.error("Failed to send emails");
     }
   };

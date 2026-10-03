@@ -1,7 +1,4 @@
-import sanitizeHtmlLib, {
-  type IOptions,
-  type Transformer,
-} from "sanitize-html";
+import sanitizeHtmlLib, { type IOptions, type Transformer } from "sanitize-html";
 
 import type { ValidationResult } from "./types";
 
@@ -32,10 +29,7 @@ function normalizeClassList(className?: string): string | undefined {
   return filtered.length > 0 ? filtered.join(" ") : undefined;
 }
 
-function transformGmailTableTag(
-  tagName: string,
-  attribs: Record<string, string>,
-) {
+function transformGmailTableTag(tagName: string, attribs: Record<string, string>) {
   const className = attribs.class ?? "";
   const hasGmailClass = /\bm_\d+\b/.test(className);
   const normalizedClass = normalizeClassList(className);
@@ -49,10 +43,7 @@ function transformGmailTableTag(
 
   if (
     hasGmailClass &&
-    (tagName === "table" ||
-      tagName === "tbody" ||
-      tagName === "tr" ||
-      tagName === "td")
+    (tagName === "table" || tagName === "tbody" || tagName === "tr" || tagName === "td")
   ) {
     return { tagName: "div", attribs: nextAttribs };
   }
@@ -122,14 +113,10 @@ const SANITIZE_OPTIONS: IOptions = {
       }
       return { tagName, attribs: nextAttribs };
     }) as Transformer,
-    table: ((tagName, attribs) =>
-      transformGmailTableTag(tagName, attribs)) as Transformer,
-    tbody: ((tagName, attribs) =>
-      transformGmailTableTag(tagName, attribs)) as Transformer,
-    tr: ((tagName, attribs) =>
-      transformGmailTableTag(tagName, attribs)) as Transformer,
-    td: ((tagName, attribs) =>
-      transformGmailTableTag(tagName, attribs)) as Transformer,
+    table: ((tagName, attribs) => transformGmailTableTag(tagName, attribs)) as Transformer,
+    tbody: ((tagName, attribs) => transformGmailTableTag(tagName, attribs)) as Transformer,
+    tr: ((tagName, attribs) => transformGmailTableTag(tagName, attribs)) as Transformer,
+    td: ((tagName, attribs) => transformGmailTableTag(tagName, attribs)) as Transformer,
   },
 };
 
@@ -176,15 +163,11 @@ export function validateEmailContent(html: string): ValidationResult {
   }
 
   if (/<video|<audio/i.test(html)) {
-    warnings.push(
-      "Video and audio elements are not supported in most email clients",
-    );
+    warnings.push("Video and audio elements are not supported in most email clients");
   }
 
   if (html.length > 100000) {
-    warnings.push(
-      "Email content is very large and may be truncated by some email clients",
-    );
+    warnings.push("Email content is very large and may be truncated by some email clients");
   }
 
   return {

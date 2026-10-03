@@ -7,20 +7,14 @@ import { test, expect } from "@playwright/test";
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe("Authentication", () => {
-  test("should display sign in page for unauthenticated users", async ({
-    page,
-  }) => {
+  test("should display sign in page for unauthenticated users", async ({ page }) => {
     await page.goto("/");
 
     // Should redirect to sign in or show sign in button
-    await expect(
-      page.getByRole("button", { name: /sign in/i }).first(),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: /sign in/i }).first()).toBeVisible();
   });
 
-  test("should redirect to dashboard after successful sign in", async ({
-    page,
-  }) => {
+  test("should redirect to dashboard after successful sign in", async ({ page }) => {
     // This test would require mocking OAuth - skip in CI
     test.skip(!!process.env.CI, "Requires OAuth mock");
 
@@ -33,9 +27,7 @@ test.describe("Authentication", () => {
   test("should show error page on auth error", async ({ page }) => {
     await page.goto("/auth/error?error=AccessDenied");
 
-    await expect(
-      page.getByText("Authentication Error", { exact: true }),
-    ).toBeVisible();
+    await expect(page.getByText("Authentication Error", { exact: true })).toBeVisible();
   });
 });
 

@@ -11,29 +11,17 @@ import { verifyTrackingToken } from "@/lib/tracking-token";
 export async function GET(request: NextRequest) {
   const rateLimitResponse = await rateLimitAsync(request, RATE_LIMITS.public);
   if (rateLimitResponse) {
-    return htmlResponse(
-      "Rate Limited",
-      "Too many requests. Please try again later.",
-      429,
-    );
+    return htmlResponse("Rate Limited", "Too many requests. Please try again later.", 429);
   }
 
   const token = new URL(request.url).searchParams.get("t");
   if (!token) {
-    return htmlResponse(
-      "Invalid Request",
-      "Missing or invalid unsubscribe link.",
-      400,
-    );
+    return htmlResponse("Invalid Request", "Missing or invalid unsubscribe link.", 400);
   }
 
   const payload = verifyTrackingToken(token, "unsubscribe");
   if (!payload) {
-    return htmlResponse(
-      "Invalid Request",
-      "This unsubscribe link is invalid or has expired.",
-      400,
-    );
+    return htmlResponse("Invalid Request", "This unsubscribe link is invalid or has expired.", 400);
   }
 
   try {
@@ -81,15 +69,9 @@ export async function GET(request: NextRequest) {
         },
       );
     } catch (createError: unknown) {
-      apiLogger.warn(
-        "First unsubscribe attempt failed, trying minimal version",
-        {
-          error:
-            createError instanceof Error
-              ? createError.message
-              : String(createError),
-        },
-      );
+      apiLogger.warn("First unsubscribe attempt failed, trying minimal version", {
+        error: createError instanceof Error ? createError.message : String(createError),
+      });
 
       await databases.createDocument(
         config.databaseId,
@@ -112,10 +94,7 @@ export async function GET(request: NextRequest) {
       "You have been unsubscribed from this mailing list. You will no longer receive emails from this sender.",
     );
   } catch (error) {
-    apiLogger.error(
-      "Unsubscribe error",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Unsubscribe error", error instanceof Error ? error : undefined);
     return htmlResponse(
       "Error",
       "An error occurred while processing your request. Please try again later.",
@@ -133,10 +112,7 @@ function htmlResponse(title: string, message: string, status = 200) {
 
 function generateHtmlPage(title: string, message: string): string {
   const isSuccess = title.includes("Success") || title.includes("Unsubscribed");
-  const isError =
-    title.includes("Error") ||
-    title.includes("Invalid") ||
-    title.includes("Limited");
+  const isError = title.includes("Error") || title.includes("Invalid") || title.includes("Limited");
 
   const primaryColor = isSuccess ? "#10b981" : isError ? "#ef4444" : "#6366f1";
   const bgColor = isSuccess ? "#f0fdf4" : isError ? "#fef2f2" : "#f5f3ff";

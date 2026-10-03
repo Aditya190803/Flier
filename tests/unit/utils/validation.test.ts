@@ -257,18 +257,12 @@ describe("Scheduled Campaign Validation", () => {
     };
 
     it("accepts a stored campaign snapshot", () => {
-      expect(scheduledCampaignSchema.safeParse(validCampaign).success).toBe(
-        true,
-      );
+      expect(scheduledCampaignSchema.safeParse(validCampaign).success).toBe(true);
     });
 
     it("requires a timezone-qualified ISO send time", () => {
-      expect(isoDatetimeSchema.safeParse("tomorrow morning").success).toBe(
-        false,
-      );
-      expect(isoDatetimeSchema.safeParse("2030-01-01T09:00:00").success).toBe(
-        false,
-      );
+      expect(isoDatetimeSchema.safeParse("tomorrow morning").success).toBe(false);
+      expect(isoDatetimeSchema.safeParse("2030-01-01T09:00:00").success).toBe(false);
     });
 
     it("matches Appwrite subject and content limits", () => {
@@ -287,9 +281,7 @@ describe("Scheduled Campaign Validation", () => {
     });
 
     it("requires stored attachments to have a retrievable reference", () => {
-      expect(
-        storedAttachmentSchema.safeParse({ fileName: "report.pdf" }).success,
-      ).toBe(false);
+      expect(storedAttachmentSchema.safeParse({ fileName: "report.pdf" }).success).toBe(false);
       expect(
         storedAttachmentSchema.safeParse({
           fileName: "report.pdf",

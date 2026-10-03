@@ -72,11 +72,7 @@ export async function GET(request: NextRequest) {
     const response = await databases.listDocuments(
       config.databaseId,
       config.campaignsCollectionId,
-      [
-        Query.equal("user_email", auth.email),
-        Query.orderDesc("created_at"),
-        Query.limit(1000),
-      ],
+      [Query.equal("user_email", auth.email), Query.orderDesc("created_at"), Query.limit(1000)],
     );
 
     const documents = (response.documents as unknown as CampaignDocument[]).map(
@@ -85,14 +81,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ total: response.total, documents });
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error fetching campaigns",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error fetching campaigns", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to fetch campaigns",
+        error: error instanceof Error ? error.message : "Failed to fetch campaigns",
       },
       { status: 500 },
     );
@@ -142,14 +134,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error creating campaign",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error creating campaign", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to create campaign",
+        error: error instanceof Error ? error.message : "Failed to create campaign",
       },
       { status: 500 },
     );

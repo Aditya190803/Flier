@@ -28,10 +28,8 @@ export function buildHistoryData(campaigns: EmailCampaign[]): HistoryData {
     0,
   );
   const totalFailed = campaigns.reduce((sum, c) => sum + c.failed, 0);
-  const successRate =
-    totalRecipients > 0 ? (totalSent / totalRecipients) * 100 : 0;
-  const averageRecipientsPerCampaign =
-    totalCampaigns > 0 ? totalRecipients / totalCampaigns : 0;
+  const successRate = totalRecipients > 0 ? (totalSent / totalRecipients) * 100 : 0;
+  const averageRecipientsPerCampaign = totalCampaigns > 0 ? totalRecipients / totalCampaigns : 0;
 
   const campaignsThisMonth = campaigns.filter((c) => {
     const date = new Date(c.created_at || "");

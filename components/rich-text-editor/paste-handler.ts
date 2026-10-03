@@ -2,12 +2,7 @@ import { convertEmojisToUnicode } from "@/lib/email-formatting/client";
 
 import type { Editor } from "@tiptap/react";
 
-const ALLOWED_ANCHOR_PROTOCOLS = new Set([
-  "http:",
-  "https:",
-  "mailto:",
-  "tel:",
-]);
+const ALLOWED_ANCHOR_PROTOCOLS = new Set(["http:", "https:", "mailto:", "tel:"]);
 
 function isSafeAnchorHref(href: string): boolean {
   const trimmedHref = href.trim();

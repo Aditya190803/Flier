@@ -75,8 +75,7 @@ export function useDraftPersistence({
   const [_hasDraft, setHasDraft] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
-  const [draftSyncStatus, setDraftSyncStatus] =
-    useState<DraftSyncStatus>("idle");
+  const [draftSyncStatus, setDraftSyncStatus] = useState<DraftSyncStatus>("idle");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -123,9 +122,7 @@ export function useDraftPersistence({
             if (draft.csv_data) {
               try {
                 const csvDataParsed =
-                  typeof draft.csv_data === "string"
-                    ? JSON.parse(draft.csv_data)
-                    : draft.csv_data;
+                  typeof draft.csv_data === "string" ? JSON.parse(draft.csv_data) : draft.csv_data;
                 if (Array.isArray(csvDataParsed) && csvDataParsed.length > 0) {
                   setCsvData(csvDataParsed);
                   // Extract headers from the first row
@@ -133,10 +130,7 @@ export function useDraftPersistence({
                   setCsvHeaders(headers);
                 }
               } catch (e) {
-                componentLogger.error(
-                  "Error parsing csv_data",
-                  e instanceof Error ? e : undefined,
-                );
+                componentLogger.error("Error parsing csv_data", e instanceof Error ? e : undefined);
               }
             }
 
@@ -166,8 +160,7 @@ export function useDraftPersistence({
         }
 
         // Check if there's a duplicated campaign from the history page
-        const duplicateCampaignData =
-          sessionStorage.getItem("duplicateCampaign");
+        const duplicateCampaignData = sessionStorage.getItem("duplicateCampaign");
         if (duplicateCampaignData) {
           const campaign = JSON.parse(duplicateCampaignData);
           setSubject(campaign.subject || "");
@@ -197,10 +190,7 @@ export function useDraftPersistence({
           setShowDraftRecoveryDialog(true);
         }
       } catch (e) {
-        componentLogger.error(
-          "Error loading draft",
-          e instanceof Error ? e : undefined,
-        );
+        componentLogger.error("Error loading draft", e instanceof Error ? e : undefined);
       }
     };
 
@@ -236,10 +226,7 @@ export function useDraftPersistence({
       lastSavedContentRef.current = "";
       setDraftSyncStatus("idle");
     } catch (e) {
-      componentLogger.error(
-        "Error clearing draft",
-        e instanceof Error ? e : undefined,
-      );
+      componentLogger.error("Error clearing draft", e instanceof Error ? e : undefined);
     }
   }, []);
 
@@ -256,10 +243,7 @@ export function useDraftPersistence({
 
   // Track unsaved changes
   useEffect(() => {
-    if (
-      lastSavedContentRef.current &&
-      currentContentHash !== lastSavedContentRef.current
-    ) {
+    if (lastSavedContentRef.current && currentContentHash !== lastSavedContentRef.current) {
       setHasUnsavedChanges(true);
       setDraftSyncStatus("idle");
     }
@@ -304,10 +288,7 @@ export function useDraftPersistence({
         setDraftSyncStatus("idle");
       }, 3000);
     } catch (e) {
-      componentLogger.error(
-        "Error saving draft",
-        e instanceof Error ? e : undefined,
-      );
+      componentLogger.error("Error saving draft", e instanceof Error ? e : undefined);
       setDraftSyncStatus("error");
       setIsSavingDraft(false);
     }

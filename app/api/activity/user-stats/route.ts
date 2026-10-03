@@ -38,8 +38,7 @@ export async function GET(request: NextRequest) {
     const totalClicks = events.filter((e) => e.event_type === "click").length;
 
     const averageOpenRate = totalSent > 0 ? (totalOpens / totalSent) * 100 : 0;
-    const averageClickRate =
-      totalSent > 0 ? (totalClicks / totalSent) * 100 : 0;
+    const averageClickRate = totalSent > 0 ? (totalClicks / totalSent) * 100 : 0;
 
     return NextResponse.json({
       totalOpens,
@@ -48,13 +47,7 @@ export async function GET(request: NextRequest) {
       averageClickRate,
     });
   } catch (error) {
-    apiLogger.error(
-      "Error fetching user stats",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Failed to fetch user stats" },
-      { status: 500 },
-    );
+    apiLogger.error("Error fetching user stats", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Failed to fetch user stats" }, { status: 500 });
   }
 }

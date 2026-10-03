@@ -10,7 +10,6 @@ import type { Metadata, Viewport } from "next";
 
 // System font stack - no external network dependency
 const fontClassName = "font-sans";
-const _fontVariable = "";
 
 export const metadata: Metadata = {
   title: `${APP_NAME} - Professional email for your list`,
@@ -42,11 +41,7 @@ export const viewport: Viewport = {
   ],
 };
 
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // CSRF token is ensured by proxy.ts (middleware)
 
   return (

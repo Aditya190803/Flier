@@ -37,23 +37,15 @@ export const scheduledCampaignsService = {
     total: number;
     documents: ScheduledCampaign[];
   }> {
-    return apiRequest<{ total: number; documents: ScheduledCampaign[] }>(
-      basePath,
-    );
+    return apiRequest<{ total: number; documents: ScheduledCampaign[] }>(basePath);
   },
 
   async get(id: string): Promise<ScheduledCampaign> {
-    return apiRequest<ScheduledCampaign>(
-      `${basePath}?id=${encodeURIComponent(id)}`,
-    );
+    return apiRequest<ScheduledCampaign>(`${basePath}?id=${encodeURIComponent(id)}`);
   },
 
   /** Move a queued campaign to a new send time. */
-  async reschedule(
-    id: string,
-    scheduledAt: string,
-    timezone?: string,
-  ): Promise<ScheduledCampaign> {
+  async reschedule(id: string, scheduledAt: string, timezone?: string): Promise<ScheduledCampaign> {
     return apiRequest<ScheduledCampaign>(basePath, {
       method: "PUT",
       body: JSON.stringify({ id, scheduled_at: scheduledAt, timezone }),

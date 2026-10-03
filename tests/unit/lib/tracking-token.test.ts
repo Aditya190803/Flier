@@ -3,10 +3,8 @@ import { describe, it, expect, beforeAll } from "vite-plus/test";
 import { signTrackingToken, verifyTrackingToken } from "@/lib/tracking-token";
 
 beforeAll(() => {
-  process.env.NEXTAUTH_SECRET =
-    process.env.NEXTAUTH_SECRET || "test-auth-secret";
-  process.env.TRACKING_TOKEN_SECRET =
-    process.env.TRACKING_TOKEN_SECRET || "test-tracking-secret";
+  process.env.NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET || "test-auth-secret";
+  process.env.TRACKING_TOKEN_SECRET = process.env.TRACKING_TOKEN_SECRET || "test-tracking-secret";
 });
 
 describe("tracking tokens", () => {

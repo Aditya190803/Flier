@@ -77,18 +77,12 @@ export function WebhookList({
                 <div className="flex items-center gap-2 mb-2">
                   <h3 className="font-semibold text-lg">{webhook.name}</h3>
                   {webhook.is_active ? (
-                    <Badge
-                      variant="success"
-                      className="flex items-center gap-1"
-                    >
+                    <Badge variant="success" className="flex items-center gap-1">
                       <Power className="h-3 w-3" />
                       Active
                     </Badge>
                   ) : (
-                    <Badge
-                      variant="secondary"
-                      className="flex items-center gap-1"
-                    >
+                    <Badge variant="secondary" className="flex items-center gap-1">
                       <PowerOff className="h-3 w-3" />
                       Disabled
                     </Badge>
@@ -101,8 +95,7 @@ export function WebhookList({
                 <div className="flex flex-wrap gap-1 mb-3">
                   {webhook.events.map((event) => (
                     <Badge key={event} variant="outline" className="text-xs">
-                      {EVENT_TYPES.find((e) => e.value === event)?.label ||
-                        event}
+                      {EVENT_TYPES.find((e) => e.value === event)?.label || event}
                     </Badge>
                   ))}
                 </div>
@@ -117,12 +110,9 @@ export function WebhookList({
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       Last triggered{" "}
-                      {formatDistanceToNow(
-                        new Date(webhook.last_triggered_at),
-                        {
-                          addSuffix: true,
-                        },
-                      )}
+                      {formatDistanceToNow(new Date(webhook.last_triggered_at), {
+                        addSuffix: true,
+                      })}
                     </span>
                   )}
                 </div>
@@ -142,11 +132,7 @@ export function WebhookList({
                     <Edit className="h-4 w-4 mr-2" />
                     Edit
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() =>
-                      onToggleActive(webhook.$id!, webhook.is_active)
-                    }
-                  >
+                  <DropdownMenuItem onClick={() => onToggleActive(webhook.$id!, webhook.is_active)}>
                     {webhook.is_active ? (
                       <>
                         <PowerOff className="h-4 w-4 mr-2" />
@@ -173,8 +159,8 @@ export function WebhookList({
                       <AlertDialogHeader>
                         <AlertDialogTitle>Delete Webhook</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Are you sure you want to delete "{webhook.name}"? This
-                          action cannot be undone.
+                          Are you sure you want to delete "{webhook.name}"? This action cannot be
+                          undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

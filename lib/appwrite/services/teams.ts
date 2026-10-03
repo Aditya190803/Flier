@@ -56,9 +56,7 @@ export const teamMembersService = {
     documents: TeamMembershipDocument[];
     current_user_role?: string;
   }> {
-    return apiRequest(
-      `/api/teams/members?team_id=${encodeURIComponent(teamId)}`,
-    );
+    return apiRequest(`/api/teams/members?team_id=${encodeURIComponent(teamId)}`);
   },
 
   // Invite member

@@ -15,38 +15,26 @@ export async function GET(request: NextRequest) {
       return auth;
     }
 
-    const single = await respondWithOwnedDocument(
-      request,
-      config.contactsCollectionId,
-      auth.email,
-    );
+    const single = await respondWithOwnedDocument(request, config.contactsCollectionId, auth.email);
     if (single) {
       return single;
     }
 
-    const response = await databases.listDocuments(
-      config.databaseId,
-      config.contactsCollectionId,
-      [
-        Query.equal("user_email", auth.email),
-        Query.orderDesc("created_at"),
-        Query.limit(1000),
-      ],
-    );
+    const response = await databases.listDocuments(config.databaseId, config.contactsCollectionId, [
+      Query.equal("user_email", auth.email),
+      Query.orderDesc("created_at"),
+      Query.limit(1000),
+    ]);
 
     return NextResponse.json({
       total: response.total,
       documents: response.documents,
     });
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error fetching contacts",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error fetching contacts", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to fetch contacts",
+        error: error instanceof Error ? error.message : "Failed to fetch contacts",
       },
       { status: 500 },
     );
@@ -81,14 +69,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error creating contact",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error creating contact", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to create contact",
+        error: error instanceof Error ? error.message : "Failed to create contact",
       },
       { status: 500 },
     );
@@ -107,10 +91,7 @@ export async function PUT(request: NextRequest) {
     const { id, email, name, company, phone, tags } = body;
 
     if (!id) {
-      return NextResponse.json(
-        { error: "Contact ID required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Contact ID required" }, { status: 400 });
     }
 
     // Verify the contact belongs to the user before updating
@@ -150,14 +131,10 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error updating contact",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error updating contact", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to update contact",
+        error: error instanceof Error ? error.message : "Failed to update contact",
       },
       { status: 500 },
     );
@@ -176,10 +153,7 @@ export async function DELETE(request: NextRequest) {
     const documentId = searchParams.get("id");
 
     if (!documentId) {
-      return NextResponse.json(
-        { error: "Document ID required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Document ID required" }, { status: 400 });
     }
 
     // Verify the contact belongs to the user before deleting
@@ -193,22 +167,14 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    await databases.deleteDocument(
-      config.databaseId,
-      config.contactsCollectionId,
-      documentId,
-    );
+    await databases.deleteDocument(config.databaseId, config.contactsCollectionId, documentId);
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error deleting contact",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error deleting contact", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to delete contact",
+        error: error instanceof Error ? error.message : "Failed to delete contact",
       },
       { status: 500 },
     );

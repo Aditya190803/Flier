@@ -28,8 +28,7 @@ import {
 
 interface SendStatusItem {
   email?: string;
-  status:
-    "success" | "error" | "skipped" | "cancelled" | "pending" | "retrying";
+  status: "success" | "error" | "skipped" | "cancelled" | "pending" | "retrying";
   error?: string;
 }
 
@@ -93,11 +92,7 @@ export function SendingStatusDialog({
             ) : sendError || hasPendingRetries ? (
               <AlertCircle className="h-5 w-5 text-warning" />
             ) : null}
-            {isStopping
-              ? "Stopping..."
-              : isSending
-                ? "Sending Emails..."
-                : "Campaign Status"}
+            {isStopping ? "Stopping..." : isSending ? "Sending Emails..." : "Campaign Status"}
           </DialogTitle>
           <DialogDescription>{progress.status}</DialogDescription>
         </DialogHeader>
@@ -108,19 +103,13 @@ export function SendingStatusDialog({
           <div className="grid grid-cols-3 gap-3">
             <div className="text-center p-3 bg-success/10 rounded-lg">
               <div className="text-xl font-bold text-success">
-                {
-                  sendStatus.filter((status) => status.status === "success")
-                    .length
-                }
+                {sendStatus.filter((status) => status.status === "success").length}
               </div>
               <div className="text-xs text-muted-foreground">Sent</div>
             </div>
             <div className="text-center p-3 bg-destructive/10 rounded-lg">
               <div className="text-xl font-bold text-destructive">
-                {
-                  sendStatus.filter((status) => status.status === "error")
-                    .length
-                }
+                {sendStatus.filter((status) => status.status === "error").length}
               </div>
               <div className="text-xs text-muted-foreground">Failed</div>
             </div>
@@ -142,33 +131,24 @@ export function SendingStatusDialog({
 
           {sendError && (
             <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-              <p className="text-sm text-destructive">
-                {formatEmailSendErrorForUser(sendError)}
-              </p>
+              <p className="text-sm text-destructive">{formatEmailSendErrorForUser(sendError)}</p>
             </div>
           )}
 
           {sendStatus.some(
             (s) =>
               s.email &&
-              (s.status === "error" ||
-                s.status === "cancelled" ||
-                s.status === "skipped"),
+              (s.status === "error" || s.status === "cancelled" || s.status === "skipped"),
           ) && (
             <div className="max-h-40 overflow-y-auto rounded-lg border divide-y text-sm">
               {sendStatus
                 .filter(
                   (s) =>
                     s.email &&
-                    (s.status === "error" ||
-                      s.status === "cancelled" ||
-                      s.status === "skipped"),
+                    (s.status === "error" || s.status === "cancelled" || s.status === "skipped"),
                 )
                 .map((s, i) => (
-                  <div
-                    key={`${s.email}-${i}`}
-                    className="px-3 py-2 space-y-0.5"
-                  >
+                  <div key={`${s.email}-${i}`} className="px-3 py-2 space-y-0.5">
                     <div className="flex items-center justify-between gap-2">
                       <span className="truncate font-medium">{s.email}</span>
                       <Badge
@@ -189,11 +169,7 @@ export function SendingStatusDialog({
           )}
 
           {isSending && !isStopping && (
-            <Button
-              onClick={stopSending}
-              variant="destructive"
-              className="w-full"
-            >
+            <Button onClick={stopSending} variant="destructive" className="w-full">
               <StopCircle className="h-4 w-4 mr-2" />
               Stop Sending
             </Button>
@@ -211,26 +187,18 @@ export function SendingStatusDialog({
           {isPaused && !isOffline && (
             <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg flex items-center gap-2">
               <Clock className="h-4 w-4 text-warning animate-pulse" />
-              <p className="text-sm text-warning">
-                Paused - waiting to resume...
-              </p>
+              <p className="text-sm text-warning">Paused - waiting to resume...</p>
             </div>
           )}
 
           {isStopping && (
             <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg text-center">
-              <p className="text-sm text-warning">
-                Stopping after current email completes...
-              </p>
+              <p className="text-sm text-warning">Stopping after current email completes...</p>
             </div>
           )}
 
           {hasPendingRetries && !isSending && (
-            <Button
-              onClick={retryFailedEmails}
-              variant="outline"
-              className="w-full"
-            >
+            <Button onClick={retryFailedEmails} variant="outline" className="w-full">
               <Play className="h-4 w-4 mr-2" />
               Resume Sending ({failedEmails.length} remaining)
             </Button>

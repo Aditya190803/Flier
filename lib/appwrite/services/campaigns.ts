@@ -1,7 +1,4 @@
-import type {
-  EmailCampaign,
-  EmailCampaignInput,
-} from "@/types/appwrite-client";
+import type { EmailCampaign, EmailCampaignInput } from "@/types/appwrite-client";
 
 import { pollForUpdates } from "../poll";
 import { createCrudService } from "../service-factory";
@@ -20,10 +17,7 @@ export const campaignsService = {
   ...campaignsCrudService,
 
   /** Refresh campaigns periodically. See {@link pollForUpdates} — not realtime. */
-  subscribeToUserCampaigns(
-    _userEmail: string,
-    callback: (response: unknown) => void,
-  ) {
+  subscribeToUserCampaigns(_userEmail: string, callback: (response: unknown) => void) {
     return pollForUpdates(() => callback(undefined));
   },
 };

@@ -33,8 +33,7 @@ describe("aggregateDeviceData", () => {
   it("classifies iPhone/mobile user agents as Mobile", () => {
     const result = aggregateDeviceData([
       makeEvent({
-        user_agent:
-          "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Mobile/15E148",
+        user_agent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Mobile/15E148",
       }),
     ]);
     expect(result.find((d) => d.name === "Mobile")?.value).toBe(1);
@@ -68,8 +67,7 @@ describe("aggregateDeviceData", () => {
   it("classifies a standard desktop user agent as Desktop", () => {
     const result = aggregateDeviceData([
       makeEvent({
-        user_agent:
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       }),
     ]);
     expect(result.find((d) => d.name === "Desktop")?.value).toBe(1);

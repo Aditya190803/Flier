@@ -51,34 +51,19 @@ export function RichTextEditor({
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (
-        colorPickerRef.current &&
-        !colorPickerRef.current.contains(e.target as Node)
-      ) {
+      if (colorPickerRef.current && !colorPickerRef.current.contains(e.target as Node)) {
         setIsColorPickerOpen(false);
       }
-      if (
-        highlightPickerRef.current &&
-        !highlightPickerRef.current.contains(e.target as Node)
-      ) {
+      if (highlightPickerRef.current && !highlightPickerRef.current.contains(e.target as Node)) {
         setIsHighlightPickerOpen(false);
       }
-      if (
-        headingMenuRef.current &&
-        !headingMenuRef.current.contains(e.target as Node)
-      ) {
+      if (headingMenuRef.current && !headingMenuRef.current.contains(e.target as Node)) {
         setIsHeadingMenuOpen(false);
       }
-      if (
-        tableMenuRef.current &&
-        !tableMenuRef.current.contains(e.target as Node)
-      ) {
+      if (tableMenuRef.current && !tableMenuRef.current.contains(e.target as Node)) {
         setIsTableMenuOpen(false);
       }
-      if (
-        alignMenuRef.current &&
-        !alignMenuRef.current.contains(e.target as Node)
-      ) {
+      if (alignMenuRef.current && !alignMenuRef.current.contains(e.target as Node)) {
         setIsAlignMenuOpen(false);
       }
     };
@@ -134,13 +119,10 @@ export function RichTextEditor({
     const existingLinks: string[] = [];
 
     // Extract existing anchor tags
-    processed = processed.replace(
-      /<a\s[^>]*href=["'][^"']*["'][^>]*>.*?<\/a>/gi,
-      (match) => {
-        existingLinks.push(match);
-        return `{{EXISTING_LINK_${existingLinks.length - 1}}}`;
-      },
-    );
+    processed = processed.replace(/<a\s[^>]*href=["'][^"']*["'][^>]*>.*?<\/a>/gi, (match) => {
+      existingLinks.push(match);
+      return `{{EXISTING_LINK_${existingLinks.length - 1}}}`;
+    });
 
     // Now convert any remaining plain URLs to links
     processed = processed.replace(urlPattern, (url) => {
@@ -269,11 +251,7 @@ export function RichTextEditor({
   const insertTable = useCallback(
     (rows: number, cols: number) => {
       if (editor) {
-        editor
-          .chain()
-          .focus()
-          .insertTable({ rows, cols, withHeaderRow: true })
-          .run();
+        editor.chain().focus().insertTable({ rows, cols, withHeaderRow: true }).run();
         setIsTableMenuOpen(false);
         setHoveredCell(null);
       }
@@ -305,10 +283,7 @@ export function RichTextEditor({
         <div className="border-b bg-gray-50 dark:bg-zinc-800 p-1.5">
           <div className="flex items-center gap-1 h-7">
             {Array.from({ length: 12 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-6 w-6 bg-gray-200 dark:bg-zinc-700 rounded animate-pulse"
-              />
+              <div key={i} className="h-6 w-6 bg-gray-200 dark:bg-zinc-700 rounded animate-pulse" />
             ))}
           </div>
         </div>
@@ -374,10 +349,7 @@ export function RichTextEditor({
       />
 
       {/* Editor Content */}
-      <div
-        className="min-h-[200px] max-h-[400px] overflow-y-auto"
-        suppressHydrationWarning
-      >
+      <div className="min-h-[200px] max-h-[400px] overflow-y-auto" suppressHydrationWarning>
         <EditorContent
           editor={editor}
           className="prose prose-sm max-w-none [&_.ProseMirror]:outline-none [&_.ProseMirror]:p-3 [&_.ProseMirror]:min-h-[180px]"

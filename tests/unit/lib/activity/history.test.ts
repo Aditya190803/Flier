@@ -1,11 +1,4 @@
-import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-  afterEach,
-} from "vite-plus/test";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vite-plus/test";
 
 import { buildHistoryData } from "@/lib/activity/history";
 import type { EmailCampaign } from "@/lib/appwrite";
@@ -112,9 +105,7 @@ describe("buildHistoryData", () => {
     });
 
     it("is 'same' when this month equals last month (including both zero)", () => {
-      const campaigns = [
-        makeCampaign({ created_at: "2024-01-01T00:00:00.000Z" }),
-      ];
+      const campaigns = [makeCampaign({ created_at: "2024-01-01T00:00:00.000Z" })];
       const result = buildHistoryData(campaigns);
       expect(result.campaignsThisMonth).toBe(0);
       expect(result.campaignsLastMonth).toBe(0);
@@ -122,9 +113,7 @@ describe("buildHistoryData", () => {
     });
 
     it("treats a missing created_at as epoch (not counted in this/last month)", () => {
-      const campaigns = [
-        makeCampaign({ created_at: undefined as unknown as string }),
-      ];
+      const campaigns = [makeCampaign({ created_at: undefined as unknown as string })];
       const result = buildHistoryData(campaigns);
       expect(result.campaignsThisMonth).toBe(0);
       expect(result.campaignsLastMonth).toBe(0);
@@ -132,10 +121,7 @@ describe("buildHistoryData", () => {
   });
 
   it("returns the original campaigns array as recentCampaigns", () => {
-    const campaigns = [
-      makeCampaign({ $id: "one" }),
-      makeCampaign({ $id: "two" }),
-    ];
+    const campaigns = [makeCampaign({ $id: "one" }), makeCampaign({ $id: "two" })];
     const result = buildHistoryData(campaigns);
     expect(result.recentCampaigns).toBe(campaigns);
   });
