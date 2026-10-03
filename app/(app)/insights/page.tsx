@@ -50,26 +50,16 @@ export default function HistoryPage() {
 
   const [isExporting, setIsExporting] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
-  const [duplicatingCampaignId, setDuplicatingCampaignId] = useState<
-    string | null
-  >(null);
+  const [duplicatingCampaignId, setDuplicatingCampaignId] = useState<string | null>(null);
 
-  const [expandedCampaigns, setExpandedCampaigns] = useState<Set<string>>(
-    new Set(),
-  );
-  const [selectedCampaign, setSelectedCampaign] =
-    useState<EmailCampaign | null>(null);
+  const [expandedCampaigns, setExpandedCampaigns] = useState<Set<string>>(new Set());
+  const [selectedCampaign, setSelectedCampaign] = useState<EmailCampaign | null>(null);
   const { recipientEngagement, campaignStats, isLoadingEngagement } =
     useCampaignDetails(selectedCampaign);
   const [recipientSearch, setRecipientSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<
-    "all" | "success" | "failed"
-  >("all");
+  const [filterStatus, setFilterStatus] = useState<"all" | "success" | "failed">("all");
 
-  const chartData = useMemo(
-    () => buildCampaignChartData(insightsCampaigns),
-    [insightsCampaigns],
-  );
+  const chartData = useMemo(() => buildCampaignChartData(insightsCampaigns), [insightsCampaigns]);
 
   // Duplicate campaign - same behavior as dashboard
   const duplicateCampaign = useCallback(
@@ -83,10 +73,7 @@ export default function HistoryPage() {
         attachments: campaign.attachments || [],
       };
 
-      sessionStorage.setItem(
-        "duplicateCampaign",
-        JSON.stringify(duplicateData),
-      );
+      sessionStorage.setItem("duplicateCampaign", JSON.stringify(duplicateData));
       toast.success("Campaign data copied! Redirecting to compose...");
       router.push("/compose");
     },
@@ -114,17 +101,11 @@ export default function HistoryPage() {
       campaigns: insightsCampaigns,
       summary,
       dateRange: {
-        start: new Date(
-          insightsCampaigns[insightsCampaigns.length - 1].createdAt,
-        ),
+        start: new Date(insightsCampaigns[insightsCampaigns.length - 1].createdAt),
         end: new Date(),
       },
     });
-    downloadFile(
-      csv,
-      `flier-insights-${new Date().toISOString().split("T")[0]}.csv`,
-      "text/csv",
-    );
+    downloadFile(csv, `flier-insights-${new Date().toISOString().split("T")[0]}.csv`, "text/csv");
     toast.success("CSV report exported!");
   };
 
@@ -138,9 +119,7 @@ export default function HistoryPage() {
         campaigns: insightsCampaigns,
         summary,
         dateRange: {
-          start: new Date(
-            insightsCampaigns[insightsCampaigns.length - 1].createdAt,
-          ),
+          start: new Date(insightsCampaigns[insightsCampaigns.length - 1].createdAt),
           end: new Date(),
         },
       });
@@ -222,11 +201,7 @@ export default function HistoryPage() {
           }
         />
 
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="space-y-4 md:space-y-6"
-        >
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
           <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 hide-scrollbar">
             <TabsList className="inline-flex w-auto min-w-full sm:min-w-0 h-10 p-1 bg-muted/30">
               <TabsTrigger value="overview" className="rounded-md">
@@ -251,9 +226,7 @@ export default function HistoryPage() {
           </div>
 
           {/* SHARED CAMPAIGN SELECTOR FOR ANALYTICS TABS */}
-          {["performance", "heatmap", "recipients", "tracking"].includes(
-            activeTab,
-          ) && (
+          {["performance", "heatmap", "recipients", "tracking"].includes(activeTab) && (
             <CampaignSelector
               campaigns={historyData?.recentCampaigns || []}
               allTrackingEvents={allTrackingEvents}
@@ -273,9 +246,7 @@ export default function HistoryPage() {
               insightsCampaigns={insightsCampaigns}
               allTrackingEvents={allTrackingEvents}
               onViewCampaign={(id) => {
-                const c = historyData.recentCampaigns.find(
-                  (rc) => rc.$id === id,
-                );
+                const c = historyData.recentCampaigns.find((rc) => rc.$id === id);
                 if (c) {
                   setSelectedCampaign(c);
                 }
@@ -312,10 +283,7 @@ export default function HistoryPage() {
           </TabsContent>
 
           <TabsContent value="heatmap" className="space-y-6">
-            <HeatmapTab
-              selectedHeatmapCampaignId={selectedHeatmapCampaignId}
-              heatmap={heatmap}
-            />
+            <HeatmapTab selectedHeatmapCampaignId={selectedHeatmapCampaignId} heatmap={heatmap} />
           </TabsContent>
 
           <TabsContent value="recipients" className="space-y-6">

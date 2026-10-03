@@ -199,10 +199,7 @@ export const storedAttachmentSchema = z
 export const scheduledCampaignSchema = z.object({
   // These limits mirror the Appwrite scheduled_campaigns attributes.
   subject: subjectSchema.max(500, "Subject too long (max 500 characters)"),
-  content: messageSchema.max(
-    100000,
-    "Message too long (max 100000 characters)",
-  ),
+  content: messageSchema.max(100000, "Message too long (max 100000 characters)"),
   recipients: emailArraySchema,
   scheduled_at: isoDatetimeSchema,
   timezone: z.string().max(100).optional(),
@@ -402,10 +399,7 @@ export interface ValidationResult<T> {
 /**
  * Validate data against a Zod schema
  */
-export function validate<T>(
-  schema: z.ZodType<T>,
-  data: unknown,
-): ValidationResult<T> {
+export function validate<T>(schema: z.ZodType<T>, data: unknown): ValidationResult<T> {
   const result = schema.safeParse(data);
 
   if (result.success) {
@@ -426,9 +420,7 @@ export function validate<T>(
 /**
  * Create validation error response
  */
-export function validationErrorResponse(
-  result: ValidationResult<unknown>,
-): Response {
+export function validationErrorResponse(result: ValidationResult<unknown>): Response {
   return new Response(
     JSON.stringify({
       error: "Validation Error",

@@ -1,12 +1,7 @@
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -75,21 +70,11 @@ export function EditorDialogs({
               />
             </div>
             <div className="flex gap-2">
-              <Button
-                onClick={onAddLink}
-                disabled={!linkUrl}
-                size="sm"
-                className="text-xs"
-              >
+              <Button onClick={onAddLink} disabled={!linkUrl} size="sm" className="text-xs">
                 {editor.isActive("link") ? "Update" : "Add"}
               </Button>
               {editor.isActive("link") && (
-                <Button
-                  variant="outline"
-                  onClick={onRemoveLink}
-                  size="sm"
-                  className="text-xs"
-                >
+                <Button variant="outline" onClick={onRemoveLink} size="sm" className="text-xs">
                   Remove
                 </Button>
               )}
@@ -154,12 +139,7 @@ export function EditorDialogs({
               />
             </div>
             <div className="flex gap-2">
-              <Button
-                onClick={onAddImage}
-                disabled={!imageUrl}
-                size="sm"
-                className="text-xs"
-              >
+              <Button onClick={onAddImage} disabled={!imageUrl} size="sm" className="text-xs">
                 Insert
               </Button>
               <Button

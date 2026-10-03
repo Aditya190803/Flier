@@ -21,10 +21,7 @@ interface RateLimitConfig {
 }
 
 const rateLimitStore = new Map<string, RateLimitEntry>();
-const userDailyEmailCount = new Map<
-  string,
-  { count: number; resetTime: number }
->();
+const userDailyEmailCount = new Map<string, { count: number; resetTime: number }>();
 
 let cleanupInterval: NodeJS.Timeout | null = null;
 let redis: Redis | null | undefined;
@@ -35,12 +32,7 @@ function getRedis(): Redis | null {
   }
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (
-    url &&
-    token &&
-    !url.includes("your-region") &&
-    !url.includes("placeholder")
-  ) {
+  if (url && token && !url.includes("your-region") && !url.includes("placeholder")) {
     redis = new Redis({ url, token });
   } else {
     redis = null;
@@ -119,11 +111,7 @@ export interface UserRateLimitResult extends RateLimitResult {
   dailyResetTime?: number;
 }
 
-function memoryCheck(
-  windowKey: string,
-  config: RateLimitConfig,
-  increment = 1,
-): RateLimitResult {
+function memoryCheck(windowKey: string, config: RateLimitConfig, increment = 1): RateLimitResult {
   startCleanup();
   const now = Date.now();
   const entry = rateLimitStore.get(windowKey);
@@ -222,8 +210,7 @@ export function checkRateLimit(
   config: RateLimitConfig,
   customKey?: string,
 ): RateLimitResult {
-  const key =
-    customKey || config.keyGenerator?.(request) || getClientIP(request);
+  const key = customKey || config.keyGenerator?.(request) || getClientIP(request);
   const windowKey = `${key}:${Math.floor(Date.now() / config.windowMs)}`;
   return memoryCheck(windowKey, config, 1);
 }
@@ -263,19 +250,11 @@ export async function rateLimitAsync(
 ): Promise<Response | null> {
   const key = config.keyGenerator?.(request) || getClientIP(request);
   const windowKey = `${key}:${Math.floor(Date.now() / config.windowMs)}`;
-  const result = await redisIncr(
-    windowKey,
-    config.windowMs,
-    config.maxRequests,
-    1,
-  );
+  const result = await redisIncr(windowKey, config.windowMs, config.maxRequests, 1);
   return result.allowed ? null : rateLimitResponse(result);
 }
 
-export function addRateLimitHeaders(
-  response: Response,
-  result: RateLimitResult,
-): Response {
+export function addRateLimitHeaders(response: Response, result: RateLimitResult): Response {
   const headers = new Headers(response.headers);
   headers.set("X-RateLimit-Remaining", String(result.remaining));
   headers.set("X-RateLimit-Reset", String(result.resetTime));
@@ -328,10 +307,7 @@ export function checkUserEmailRateLimit(
   };
 }
 
-export function rateLimitUserEmail(
-  userEmail: string,
-  emailCount: number = 1,
-): Response | null {
+export function rateLimitUserEmail(userEmail: string, emailCount: number = 1): Response | null {
   const result = checkUserEmailRateLimit(userEmail, emailCount);
   if (!result.allowed) {
     return userEmailLimitResponse(result);
@@ -370,24 +346,14 @@ export async function rateLimitUserEmailAsync(
   const config = RATE_LIMITS.sendEmailPerUser;
   const now = Date.now();
   const minuteKey = `user:${userEmail}:minute:${Math.floor(now / config.windowMs)}`;
-  const minuteResult = await redisIncr(
-    minuteKey,
-    config.windowMs,
-    config.maxRequests,
-    emailCount,
-  );
+  const minuteResult = await redisIncr(minuteKey, config.windowMs, config.maxRequests, emailCount);
   if (!minuteResult.allowed) {
     return userEmailLimitResponse(minuteResult);
   }
 
   const maxDaily = config.maxEmailsPerDay || 500;
   const dayKey = `user:${userEmail}:daily:${new Date().toISOString().slice(0, 10)}`;
-  const dayResult = await redisIncr(
-    dayKey,
-    24 * 60 * 60 * 1000,
-    maxDaily,
-    emailCount,
-  );
+  const dayResult = await redisIncr(dayKey, 24 * 60 * 60 * 1000, maxDaily, emailCount);
   if (!dayResult.allowed) {
     return userEmailLimitResponse({
       ...dayResult,

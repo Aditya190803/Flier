@@ -51,10 +51,7 @@ import { EngagementFunnel } from "./_components/engagement-funnel";
 import { RecentActivityFeed } from "./_components/recent-activity";
 
 /* ── helpers ─────────────────────────────────────────────── */
-const getAttachmentUrl = (a: {
-  fileUrl?: string;
-  appwrite_file_id?: string;
-}) => {
+const getAttachmentUrl = (a: { fileUrl?: string; appwrite_file_id?: string }) => {
   if (a.appwrite_file_id) {
     return `/api/appwrite/attachments/${a.appwrite_file_id}`;
   }
@@ -134,12 +131,9 @@ export default function DashboardPage() {
   const [campaigns, setCampaigns] = useState<EmailCampaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
-  const [selectedCampaign, setSelectedCampaign] =
-    useState<EmailCampaign | null>(null);
+  const [selectedCampaign, setSelectedCampaign] = useState<EmailCampaign | null>(null);
   const [recipientSearch, setRecipientSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<
-    "all" | "success" | "failed"
-  >("all");
+  const [filterStatus, setFilterStatus] = useState<"all" | "success" | "failed">("all");
   const [previewHtml, setPreviewHtml] = useState("");
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [isDuplicating, setIsDuplicating] = useState(false);
@@ -149,10 +143,7 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    if (
-      status === "unauthenticated" ||
-      (status === "authenticated" && session?.error)
-    ) {
+    if (status === "unauthenticated" || (status === "authenticated" && session?.error)) {
       router.push("/");
     }
   }, [status, session?.error, router]);
@@ -208,9 +199,8 @@ export default function DashboardPage() {
       return;
     }
     fetchCampaigns();
-    const unsub = campaignsService.subscribeToUserCampaigns(
-      session.user.email,
-      () => fetchCampaigns(),
+    const unsub = campaignsService.subscribeToUserCampaigns(session.user.email, () =>
+      fetchCampaigns(),
     );
     return () => {
       if (unsub) {
@@ -250,21 +240,14 @@ export default function DashboardPage() {
           r.error ? formatEmailSendErrorForUser(r.error) : "",
           r.timestamp || c.created_at || "",
         ])
-      : parseRecipients(c.recipients).map((e) => [
-          e,
-          "Unknown",
-          "",
-          c.created_at || "",
-        ]);
+      : parseRecipients(c.recipients).map((e) => [e, "Unknown", "", c.created_at || ""]);
 
     const csvContent = [
       `# Campaign: ${c.subject}`,
       `# Sent: ${formatDate(c.created_at)}`,
       `# Total: ${parseRecipients(c.recipients).length}`,
       headers.join(","),
-      ...rows.map((r) =>
-        r.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
-      ),
+      ...rows.map((r) => r.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")),
     ].join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv" });
@@ -292,9 +275,7 @@ export default function DashboardPage() {
     <>
       <PageShell>
         {/* Header */}
-        <DashboardHeader
-          userName={session?.user?.name?.split(" ")[0] || "there"}
-        />
+        <DashboardHeader userName={session?.user?.name?.split(" ")[0] || "there"} />
 
         {/* KPI Cards */}
         <AnalyticsMetrics campaigns={campaigns} />
@@ -337,9 +318,7 @@ export default function DashboardPage() {
                   <Mail className="h-5 w-5 text-primary" />
                   Campaign Details
                 </DialogTitle>
-                <DialogDescription>
-                  Full delivery information for this campaign
-                </DialogDescription>
+                <DialogDescription>Full delivery information for this campaign</DialogDescription>
               </div>
               {selectedCampaign && (
                 <div className="flex gap-2">
@@ -400,8 +379,7 @@ export default function DashboardPage() {
                   {[
                     {
                       label: "Total",
-                      value: parseRecipients(selectedCampaign.recipients)
-                        .length,
+                      value: parseRecipients(selectedCampaign.recipients).length,
                       colour: "text-foreground",
                     },
                     {
@@ -420,13 +398,8 @@ export default function DashboardPage() {
                       colour: "text-muted-foreground",
                     },
                   ].map((s) => (
-                    <div
-                      key={s.label}
-                      className="bg-background rounded-lg p-3 text-center border"
-                    >
-                      <p className={`text-2xl font-bold ${s.colour}`}>
-                        {s.value}
-                      </p>
+                    <div key={s.label} className="bg-background rounded-lg p-3 text-center border">
+                      <p className={`text-2xl font-bold ${s.colour}`}>{s.value}</p>
                       <p className="text-xs text-muted-foreground">{s.label}</p>
                     </div>
                   ))}
@@ -442,9 +415,7 @@ export default function DashboardPage() {
                 <div className="border rounded-lg overflow-hidden">
                   <div className="px-4 py-2.5 bg-muted/30 border-b text-sm">
                     <span className="text-muted-foreground">Subject: </span>
-                    <span className="font-medium">
-                      {selectedCampaign.subject}
-                    </span>
+                    <span className="font-medium">{selectedCampaign.subject}</span>
                   </div>
                   {isLoadingPreview ? (
                     <div className="flex items-center justify-center py-12">
@@ -458,9 +429,7 @@ export default function DashboardPage() {
                       sandbox="allow-same-origin"
                     />
                   ) : (
-                    <p className="p-4 text-sm text-muted-foreground italic">
-                      No preview available
-                    </p>
+                    <p className="p-4 text-sm text-muted-foreground italic">No preview available</p>
                   )}
                 </div>
               </div>
@@ -480,19 +449,13 @@ export default function DashboardPage() {
                       >
                         <FileText className="h-4 w-4 text-primary shrink-0" />
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium truncate">
-                            {att.fileName}
-                          </p>
+                          <p className="text-sm font-medium truncate">{att.fileName}</p>
                           <p className="text-xs text-muted-foreground">
                             {(att.fileSize / 1024 / 1024).toFixed(2)} MB
                           </p>
                         </div>
                         <Button variant="outline" size="icon-sm" asChild>
-                          <a
-                            href={getAttachmentUrl(att)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
+                          <a href={getAttachmentUrl(att)} target="_blank" rel="noopener noreferrer">
                             <ExternalLink className="h-3 w-3" />
                           </a>
                         </Button>
@@ -507,8 +470,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <h4 className="font-medium text-sm flex items-center gap-2">
                     <Users className="h-4 w-4 text-muted-foreground" />
-                    Recipients (
-                    {parseRecipients(selectedCampaign.recipients).length})
+                    Recipients ({parseRecipients(selectedCampaign.recipients).length})
                   </h4>
                 </div>
                 <div className="flex gap-2">
@@ -556,16 +518,12 @@ export default function DashboardPage() {
                           .includes(recipientSearch.toLowerCase());
                         const filt =
                           filterStatus === "all" ||
-                          (filterStatus === "success" &&
-                            r.status === "success") ||
+                          (filterStatus === "success" && r.status === "success") ||
                           (filterStatus === "failed" && r.status !== "success");
                         return match && filt;
                       })
                       .map((r: any, i: number) => (
-                        <div
-                          key={i}
-                          className="px-4 py-2.5 hover:bg-muted/30 text-sm space-y-0.5"
-                        >
+                        <div key={i} className="px-4 py-2.5 hover:bg-muted/30 text-sm space-y-0.5">
                           <div className="flex items-center gap-3">
                             {r.status === "success" ? (
                               <CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
@@ -592,11 +550,7 @@ export default function DashboardPage() {
                   ) : (
                     <div className="p-3 grid grid-cols-2 gap-2">
                       {parseRecipients(selectedCampaign.recipients)
-                        .filter((e) =>
-                          e
-                            .toLowerCase()
-                            .includes(recipientSearch.toLowerCase()),
-                        )
+                        .filter((e) => e.toLowerCase().includes(recipientSearch.toLowerCase()))
                         .map((e, i) => (
                           <div
                             key={i}

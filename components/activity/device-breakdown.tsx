@@ -23,11 +23,7 @@ function parseDevice(ua: string | undefined | null): string {
     return "Other";
   }
   const lower = ua.toLowerCase();
-  if (
-    lower.includes("iphone") ||
-    lower.includes("ipad") ||
-    lower.includes("ipod")
-  ) {
+  if (lower.includes("iphone") || lower.includes("ipad") || lower.includes("ipod")) {
     return "iOS";
   }
   if (lower.includes("android")) {
@@ -88,9 +84,7 @@ export function DeviceBreakdownChart({ events }: Props) {
 
     if (breakdown.length > 4) {
       const top4 = breakdown.slice(0, 4);
-      const restValue = breakdown
-        .slice(4)
-        .reduce((sum, item) => sum + item.value, 0);
+      const restValue = breakdown.slice(4).reduce((sum, item) => sum + item.value, 0);
       top4.push({ name: "Other", value: otherValue + restValue });
       return top4;
     }
@@ -106,12 +100,9 @@ export function DeviceBreakdownChart({ events }: Props) {
     return (
       <div className="border border-border/50 rounded-xl bg-card p-12 flex flex-col items-center justify-center text-center text-muted-foreground shadow-sm h-full min-h-[400px]">
         <Laptop className="h-10 w-10 mb-4 opacity-40 text-[var(--color-chart-2)]" />
-        <h3 className="text-lg font-semibold text-foreground mb-1">
-          No Device Data
-        </h3>
+        <h3 className="text-lg font-semibold text-foreground mb-1">No Device Data</h3>
         <p className="max-w-sm text-sm">
-          Recipients haven't opened this campaign yet to capture device
-          statistics.
+          Recipients haven't opened this campaign yet to capture device statistics.
         </p>
       </div>
     );
@@ -145,10 +136,7 @@ export function DeviceBreakdownChart({ events }: Props) {
               strokeWidth={2}
             >
               {data.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={COLORS[index % COLORS.length]}
-                />
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
             <RechartsTooltip
@@ -160,10 +148,7 @@ export function DeviceBreakdownChart({ events }: Props) {
                 color: "var(--color-foreground)",
               }}
               itemStyle={{ color: "var(--color-foreground)", fontWeight: 500 }}
-              formatter={(value: number) => [
-                `${value} unique readers`,
-                "Devices",
-              ]}
+              formatter={(value: number) => [`${value} unique readers`, "Devices"]}
             />
             <Legend
               verticalAlign="bottom"

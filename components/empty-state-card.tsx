@@ -9,12 +9,7 @@ interface EmptyStateCardProps {
   children?: ReactNode;
 }
 
-export function EmptyStateCard({
-  icon,
-  title,
-  description,
-  children,
-}: EmptyStateCardProps) {
+export function EmptyStateCard({ icon, title, description, children }: EmptyStateCardProps) {
   return (
     <Card>
       <CardContent className="py-16">
@@ -23,9 +18,7 @@ export function EmptyStateCard({
             {icon}
           </div>
           <h3 className="text-lg font-semibold mb-2">{title}</h3>
-          <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-            {description}
-          </p>
+          <p className="text-muted-foreground mb-6 max-w-sm mx-auto">{description}</p>
           {children}
         </div>
       </CardContent>

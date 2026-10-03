@@ -105,9 +105,7 @@ export function TemplateEditorDialog({
               <Label>Email Content</Label>
               <RichTextEditor
                 content={editingTemplate.content}
-                onChange={(content) =>
-                  onEditingTemplateChange({ ...editingTemplate, content })
-                }
+                onChange={(content) => onEditingTemplateChange({ ...editingTemplate, content })}
               />
             </div>
             <div className="space-y-3 pt-2 border-t">
@@ -119,10 +117,7 @@ export function TemplateEditorDialog({
                   onChange={(e) => onSaveVersionChange(e.target.checked)}
                   className="h-4 w-4 rounded border-input"
                 />
-                <Label
-                  htmlFor="saveVersion"
-                  className="text-sm font-normal cursor-pointer"
-                >
+                <Label htmlFor="saveVersion" className="text-sm font-normal cursor-pointer">
                   Save current version before updating (allows restoring later)
                 </Label>
               </div>
@@ -144,9 +139,7 @@ export function TemplateEditorDialog({
               <Button
                 onClick={onUpdateTemplate}
                 disabled={
-                  isLoading ||
-                  !editingTemplate.name.trim() ||
-                  !editingTemplate.subject.trim()
+                  isLoading || !editingTemplate.name.trim() || !editingTemplate.subject.trim()
                 }
                 className="flex-1"
               >

@@ -34,11 +34,7 @@ export function aggregateDeviceData(events: TrackingEvent[]): DeviceData[] {
       (ua.includes("android") && !ua.includes("mobile"))
     ) {
       counts.Tablet++;
-    } else if (
-      ua.includes("mobile") ||
-      ua.includes("iphone") ||
-      ua.includes("android")
-    ) {
+    } else if (ua.includes("mobile") || ua.includes("iphone") || ua.includes("android")) {
       counts.Mobile++;
     } else {
       counts.Desktop++;

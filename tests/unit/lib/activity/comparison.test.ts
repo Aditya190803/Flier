@@ -1,11 +1,4 @@
-import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-  afterEach,
-} from "vite-plus/test";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vite-plus/test";
 
 import {
   generateWeekOverWeekComparison,
@@ -17,9 +10,7 @@ import {
 } from "@/lib/activity/comparison";
 import type { CampaignAnalytics, ChangeValue } from "@/types/activity";
 
-function makeCampaign(
-  overrides: Partial<CampaignAnalytics> = {},
-): CampaignAnalytics {
+function makeCampaign(overrides: Partial<CampaignAnalytics> = {}): CampaignAnalytics {
   return {
     id: "c1",
     subject: "Test campaign",
@@ -160,10 +151,7 @@ describe("comparison reports", () => {
     });
 
     it("falls back to week comparison for 'campaign' when fewer than 2 campaigns exist", () => {
-      const report = generateCustomPeriodComparison(
-        [makeCampaign()],
-        "campaign",
-      );
+      const report = generateCustomPeriodComparison([makeCampaign()], "campaign");
       expect(report.period).toBe("week");
     });
   });
@@ -221,16 +209,9 @@ describe("formatComparisonSummary", () => {
       makeCampaign({ opens: 5, clicks: 1 }),
       makeCampaign({ opens: 3, clicks: 0 }),
     );
-    const withoutOpens = generateCampaignComparison(
-      makeCampaign(),
-      makeCampaign(),
-    );
+    const withoutOpens = generateCampaignComparison(makeCampaign(), makeCampaign());
 
-    expect(
-      formatComparisonSummary(withOpens).some((s) => s.startsWith("Opens:")),
-    ).toBe(true);
-    expect(
-      formatComparisonSummary(withoutOpens).some((s) => s.startsWith("Opens:")),
-    ).toBe(false);
+    expect(formatComparisonSummary(withOpens).some((s) => s.startsWith("Opens:"))).toBe(true);
+    expect(formatComparisonSummary(withoutOpens).some((s) => s.startsWith("Opens:"))).toBe(false);
   });
 });

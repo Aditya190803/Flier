@@ -11,10 +11,7 @@ export const GROUP_COLORS = [
   { value: "gray", label: "Gray", class: "bg-gray-500" },
 ];
 
-export function getContactGroups(
-  groups: ContactGroup[],
-  contactId: string,
-): ContactGroup[] {
+export function getContactGroups(groups: ContactGroup[], contactId: string): ContactGroup[] {
   return groups.filter((group) => group.contact_ids.includes(contactId));
 }
 

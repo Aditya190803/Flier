@@ -14,18 +14,13 @@ export function AnalyticsMetrics({ campaigns }: Props) {
   const totalSent = campaigns.reduce((s, c) => s + (c.sent || 0), 0);
   const totalFailed = campaigns.reduce((s, c) => s + (c.failed || 0), 0);
   const totalCampaigns = campaigns.length;
-  const totalRecipients = campaigns.reduce(
-    (s, c) => s + getRecipientsCount(c),
-    0,
-  );
+  const totalRecipients = campaigns.reduce((s, c) => s + getRecipientsCount(c), 0);
   const successRate = totalRecipients ? (totalSent / totalRecipients) * 100 : 0;
 
   // Week-over-week trend (last 7 days vs 7 before that)
   const now = Date.now();
   const ONE_WEEK = 7 * 24 * 3600 * 1000;
-  const thisWeek = campaigns.filter(
-    (c) => now - new Date(c.created_at || 0).getTime() < ONE_WEEK,
-  );
+  const thisWeek = campaigns.filter((c) => now - new Date(c.created_at || 0).getTime() < ONE_WEEK);
   const lastWeek = campaigns.filter((c) => {
     const age = now - new Date(c.created_at || 0).getTime();
     return age >= ONE_WEEK && age < 2 * ONE_WEEK;
@@ -33,27 +28,18 @@ export function AnalyticsMetrics({ campaigns }: Props) {
 
   const thisSent = thisWeek.reduce((s, c) => s + (c.sent || 0), 0);
   const lastSent = lastWeek.reduce((s, c) => s + (c.sent || 0), 0);
-  const sentDelta =
-    lastSent === 0 ? null : ((thisSent - lastSent) / lastSent) * 100;
+  const sentDelta = lastSent === 0 ? null : ((thisSent - lastSent) / lastSent) * 100;
 
   const thisFailed = thisWeek.reduce((s, c) => s + (c.failed || 0), 0);
   const lastFailed = lastWeek.reduce((s, c) => s + (c.failed || 0), 0);
-  const failedDelta =
-    lastFailed === 0 ? null : ((thisFailed - lastFailed) / lastFailed) * 100;
+  const failedDelta = lastFailed === 0 ? null : ((thisFailed - lastFailed) / lastFailed) * 100;
 
   const trend = (delta: number | null, inverse = false) => {
     if (delta === null) {
       return undefined;
     }
-    const dir: "up" | "down" | "same" =
-      Math.abs(delta) < 1 ? "same" : delta > 0 ? "up" : "down";
-    const effectiveDir = inverse
-      ? dir === "up"
-        ? "down"
-        : dir === "down"
-          ? "up"
-          : "same"
-      : dir;
+    const dir: "up" | "down" | "same" = Math.abs(delta) < 1 ? "same" : delta > 0 ? "up" : "down";
+    const effectiveDir = inverse ? (dir === "up" ? "down" : dir === "down" ? "up" : "same") : dir;
     return {
       direction: effectiveDir as "up" | "down" | "same",
       label: `${Math.abs(delta).toFixed(1)}% vs last week`,
@@ -88,9 +74,7 @@ export function AnalyticsMetrics({ campaigns }: Props) {
       trend: trend(
         lastWeek.length === 0
           ? null
-          : ((thisWeek.length - lastWeek.length) /
-              Math.max(lastWeek.length, 1)) *
-              100,
+          : ((thisWeek.length - lastWeek.length) / Math.max(lastWeek.length, 1)) * 100,
       ),
     },
     {

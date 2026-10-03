@@ -42,12 +42,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  PageShell,
-  PageHeader,
-  EmptyState,
-  StatCard,
-} from "@/components/ui/page-shell";
+import { PageShell, PageHeader, EmptyState, StatCard } from "@/components/ui/page-shell";
 import { unsubscribesService, type Unsubscribe } from "@/lib/appwrite";
 import { componentLogger } from "@/lib/client-logger";
 
@@ -123,10 +118,7 @@ export default function UnsubscribesPage() {
       toast.success("Email added to unsubscribe list");
       fetchUnsubscribes();
     } catch (error) {
-      componentLogger.error(
-        "Error adding unsubscribe",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error adding unsubscribe", error instanceof Error ? error : undefined);
       toast.error("Failed to add email");
     }
     setIsLoading(false);
@@ -138,10 +130,7 @@ export default function UnsubscribesPage() {
       toast.success(`${email} has been resubscribed`);
       fetchUnsubscribes();
     } catch (error) {
-      componentLogger.error(
-        "Error resubscribing",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error resubscribing", error instanceof Error ? error : undefined);
       toast.error("Failed to resubscribe email");
     }
   };
@@ -154,11 +143,7 @@ export default function UnsubscribesPage() {
 
     const csvContent = [
       ["Email", "Reason", "Date"],
-      ...unsubscribes.map((u) => [
-        u.email,
-        u.reason || "",
-        u.unsubscribed_at || "",
-      ]),
+      ...unsubscribes.map((u) => [u.email, u.reason || "", u.unsubscribed_at || ""]),
     ]
       .map((row) => row.map((field) => `"${field}"`).join(","))
       .join("\n");
@@ -185,9 +170,7 @@ export default function UnsubscribesPage() {
         const dataLines = lines.slice(1); // Skip header
 
         const emails = dataLines
-          .map((line) =>
-            line.split(",")[0].replace(/"/g, "").trim().toLowerCase(),
-          )
+          .map((line) => line.split(",")[0].replace(/"/g, "").trim().toLowerCase())
           .filter((email) => email && email.includes("@"));
 
         if (emails.length > 0) {
@@ -202,13 +185,9 @@ export default function UnsubscribesPage() {
               });
               successCount++;
             } catch (error) {
-              componentLogger.error(
-                "Error importing",
-                error instanceof Error ? error : undefined,
-                {
-                  email,
-                },
-              );
+              componentLogger.error("Error importing", error instanceof Error ? error : undefined, {
+                email,
+              });
             }
           }
 
@@ -218,10 +197,7 @@ export default function UnsubscribesPage() {
           toast.error("No valid emails found in file");
         }
       } catch (error) {
-        componentLogger.error(
-          "Import error",
-          error instanceof Error ? error : undefined,
-        );
+        componentLogger.error("Import error", error instanceof Error ? error : undefined);
         toast.error("Error processing file");
       }
     };
@@ -308,10 +284,7 @@ export default function UnsubscribesPage() {
                     >
                       Add to List
                     </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowAddDialog(false)}
-                    >
+                    <Button variant="outline" onClick={() => setShowAddDialog(false)}>
                       Cancel
                     </Button>
                   </div>
@@ -380,8 +353,7 @@ export default function UnsubscribesPage() {
                         {unsub.reason && <span>{unsub.reason}</span>}
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          {unsub.unsubscribed_at &&
-                            format(new Date(unsub.unsubscribed_at), "PP")}
+                          {unsub.unsubscribed_at && format(new Date(unsub.unsubscribed_at), "PP")}
                         </span>
                       </div>
                     </div>
@@ -401,15 +373,13 @@ export default function UnsubscribesPage() {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Resubscribe Email</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Are you sure you want to resubscribe {unsub.email}?
-                          They will start receiving your campaigns again.
+                          Are you sure you want to resubscribe {unsub.email}? They will start
+                          receiving your campaigns again.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => resubscribe(unsub.$id!, unsub.email)}
-                        >
+                        <AlertDialogAction onClick={() => resubscribe(unsub.$id!, unsub.email)}>
                           Resubscribe
                         </AlertDialogAction>
                       </AlertDialogFooter>
@@ -445,13 +415,8 @@ export default function UnsubscribesPage() {
         <CardContent className="p-6">
           <h3 className="font-semibold mb-2">📧 How Unsubscribe Works</h3>
           <ul className="text-sm text-muted-foreground space-y-1">
-            <li>
-              • Emails in this list are automatically skipped when sending
-              campaigns
-            </li>
-            <li>
-              • You'll see a notification showing how many emails were skipped
-            </li>
+            <li>• Emails in this list are automatically skipped when sending campaigns</li>
+            <li>• You'll see a notification showing how many emails were skipped</li>
             <li>• Resubscribe an email to start sending to them again</li>
             <li>• Import/export your list as CSV for easy management</li>
           </ul>

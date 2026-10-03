@@ -20,11 +20,7 @@ import { cn } from "@/lib/utils";
 
 type AuthButtonProps = Pick<ButtonProps, "size" | "variant" | "className">;
 
-export function AuthButton({
-  size = "sm",
-  variant = "default",
-  className,
-}: AuthButtonProps = {}) {
+export function AuthButton({ size = "sm", variant = "default", className }: AuthButtonProps = {}) {
   const { data: session, status } = useSession();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -52,12 +48,7 @@ export function AuthButton({
 
   if (status === "loading") {
     return (
-      <Button
-        variant="ghost"
-        size={size}
-        disabled
-        className={cn("gap-2", className)}
-      >
+      <Button variant="ghost" size={size} disabled className={cn("gap-2", className)}>
         <div className="h-4 w-4 rounded-full bg-muted animate-pulse" />
         <span className="hidden sm:inline">Loading...</span>
       </Button>
@@ -93,10 +84,7 @@ export function AuthButton({
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm" className="gap-2 px-2">
             <Avatar className="h-7 w-7">
-              <AvatarImage
-                src={session.user?.image || ""}
-                alt={session.user?.name || "User"}
-              />
+              <AvatarImage src={session.user?.image || ""} alt={session.user?.name || "User"} />
               <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
                 {initials}
               </AvatarFallback>
@@ -110,12 +98,8 @@ export function AuthButton({
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">
-                {session.user?.name}
-              </p>
-              <p className="text-xs leading-none text-muted-foreground">
-                {session.user?.email}
-              </p>
+              <p className="text-sm font-medium leading-none">{session.user?.name}</p>
+              <p className="text-xs leading-none text-muted-foreground">{session.user?.email}</p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />

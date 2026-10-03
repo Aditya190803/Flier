@@ -36,8 +36,7 @@ export const SEND_EMAIL_MAX_DURATION_MS = 60_000;
 export const SEND_EMAIL_TIME_BUFFER_MS = 10_000;
 
 /** Time budget for a single chunk of a campaign send */
-export const SEND_EMAIL_CHUNK_BUDGET_MS =
-  SEND_EMAIL_MAX_DURATION_MS - SEND_EMAIL_TIME_BUFFER_MS;
+export const SEND_EMAIL_CHUNK_BUDGET_MS = SEND_EMAIL_MAX_DURATION_MS - SEND_EMAIL_TIME_BUFFER_MS;
 
 /**
  * Maximum file size for attachments (10MB)
@@ -196,14 +195,12 @@ export const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 /**
  * Enable A/B testing features
  */
-export const FEATURE_AB_TESTING =
-  process.env.NEXT_PUBLIC_FEATURE_AB_TESTING === "true";
+export const FEATURE_AB_TESTING = process.env.NEXT_PUBLIC_FEATURE_AB_TESTING === "true";
 
 /**
  * Enable analytics tracking
  */
-export const FEATURE_ANALYTICS =
-  process.env.NEXT_PUBLIC_FEATURE_ANALYTICS === "true";
+export const FEATURE_ANALYTICS = process.env.NEXT_PUBLIC_FEATURE_ANALYTICS === "true";
 
 /**
  * Enable team collaboration features
@@ -245,8 +242,7 @@ export const STORAGE_KEY_DRAFT_EMAIL = "draftEmail";
 /**
  * Base API URL
  */
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+export const API_BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 /**
  * API route paths
@@ -332,8 +328,7 @@ export const CAMPAIGN_STATUS = {
   PAUSED: "paused",
 } as const;
 
-export type CampaignStatus =
-  (typeof CAMPAIGN_STATUS)[keyof typeof CAMPAIGN_STATUS];
+export type CampaignStatus = (typeof CAMPAIGN_STATUS)[keyof typeof CAMPAIGN_STATUS];
 
 // ============================================
 // Scheduled Sending
@@ -355,8 +350,7 @@ export const SCHEDULED_STATUS = {
   CANCELLED: "cancelled",
 } as const;
 
-export type ScheduledStatus =
-  (typeof SCHEDULED_STATUS)[keyof typeof SCHEDULED_STATUS];
+export type ScheduledStatus = (typeof SCHEDULED_STATUS)[keyof typeof SCHEDULED_STATUS];
 
 /**
  * A campaign must be scheduled at least this far out. Guards against a time

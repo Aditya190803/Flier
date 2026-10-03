@@ -45,20 +45,14 @@ export function CampaignsTab({
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Sent Campaigns</h2>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setExpandedCampaigns(new Set())}
-          >
+          <Button variant="outline" size="sm" onClick={() => setExpandedCampaigns(new Set())}>
             Collapse All
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() =>
-              setExpandedCampaigns(
-                new Set(historyData?.recentCampaigns.map((c) => c.$id) || []),
-              )
+              setExpandedCampaigns(new Set(historyData?.recentCampaigns.map((c) => c.$id) || []))
             }
           >
             <Eye className="h-4 w-4 mr-2" />
@@ -100,9 +94,7 @@ export function CampaignsTab({
                     )}
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-semibold truncate">
-                      {campaign.subject}
-                    </h3>
+                    <h3 className="font-semibold truncate">{campaign.subject}</h3>
                     <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
@@ -110,8 +102,7 @@ export function CampaignsTab({
                       </span>
                       <span className="flex items-center gap-1">
                         <Users className="h-3 w-3" />
-                        {getRecipientsArray(campaign.recipients).length}{" "}
-                        recipients
+                        {getRecipientsArray(campaign.recipients).length} recipients
                       </span>
                     </div>
                   </div>
@@ -120,17 +111,13 @@ export function CampaignsTab({
                 <div className="flex items-center gap-4 shrink-0">
                   <div className="hidden sm:flex items-center gap-6 mr-4">
                     <div className="text-center">
-                      <div className="text-sm font-bold">
-                        {analytics?.opens || 0}
-                      </div>
+                      <div className="text-sm font-bold">{analytics?.opens || 0}</div>
                       <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
                         Opens
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-sm font-bold">
-                        {analytics?.clicks || 0}
-                      </div>
+                      <div className="text-sm font-bold">{analytics?.clicks || 0}</div>
                       <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
                         Clicks
                       </div>
@@ -157,11 +144,7 @@ export function CampaignsTab({
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Status</span>
                           <Badge
-                            variant={
-                              campaign.status === "completed"
-                                ? "success"
-                                : "secondary"
-                            }
+                            variant={campaign.status === "completed" ? "success" : "secondary"}
                           >
                             {campaign.status}
                           </Badge>
@@ -181,47 +164,31 @@ export function CampaignsTab({
                       </h4>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         <div className="p-3 bg-background rounded-lg border">
-                          <div className="text-xs text-muted-foreground mb-1">
-                            Open Rate
-                          </div>
+                          <div className="text-xs text-muted-foreground mb-1">Open Rate</div>
                           <div className="text-lg font-bold">
                             {(analytics?.openRate || 0).toFixed(1)}%
                           </div>
                         </div>
                         <div className="p-3 bg-background rounded-lg border">
-                          <div className="text-xs text-muted-foreground mb-1">
-                            Click Rate
-                          </div>
+                          <div className="text-xs text-muted-foreground mb-1">Click Rate</div>
                           <div className="text-lg font-bold">
                             {(analytics?.clickRate || 0).toFixed(1)}%
                           </div>
                         </div>
                         <div className="p-3 bg-background rounded-lg border">
-                          <div className="text-xs text-muted-foreground mb-1">
-                            Delivered
-                          </div>
-                          <div className="text-lg font-bold">
-                            {campaign.sent || 0}
-                          </div>
+                          <div className="text-xs text-muted-foreground mb-1">Delivered</div>
+                          <div className="text-lg font-bold">{campaign.sent || 0}</div>
                         </div>
                         <div className="p-3 bg-background rounded-lg border">
-                          <div className="text-xs text-muted-foreground mb-1">
-                            Bounced
-                          </div>
-                          <div className="text-lg font-bold">
-                            {campaign.failed || 0}
-                          </div>
+                          <div className="text-xs text-muted-foreground mb-1">Bounced</div>
+                          <div className="text-lg font-bold">{campaign.failed || 0}</div>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex justify-end gap-2 mt-6">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onViewCampaign(campaign)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => onViewCampaign(campaign)}>
                       <Eye className="h-4 w-4 mr-2" />
                       View Content
                     </Button>
@@ -236,9 +203,7 @@ export function CampaignsTab({
                       ) : (
                         <Copy className="h-4 w-4 mr-2" />
                       )}
-                      {duplicatingCampaignId === campaign.$id
-                        ? "Loading..."
-                        : "Duplicate"}
+                      {duplicatingCampaignId === campaign.$id ? "Loading..." : "Duplicate"}
                     </Button>
                   </div>
                 </div>

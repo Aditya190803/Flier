@@ -71,9 +71,7 @@ describe("loadCampaignSendState", () => {
   });
 
   it("returns an empty state when no document exists yet", async () => {
-    (databases.getDocument as any).mockRejectedValueOnce(
-      new Error("not found"),
-    );
+    (databases.getDocument as any).mockRejectedValueOnce(new Error("not found"));
 
     const state = await loadCampaignSendState("campaign_1", "user@example.com");
 
@@ -114,9 +112,7 @@ describe("loadCampaignSendState", () => {
       sent: 5,
       failed: 0,
       status: "completed",
-      send_results: JSON.stringify([
-        { email: "a@example.com", status: "success" },
-      ]),
+      send_results: JSON.stringify([{ email: "a@example.com", status: "success" }]),
     });
 
     const state = await loadCampaignSendState("campaign_3", "user@example.com");
@@ -166,10 +162,7 @@ describe("persistCampaignSendState", () => {
     expect(data.status).toBe("partial");
     expect(data.sent).toBe(1);
     expect(data.failed).toBe(0);
-    expect(JSON.parse(data.recipients)).toEqual([
-      "a@example.com",
-      "b@example.com",
-    ]);
+    expect(JSON.parse(data.recipients)).toEqual(["a@example.com", "b@example.com"]);
   });
 
   it("updates an existing document without touching recipients/subject", async () => {
@@ -205,9 +198,7 @@ describe("persistCampaignSendState", () => {
       existed: true,
       userEmail: "user@example.com",
       fullRecipients: ["a@example.com"],
-      allResults: [
-        { email: "a@example.com", status: "error", error: "Rejected" },
-      ],
+      allResults: [{ email: "a@example.com", status: "error", error: "Rejected" }],
       sentDelta: 0,
       failedDelta: 1,
       previousSent: 0,
@@ -220,9 +211,7 @@ describe("persistCampaignSendState", () => {
   });
 
   it("swallows persistence errors instead of throwing", async () => {
-    (databases.createDocument as any).mockRejectedValueOnce(
-      new Error("Appwrite down"),
-    );
+    (databases.createDocument as any).mockRejectedValueOnce(new Error("Appwrite down"));
 
     await expect(
       persistCampaignSendState({

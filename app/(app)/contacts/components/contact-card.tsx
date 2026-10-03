@@ -64,9 +64,7 @@ export function ContactCard({
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1 min-w-0">
             {contact.name && (
-              <h3 className="font-semibold text-foreground truncate mb-1">
-                {contact.name}
-              </h3>
+              <h3 className="font-semibold text-foreground truncate mb-1">{contact.name}</h3>
             )}
             <div className="flex items-center gap-2 text-sm text-primary">
               <Mail className="h-3.5 w-3.5 flex-shrink-0" />
@@ -76,11 +74,7 @@ export function ContactCard({
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="opacity-0 group-hover:opacity-100"
-              >
+              <Button variant="ghost" size="icon-sm" className="opacity-0 group-hover:opacity-100">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -122,9 +116,8 @@ export function ContactCard({
                   <AlertDialogHeader>
                     <AlertDialogTitle>Delete Contact</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Are you sure you want to delete{" "}
-                      {contact.name || contact.email}? This action cannot be
-                      undone.
+                      Are you sure you want to delete {contact.name || contact.email}? This action
+                      cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -162,14 +155,8 @@ export function ContactCard({
         {contactGroups.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-4">
             {contactGroups.map((group) => (
-              <Badge
-                key={group.$id}
-                variant="outline"
-                className="text-[10px] px-1.5 py-0 h-4"
-              >
-                <span
-                  className={`w-1.5 h-1.5 rounded-full mr-1 ${getGroupColor(group.color)}`}
-                />
+              <Badge key={group.$id} variant="outline" className="text-[10px] px-1.5 py-0 h-4">
+                <span className={`w-1.5 h-1.5 rounded-full mr-1 ${getGroupColor(group.color)}`} />
                 {group.name}
               </Badge>
             ))}
@@ -180,11 +167,7 @@ export function ContactCard({
         {contact.tags && contact.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
             {contact.tags.map((tag) => (
-              <Badge
-                key={tag}
-                variant="secondary"
-                className="text-[10px] px-1.5 py-0 h-4"
-              >
+              <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
                 {tag}
               </Badge>
             ))}
@@ -196,12 +179,7 @@ export function ContactCard({
             <Clock className="h-3 w-3" />
             <span>Added {formatDate(contact.created_at)}</span>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 px-2 text-[10px]"
-            asChild
-          >
+          <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px]" asChild>
             <Link href={`/compose?to=${encodeURIComponent(contact.email)}`}>
               <Send className="h-3 w-3 mr-1" />
               Send

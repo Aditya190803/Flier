@@ -17,8 +17,7 @@ import type { Contact } from "./compose-types";
 interface AttachmentMetadata {
   fileName: string;
   fileSize: number | null;
-  fileType:
-    "pdf" | "image" | "document" | "spreadsheet" | "presentation" | "other";
+  fileType: "pdf" | "image" | "document" | "spreadsheet" | "presentation" | "other";
   contentType?: string;
   source: "google-drive" | "onedrive" | "dropbox" | "direct";
   accessible: boolean;
@@ -54,21 +53,15 @@ export function useComposePreview({
   const [previewRecipientIndex, setPreviewRecipientIndex] = useState(0);
   const [formattedPreviewHtml, setFormattedPreviewHtml] = useState<string>("");
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
-  const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">(
-    "desktop",
-  );
+  const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
   const [showClientPreview, setShowClientPreview] = useState(false);
 
-  const [personalizedAttachmentMetadata, setPersonalizedAttachmentMetadata] =
-    useState<{
-      [email: string]: AttachmentMetadata | null;
-    }>({});
-  const [_isLoadingAttachmentMetadata, setIsLoadingAttachmentMetadata] =
-    useState(false);
+  const [personalizedAttachmentMetadata, setPersonalizedAttachmentMetadata] = useState<{
+    [email: string]: AttachmentMetadata | null;
+  }>({});
+  const [_isLoadingAttachmentMetadata, setIsLoadingAttachmentMetadata] = useState(false);
   const [showAttachmentPreview, setShowAttachmentPreview] = useState(false);
-  const [previewAttachmentUrl, setPreviewAttachmentUrl] = useState<
-    string | null
-  >(null);
+  const [previewAttachmentUrl, setPreviewAttachmentUrl] = useState<string | null>(null);
 
   // Get personalized content for a specific recipient
   const getPersonalizedContent = (recipientIndex: number) => {
@@ -106,8 +99,7 @@ export function useComposePreview({
     return {
       email: recipientEmail,
       subject: personalizedSubject || "(No subject)",
-      content:
-        personalizedContent || "<p>Your email content will appear here...</p>",
+      content: personalizedContent || "<p>Your email content will appear here...</p>",
       data: recipientData,
     };
   };
@@ -141,15 +133,7 @@ export function useComposePreview({
 
     loadFormattedPreview();
     // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    activeTab,
-    previewRecipientIndex,
-    content,
-    subject,
-    recipients,
-    csvData,
-    manualEntries,
-  ]);
+  }, [activeTab, previewRecipientIndex, content, subject, recipients, csvData, manualEntries]);
 
   // Fetch personalized attachment metadata when preview tab is active
   useEffect(() => {
@@ -182,10 +166,7 @@ export function useComposePreview({
           },
           body: JSON.stringify({
             url: String(attachmentUrl),
-            recipientName:
-              preview.data?.name ||
-              preview.data?.Name ||
-              preview.email.split("@")[0],
+            recipientName: preview.data?.name || preview.data?.Name || preview.email.split("@")[0],
           }),
         });
 

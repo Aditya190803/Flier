@@ -26,12 +26,7 @@ export class MockLogger {
     private readonly defaultContext: LogContext = {},
   ) {}
 
-  private write(
-    level: LogLevel,
-    message: string,
-    context?: LogContext,
-    error?: Error,
-  ) {
+  private write(level: LogLevel, message: string, context?: LogContext, error?: Error) {
     const minLevel = this.config.minLevel ?? "debug";
     if (levelPriority[level] < levelPriority[minLevel]) {
       return;
@@ -62,11 +57,7 @@ export class MockLogger {
     this.write("info", message, context);
   }
 
-  warn(
-    message: string,
-    contextOrError?: LogContext | Error,
-    errorOrContext?: Error | LogContext,
-  ) {
+  warn(message: string, contextOrError?: LogContext | Error, errorOrContext?: Error | LogContext) {
     if (contextOrError instanceof Error) {
       this.write("warn", message, errorOrContext as LogContext, contextOrError);
       return;
@@ -83,18 +74,9 @@ export class MockLogger {
     });
   }
 
-  error(
-    message: string,
-    contextOrError?: LogContext | Error,
-    errorOrContext?: Error | LogContext,
-  ) {
+  error(message: string, contextOrError?: LogContext | Error, errorOrContext?: Error | LogContext) {
     if (contextOrError instanceof Error) {
-      this.write(
-        "error",
-        message,
-        errorOrContext as LogContext,
-        contextOrError,
-      );
+      this.write("error", message, errorOrContext as LogContext, contextOrError);
       return;
     }
 
@@ -117,9 +99,7 @@ export class MockLogger {
   }
 }
 
-export function createMockLoggerModule(
-  overrides: Partial<Record<string, unknown>> = {},
-) {
+export function createMockLoggerModule(overrides: Partial<Record<string, unknown>> = {}) {
   const logger = new MockLogger();
   const emailLogger = logger.child({ module: "email" });
   const apiLogger = logger.child({ module: "api" });

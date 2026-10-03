@@ -31,11 +31,7 @@ export async function GET(request: NextRequest) {
     const memberships = await databases.listDocuments(
       config.databaseId,
       config.teamMembersCollectionId,
-      [
-        Query.equal("user_email", auth.email),
-        Query.equal("status", "active"),
-        Query.limit(100),
-      ],
+      [Query.equal("user_email", auth.email), Query.equal("status", "active"), Query.limit(100)],
     );
 
     if (memberships.documents.length === 0) {
@@ -43,8 +39,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all team IDs
-    const teamMemberships =
-      memberships.documents as unknown as TeamMembershipDocument[];
+    const teamMemberships = memberships.documents as unknown as TeamMembershipDocument[];
     const teamIds = teamMemberships.map((m) => m.team_id);
 
     // Fetch all teams (we need to do this in batches if there are many)
@@ -75,10 +70,7 @@ export async function GET(request: NextRequest) {
       documents: validTeams,
     });
   } catch (error) {
-    apiLogger.error(
-      "Error fetching teams",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error fetching teams", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: errorMessage(error) || "Failed to fetch teams" },
       { status: 500 },
@@ -95,19 +87,13 @@ export async function POST(request: NextRequest) {
     }
 
     if (!config.teamsCollectionId || !config.teamMembersCollectionId) {
-      return NextResponse.json(
-        { error: "Teams feature not configured" },
-        { status: 503 },
-      );
+      return NextResponse.json({ error: "Teams feature not configured" }, { status: 503 });
     }
 
     const body = await request.json();
     const parsed = validate(createTeamSchema, body);
     if (!parsed.success || !parsed.data) {
-      return NextResponse.json(
-        { error: parsed.message || "Invalid request" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: parsed.message || "Invalid request" }, { status: 400 });
     }
     const { name, description } = parsed.data;
 
@@ -135,20 +121,15 @@ export async function POST(request: NextRequest) {
     );
 
     // Add the creator as owner member
-    await databases.createDocument(
-      config.databaseId,
-      config.teamMembersCollectionId,
-      ID.unique(),
-      {
-        team_id: teamId,
-        user_email: auth.email,
-        role: "owner",
-        permissions: JSON.stringify(["*"]),
-        invited_by: auth.email,
-        joined_at: now,
-        status: "active",
-      },
-    );
+    await databases.createDocument(config.databaseId, config.teamMembersCollectionId, ID.unique(), {
+      team_id: teamId,
+      user_email: auth.email,
+      role: "owner",
+      permissions: JSON.stringify(["*"]),
+      invited_by: auth.email,
+      joined_at: now,
+      status: "active",
+    });
 
     // Log the action
     if (config.auditLogsCollectionId) {
@@ -178,10 +159,7 @@ export async function POST(request: NextRequest) {
       user_role: "owner",
     });
   } catch (error) {
-    apiLogger.error(
-      "Error creating team",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error creating team", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: errorMessage(error) || "Failed to create team" },
       { status: 500 },
@@ -198,19 +176,13 @@ export async function PUT(request: NextRequest) {
     }
 
     if (!config.teamsCollectionId || !config.teamMembersCollectionId) {
-      return NextResponse.json(
-        { error: "Teams feature not configured" },
-        { status: 503 },
-      );
+      return NextResponse.json({ error: "Teams feature not configured" }, { status: 503 });
     }
 
     const body = await request.json();
     const parsed = validate(updateTeamSchema, body);
     if (!parsed.success || !parsed.data) {
-      return NextResponse.json(
-        { error: parsed.message || "Invalid request" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: parsed.message || "Invalid request" }, { status: 400 });
     }
     const { id, name, description, settings } = parsed.data;
 
@@ -225,8 +197,7 @@ export async function PUT(request: NextRequest) {
         Query.limit(1),
       ],
     );
-    const membershipDoc = membership.documents[0] as unknown as
-      TeamMembershipDocument | undefined;
+    const membershipDoc = membership.documents[0] as unknown as TeamMembershipDocument | undefined;
 
     if (!membershipDoc || !["owner", "admin"].includes(membershipDoc.role)) {
       return NextResponse.json(
@@ -258,10 +229,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(team);
   } catch (error) {
-    apiLogger.error(
-      "Error updating team",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error updating team", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: errorMessage(error) || "Failed to update team" },
       { status: 500 },
@@ -278,20 +246,14 @@ export async function DELETE(request: NextRequest) {
     }
 
     if (!config.teamsCollectionId || !config.teamMembersCollectionId) {
-      return NextResponse.json(
-        { error: "Teams feature not configured" },
-        { status: 503 },
-      );
+      return NextResponse.json({ error: "Teams feature not configured" }, { status: 503 });
     }
 
     const { searchParams } = new URL(request.url);
     const teamId = searchParams.get("id");
 
     if (!teamId) {
-      return NextResponse.json(
-        { error: "Team ID is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Team ID is required" }, { status: 400 });
     }
 
     // Check if user is owner of the team
@@ -316,26 +278,15 @@ export async function DELETE(request: NextRequest) {
     );
 
     for (const member of members.documents) {
-      await databases.deleteDocument(
-        config.databaseId,
-        config.teamMembersCollectionId,
-        member.$id,
-      );
+      await databases.deleteDocument(config.databaseId, config.teamMembersCollectionId, member.$id);
     }
 
     // Delete the team
-    await databases.deleteDocument(
-      config.databaseId,
-      config.teamsCollectionId,
-      teamId,
-    );
+    await databases.deleteDocument(config.databaseId, config.teamsCollectionId, teamId);
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    apiLogger.error(
-      "Error deleting team",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error deleting team", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: errorMessage(error) || "Failed to delete team" },
       { status: 500 },

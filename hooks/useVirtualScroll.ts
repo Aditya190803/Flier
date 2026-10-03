@@ -193,9 +193,7 @@ export function useVariableVirtualScroll<T>(
   // Get or estimate item height
   const getItemHeight = useCallback(
     (index: number): number => {
-      return (
-        measuredItemsRef.current.get(index)?.height ?? estimateHeight(index)
-      );
+      return measuredItemsRef.current.get(index)?.height ?? estimateHeight(index);
     },
     [estimateHeight],
   );
@@ -230,14 +228,7 @@ export function useVariableVirtualScroll<T>(
     end = Math.min(items.length - 1, end + overscan);
 
     return { startIndex: start, endIndex: end };
-  }, [
-    scrollTop,
-    containerHeight,
-    items.length,
-    getItemHeight,
-    getItemOffset,
-    overscan,
-  ]);
+  }, [scrollTop, containerHeight, items.length, getItemHeight, getItemOffset, overscan]);
 
   const offsetTop = getItemOffset(startIndex);
 

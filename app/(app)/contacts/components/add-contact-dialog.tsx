@@ -71,9 +71,7 @@ export function AddContactDialog({
             <Input
               placeholder="John Doe"
               value={newContact.name}
-              onChange={(e) =>
-                setNewContact({ ...newContact, name: e.target.value })
-              }
+              onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
             />
           </div>
           <div className="space-y-2">
@@ -82,9 +80,7 @@ export function AddContactDialog({
               type="email"
               placeholder="john@example.com"
               value={newContact.email}
-              onChange={(e) =>
-                setNewContact({ ...newContact, email: e.target.value })
-              }
+              onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
             />
           </div>
           <div className="space-y-2">
@@ -92,9 +88,7 @@ export function AddContactDialog({
             <Input
               placeholder="Acme Corp"
               value={newContact.company}
-              onChange={(e) =>
-                setNewContact({ ...newContact, company: e.target.value })
-              }
+              onChange={(e) => setNewContact({ ...newContact, company: e.target.value })}
             />
           </div>
           <div className="space-y-2">
@@ -102,9 +96,7 @@ export function AddContactDialog({
             <Input
               placeholder="+1 (555) 123-4567"
               value={newContact.phone}
-              onChange={(e) =>
-                setNewContact({ ...newContact, phone: e.target.value })
-              }
+              onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
             />
           </div>
           <div className="space-y-2">
@@ -121,23 +113,14 @@ export function AddContactDialog({
                   }
                 }}
               />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addTag}
-              >
+              <Button type="button" variant="outline" size="sm" onClick={addTag}>
                 Add
               </Button>
             </div>
             {newContact.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
                 {newContact.tags.map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="secondary"
-                    className="flex items-center gap-1"
-                  >
+                  <Badge key={tag} variant="secondary" className="flex items-center gap-1">
                     {tag}
                     <button
                       type="button"
@@ -155,16 +138,12 @@ export function AddContactDialog({
                 ))}
               </div>
             )}
-            <p className="text-xs text-muted-foreground">
-              Press Enter or click Add to add a tag
-            </p>
+            <p className="text-xs text-muted-foreground">Press Enter or click Add to add a tag</p>
           </div>
           <div className="flex gap-2 pt-4">
             <Button
               onClick={onAddContact}
-              disabled={
-                isLoading || !newContact.name.trim() || !newContact.email.trim()
-              }
+              disabled={isLoading || !newContact.name.trim() || !newContact.email.trim()}
               className="flex-1"
             >
               Add Contact

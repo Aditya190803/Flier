@@ -13,9 +13,7 @@ export function PageShell({
   className?: string;
 }) {
   return (
-    <div
-      className={`mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8 ${className}`}
-    >
+    <div className={`mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8 ${className}`}>
       {children}
     </div>
   );
@@ -30,27 +28,14 @@ interface PageHeaderProps {
   actions?: React.ReactNode;
   className?: string;
 }
-export function PageHeader({
-  title,
-  description,
-  actions,
-  className = "",
-}: PageHeaderProps) {
+export function PageHeader({ title, description, actions, className = "" }: PageHeaderProps) {
   return (
-    <div
-      className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${className}`}
-    >
+    <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${className}`}>
       <div className="space-y-1 min-w-0">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          {title}
-        </h1>
-        {description && (
-          <div className="text-sm text-muted-foreground">{description}</div>
-        )}
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
+        {description && <div className="text-sm text-muted-foreground">{description}</div>}
       </div>
-      {actions && (
-        <div className="flex items-center gap-2 shrink-0">{actions}</div>
-      )}
+      {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
     </div>
   );
 }
@@ -65,26 +50,14 @@ interface EmptyStateProps {
   action?: React.ReactNode;
   className?: string;
 }
-export function EmptyState({
-  icon,
-  title,
-  description,
-  action,
-  className = "",
-}: EmptyStateProps) {
+export function EmptyState({ icon, title, description, action, className = "" }: EmptyStateProps) {
   return (
-    <div
-      className={`flex flex-col items-center justify-center py-20 text-center ${className}`}
-    >
+    <div className={`flex flex-col items-center justify-center py-20 text-center ${className}`}>
       <div className="h-14 w-14 rounded-2xl bg-muted/60 flex items-center justify-center mb-5 text-muted-foreground">
         {icon}
       </div>
       <h3 className="text-base font-semibold mb-1.5">{title}</h3>
-      {description && (
-        <p className="text-sm text-muted-foreground max-w-xs mb-5">
-          {description}
-        </p>
-      )}
+      {description && <p className="text-sm text-muted-foreground max-w-xs mb-5">{description}</p>}
       {action}
     </div>
   );
@@ -135,9 +108,7 @@ export function StatCard({
         </div>
       </div>
       <div className="space-y-1">
-        <p className="text-3xl font-bold tracking-tight tabular-nums">
-          {value}
-        </p>
+        <p className="text-3xl font-bold tracking-tight tabular-nums">{value}</p>
         <div className="flex items-center gap-2 pt-2">
           {trend && (
             <span className={`${trendBaseClass} ${trendColour}`}>

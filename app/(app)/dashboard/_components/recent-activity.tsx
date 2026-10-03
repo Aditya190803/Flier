@@ -56,14 +56,12 @@ function statusConfig(status: string) {
     case "completed":
       return {
         label: "Completed",
-        class:
-          "bg-emerald-500/10 text-emerald-700 border-emerald-300 dark:text-emerald-400",
+        class: "bg-emerald-500/10 text-emerald-700 border-emerald-300 dark:text-emerald-400",
       };
     case "sending":
       return {
         label: "Sending",
-        class:
-          "bg-yellow-500/10 text-yellow-700 border-yellow-300 dark:text-yellow-400",
+        class: "bg-yellow-500/10 text-yellow-700 border-yellow-300 dark:text-yellow-400",
       };
     case "failed":
       return {
@@ -93,12 +91,7 @@ export function RecentActivityFeed({
             Your latest email campaign activity
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          asChild
-          className="hidden sm:inline-flex gap-1.5"
-        >
+        <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex gap-1.5">
           <Link href="/insights">
             View all <ArrowRight className="h-3.5 w-3.5" />
           </Link>
@@ -221,10 +214,7 @@ export function RecentActivityFeed({
                           View Report
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => onDuplicate(c)}
-                          disabled={isDuplicating}
-                        >
+                        <DropdownMenuItem onClick={() => onDuplicate(c)} disabled={isDuplicating}>
                           <Copy className="h-3.5 w-3.5 mr-2" />
                           Duplicate
                         </DropdownMenuItem>
@@ -246,8 +236,7 @@ export function RecentActivityFeed({
                 className="w-full text-muted-foreground hover:text-foreground gap-1.5"
               >
                 <Link href="/insights">
-                  View all {campaigns.length} campaigns{" "}
-                  <ArrowRight className="h-3.5 w-3.5" />
+                  View all {campaigns.length} campaigns <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </Button>
             </div>

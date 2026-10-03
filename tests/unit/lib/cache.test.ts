@@ -5,14 +5,7 @@
  * functions (getOrSet, cached, invalidatePattern, key prefixing).
  */
 
-import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-  afterEach,
-} from "vite-plus/test";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vite-plus/test";
 
 const { mockRedisInstance, RedisCtor } = vi.hoisted(() => {
   const instance = {
@@ -30,9 +23,7 @@ const { mockRedisInstance, RedisCtor } = vi.hoisted(() => {
   }
   return {
     mockRedisInstance: instance,
-    RedisCtor: vi.fn(
-      MockRedis as unknown as new (...args: unknown[]) => unknown,
-    ),
+    RedisCtor: vi.fn(MockRedis as unknown as new (...args: unknown[]) => unknown),
   };
 });
 
@@ -41,18 +32,11 @@ vi.mock("@upstash/redis", () => ({
 }));
 
 vi.mock("@/lib/logger", async () => {
-  const { createMockLoggerModule } =
-    await import("@/tests/helpers/mockLoggerModule");
+  const { createMockLoggerModule } = await import("@/tests/helpers/mockLoggerModule");
   return createMockLoggerModule();
 });
 
-import {
-  MemoryCache,
-  UpstashCache,
-  getOrSet,
-  cached,
-  invalidatePattern,
-} from "@/lib/cache";
+import { MemoryCache, UpstashCache, getOrSet, cached, invalidatePattern } from "@/lib/cache";
 
 function resetRedisMocks() {
   mockRedisInstance.get.mockReset();
@@ -127,8 +111,7 @@ describe("UpstashCache provider", () => {
 
   beforeEach(() => {
     resetRedisMocks();
-    process.env.UPSTASH_REDIS_REST_URL =
-      "https://real-upstash-instance.example.com";
+    process.env.UPSTASH_REDIS_REST_URL = "https://real-upstash-instance.example.com";
     process.env.UPSTASH_REDIS_REST_TOKEN = "test-token";
   });
 

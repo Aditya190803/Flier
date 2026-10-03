@@ -39,10 +39,7 @@ export async function DELETE(request: NextRequest) {
     };
 
     // Helper to delete all documents in a collection
-    async function deleteUserDocuments(
-      collectionId: string,
-      key: keyof typeof deletionResults,
-    ) {
+    async function deleteUserDocuments(collectionId: string, key: keyof typeof deletionResults) {
       if (!collectionId) {
         return;
       }
@@ -50,11 +47,10 @@ export async function DELETE(request: NextRequest) {
       try {
         let hasMore = true;
         while (hasMore) {
-          const docs = await databases.listDocuments(
-            config.databaseId,
-            collectionId,
-            [Query.equal("user_email", userEmail), Query.limit(100)],
-          );
+          const docs = await databases.listDocuments(config.databaseId, collectionId, [
+            Query.equal("user_email", userEmail),
+            Query.limit(100),
+          ]);
 
           if (docs.documents.length === 0) {
             hasMore = false;
@@ -63,18 +59,12 @@ export async function DELETE(request: NextRequest) {
 
           for (const doc of docs.documents) {
             try {
-              await databases.deleteDocument(
-                config.databaseId,
-                collectionId,
-                doc.$id,
-              );
+              await databases.deleteDocument(config.databaseId, collectionId, doc.$id);
               if (typeof deletionResults[key] === "number") {
                 (deletionResults[key] as number)++;
               }
             } catch (e) {
-              deletionResults.errors.push(
-                `Failed to delete ${key} ${doc.$id}: ${errorMessage(e)}`,
-              );
+              deletionResults.errors.push(`Failed to delete ${key} ${doc.$id}: ${errorMessage(e)}`);
             }
           }
         }
@@ -111,9 +101,7 @@ export async function DELETE(request: NextRequest) {
       deletionResults.scheduled_campaigns = scheduled.scheduledCampaigns;
       deletionResults.oauth_tokens = scheduled.oauthTokens;
     } catch (e) {
-      deletionResults.errors.push(
-        `Failed to delete scheduled sending data: ${errorMessage(e)}`,
-      );
+      deletionResults.errors.push(`Failed to delete scheduled sending data: ${errorMessage(e)}`);
     }
 
     // Third group - GDPR/compliance collections (optional)
@@ -130,14 +118,10 @@ export async function DELETE(request: NextRequest) {
         // Note: Appwrite doesn't have a direct way to list files by user
         // In a production system, you'd want to track file ownership in a collection
         // For now, we'll skip attachment deletion or implement a workaround
-        apiLogger.debug(
-          "Attachment deletion would require file ownership tracking",
-        );
+        apiLogger.debug("Attachment deletion would require file ownership tracking");
       }
     } catch (e) {
-      deletionResults.errors.push(
-        `Failed to delete attachments: ${errorMessage(e)}`,
-      );
+      deletionResults.errors.push(`Failed to delete attachments: ${errorMessage(e)}`);
     }
 
     // Log the deletion (to a separate permanent audit log if needed)
@@ -162,10 +146,7 @@ export async function DELETE(request: NextRequest) {
       details: deletionResults,
     });
   } catch (error) {
-    apiLogger.error(
-      "Error deleting user data",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error deleting user data", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: errorMessage(error) || "Failed to delete user data" },
       { status: 500 },
@@ -185,14 +166,10 @@ export async function GET(request: NextRequest) {
     // This endpoint would check the status of a pending deletion
     return NextResponse.json({
       message: "Use DELETE method to initiate data deletion",
-      warning:
-        "This action is irreversible. All your data will be permanently deleted.",
+      warning: "This action is irreversible. All your data will be permanently deleted.",
     });
   } catch (error) {
-    apiLogger.error(
-      "Error checking deletion status",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error checking deletion status", error instanceof Error ? error : undefined);
     return NextResponse.json(
       { error: errorMessage(error) || "Failed to check deletion status" },
       { status: 500 },

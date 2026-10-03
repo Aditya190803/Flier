@@ -11,27 +11,31 @@ describe("getRecipientsArray", () => {
   });
 
   it("filters out non-string entries from an array", () => {
-    expect(
-      getRecipientsArray(["a@example.com", 42, null, "b@example.com"]),
-    ).toEqual(["a@example.com", "b@example.com"]);
+    expect(getRecipientsArray(["a@example.com", 42, null, "b@example.com"])).toEqual([
+      "a@example.com",
+      "b@example.com",
+    ]);
   });
 
   it("parses a JSON-encoded array string", () => {
-    expect(
-      getRecipientsArray(JSON.stringify(["a@example.com", "b@example.com"])),
-    ).toEqual(["a@example.com", "b@example.com"]);
+    expect(getRecipientsArray(JSON.stringify(["a@example.com", "b@example.com"]))).toEqual([
+      "a@example.com",
+      "b@example.com",
+    ]);
   });
 
   it("filters non-string entries from a parsed JSON array", () => {
-    expect(
-      getRecipientsArray(JSON.stringify(["a@example.com", 1, true])),
-    ).toEqual(["a@example.com"]);
+    expect(getRecipientsArray(JSON.stringify(["a@example.com", 1, true]))).toEqual([
+      "a@example.com",
+    ]);
   });
 
   it("falls back to delimiter splitting when the string is not valid JSON", () => {
-    expect(
-      getRecipientsArray("a@example.com, b@example.com; c@example.com"),
-    ).toEqual(["a@example.com", "b@example.com", "c@example.com"]);
+    expect(getRecipientsArray("a@example.com, b@example.com; c@example.com")).toEqual([
+      "a@example.com",
+      "b@example.com",
+      "c@example.com",
+    ]);
   });
 
   it("splits on newlines too and trims whitespace", () => {

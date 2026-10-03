@@ -41,8 +41,6 @@ export async function requireSession(
   };
 }
 
-export function isAuthed(
-  result: AuthedSession | NextResponse,
-): result is AuthedSession {
+export function isAuthed(result: AuthedSession | NextResponse): result is AuthedSession {
   return !(result instanceof NextResponse);
 }

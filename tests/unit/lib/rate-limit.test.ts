@@ -4,14 +4,7 @@
  * and the Upstash-backed async path (Redis mocked, no network).
  */
 
-import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-  afterEach,
-} from "vite-plus/test";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vite-plus/test";
 
 const { mockRedisInstance, RedisCtor } = vi.hoisted(() => {
   const instance = {
@@ -26,9 +19,7 @@ const { mockRedisInstance, RedisCtor } = vi.hoisted(() => {
   }
   return {
     mockRedisInstance: instance,
-    RedisCtor: vi.fn(
-      MockRedis as unknown as new (...args: unknown[]) => unknown,
-    ),
+    RedisCtor: vi.fn(MockRedis as unknown as new (...args: unknown[]) => unknown),
   };
 });
 
@@ -37,8 +28,7 @@ vi.mock("@upstash/redis", () => ({
 }));
 
 vi.mock("@/lib/logger", async () => {
-  const { createMockLoggerModule } =
-    await import("@/tests/helpers/mockLoggerModule");
+  const { createMockLoggerModule } = await import("@/tests/helpers/mockLoggerModule");
   return createMockLoggerModule();
 });
 
@@ -145,20 +135,14 @@ describe("checkRateLimit (in-memory)", () => {
     expect(second.allowed).toBe(false);
 
     // A different IP is an independent bucket.
-    const third = checkRateLimit(
-      makeRequest({ "x-forwarded-for": "198.51.100.9" }),
-      config,
-    );
+    const third = checkRateLimit(makeRequest({ "x-forwarded-for": "198.51.100.9" }), config);
     expect(third.allowed).toBe(true);
   });
 
   it("falls back to x-real-ip, then unknown-ip, when no forwarded-for header", () => {
     const config = { windowMs: 60_000, maxRequests: 1 };
 
-    const withRealIp = checkRateLimit(
-      makeRequest({ "x-real-ip": "192.0.2.1" }),
-      config,
-    );
+    const withRealIp = checkRateLimit(makeRequest({ "x-real-ip": "192.0.2.1" }), config);
     expect(withRealIp.allowed).toBe(true);
 
     const noHeaders = checkRateLimit(makeRequest(), config);
@@ -199,10 +183,7 @@ describe("rateLimit() wrapper", () => {
 
   it("returns null when allowed", () => {
     const config = { windowMs: 60_000, maxRequests: 5 };
-    const result = rateLimit(
-      makeRequest({ "x-forwarded-for": "10.10.10.1" }),
-      config,
-    );
+    const result = rateLimit(makeRequest({ "x-forwarded-for": "10.10.10.1" }), config);
     expect(result).toBeNull();
   });
 
@@ -346,8 +327,7 @@ describe("rateLimitAsync / rateLimitUserEmailAsync (Upstash configured)", () => 
     vi.resetModules();
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2024-01-15T12:00:00Z"));
-    process.env.UPSTASH_REDIS_REST_URL =
-      "https://real-upstash-instance.example.com";
+    process.env.UPSTASH_REDIS_REST_URL = "https://real-upstash-instance.example.com";
     process.env.UPSTASH_REDIS_REST_TOKEN = "test-token";
     mockRedisInstance.incr.mockReset();
     mockRedisInstance.expire.mockReset();
@@ -365,13 +345,10 @@ describe("rateLimitAsync / rateLimitUserEmailAsync (Upstash configured)", () => 
     mockRedisInstance.expire.mockResolvedValueOnce(1);
 
     const { rateLimitAsync } = await import("@/lib/rate-limit");
-    const result = await rateLimitAsync(
-      makeRequest({ "x-forwarded-for": "1.2.3.4" }),
-      {
-        windowMs: 60_000,
-        maxRequests: 5,
-      },
-    );
+    const result = await rateLimitAsync(makeRequest({ "x-forwarded-for": "1.2.3.4" }), {
+      windowMs: 60_000,
+      maxRequests: 5,
+    });
 
     expect(result).toBeNull();
     expect(mockRedisInstance.incr).toHaveBeenCalledTimes(1);
@@ -383,13 +360,10 @@ describe("rateLimitAsync / rateLimitUserEmailAsync (Upstash configured)", () => 
     mockRedisInstance.ttl.mockResolvedValueOnce(30);
 
     const { rateLimitAsync } = await import("@/lib/rate-limit");
-    const result = await rateLimitAsync(
-      makeRequest({ "x-forwarded-for": "1.2.3.5" }),
-      {
-        windowMs: 60_000,
-        maxRequests: 5,
-      },
-    );
+    const result = await rateLimitAsync(makeRequest({ "x-forwarded-for": "1.2.3.5" }), {
+      windowMs: 60_000,
+      maxRequests: 5,
+    });
 
     expect(result).toBeInstanceOf(Response);
     expect(result?.status).toBe(429);
@@ -397,18 +371,13 @@ describe("rateLimitAsync / rateLimitUserEmailAsync (Upstash configured)", () => 
   });
 
   it("fails open to in-memory limiting when Redis throws", async () => {
-    mockRedisInstance.incr.mockRejectedValueOnce(
-      new Error("connection refused"),
-    );
+    mockRedisInstance.incr.mockRejectedValueOnce(new Error("connection refused"));
 
     const { rateLimitAsync } = await import("@/lib/rate-limit");
-    const result = await rateLimitAsync(
-      makeRequest({ "x-forwarded-for": "1.2.3.6" }),
-      {
-        windowMs: 60_000,
-        maxRequests: 5,
-      },
-    );
+    const result = await rateLimitAsync(makeRequest({ "x-forwarded-for": "1.2.3.6" }), {
+      windowMs: 60_000,
+      maxRequests: 5,
+    });
 
     // Falls back to the in-memory path, which allows the first request.
     expect(result).toBeNull();

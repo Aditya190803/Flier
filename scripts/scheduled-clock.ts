@@ -4,9 +4,7 @@ import { closeDatabase } from "../lib/db";
 
 loadEnv({ path: ".env.local", quiet: true });
 
-const configuredInterval = Number(
-  process.env.SCHEDULED_CLOCK_INTERVAL_MS || 60_000,
-);
+const configuredInterval = Number(process.env.SCHEDULED_CLOCK_INTERVAL_MS || 60_000);
 const intervalMs = Number.isFinite(configuredInterval)
   ? Math.max(15_000, configuredInterval)
   : 60_000;
@@ -31,16 +29,13 @@ function wait(): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  const { runScheduledCampaignPass } =
-    await import("../lib/services/scheduled-campaign-worker");
+  const { runScheduledCampaignPass } = await import("../lib/services/scheduled-campaign-worker");
 
   try {
     while (!stopping) {
       try {
         const result = await runScheduledCampaignPass();
-        console.log(
-          JSON.stringify({ event: "scheduled_campaign_pass", ...result }),
-        );
+        console.log(JSON.stringify({ event: "scheduled_campaign_pass", ...result }));
       } catch (error) {
         console.error(
           JSON.stringify({

@@ -49,30 +49,20 @@ export async function GET(request: NextRequest) {
       return single;
     }
 
-    const response = await databases.listDocuments(
-      config.databaseId,
-      config.webhooksCollectionId,
-      [
-        Query.equal("user_email", auth.email),
-        Query.orderDesc("$updatedAt"),
-        Query.limit(50),
-      ],
-    );
+    const response = await databases.listDocuments(config.databaseId, config.webhooksCollectionId, [
+      Query.equal("user_email", auth.email),
+      Query.orderDesc("$updatedAt"),
+      Query.limit(50),
+    ]);
 
-    const documents = (
-      response.documents as unknown as ExtendedWebhookDocument[]
-    ).map(mapWebhook);
+    const documents = (response.documents as unknown as ExtendedWebhookDocument[]).map(mapWebhook);
 
     return NextResponse.json({ total: response.total, documents });
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error fetching webhooks",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error fetching webhooks", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to fetch webhooks",
+        error: error instanceof Error ? error.message : "Failed to fetch webhooks",
       },
       { status: 500 },
     );
@@ -108,14 +98,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error creating webhook",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error creating webhook", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to create webhook",
+        error: error instanceof Error ? error.message : "Failed to create webhook",
       },
       { status: 500 },
     );
@@ -131,14 +117,10 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, name, url, events, is_active, secret, updateLastTriggered } =
-      body;
+    const { id, name, url, events, is_active, secret, updateLastTriggered } = body;
 
     if (!id) {
-      return NextResponse.json(
-        { error: "Webhook ID required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Webhook ID required" }, { status: 400 });
     }
 
     // Verify ownership
@@ -181,14 +163,10 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error updating webhook",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error updating webhook", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to update webhook",
+        error: error instanceof Error ? error.message : "Failed to update webhook",
       },
       { status: 500 },
     );
@@ -207,10 +185,7 @@ export async function DELETE(request: NextRequest) {
     const webhookId = searchParams.get("id");
 
     if (!webhookId) {
-      return NextResponse.json(
-        { error: "Webhook ID required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Webhook ID required" }, { status: 400 });
     }
 
     // Verify ownership
@@ -224,22 +199,14 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    await databases.deleteDocument(
-      config.databaseId,
-      config.webhooksCollectionId,
-      webhookId,
-    );
+    await databases.deleteDocument(config.databaseId, config.webhooksCollectionId, webhookId);
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error deleting webhook",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error deleting webhook", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to delete webhook",
+        error: error instanceof Error ? error.message : "Failed to delete webhook",
       },
       { status: 500 },
     );

@@ -46,9 +46,7 @@ export function useContactImportExport({
     toast.success("Contacts exported!");
   };
 
-  const handleFileImport = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !userEmail) {
       return;
@@ -71,9 +69,7 @@ export function useContactImportExport({
           .filter((contact) => contact.email && contact.email.includes("@"));
 
         if (contactsToImport.length > 0) {
-          const toastId = toast.loading(
-            `Importing ${contactsToImport.length} contacts...`,
-          );
+          const toastId = toast.loading(`Importing ${contactsToImport.length} contacts...`);
           let successCount = 0;
 
           for (const contact of contactsToImport) {
@@ -109,10 +105,7 @@ export function useContactImportExport({
           toast.error("No valid email addresses found");
         }
       } catch (error) {
-        componentLogger.error(
-          "File processing error",
-          error instanceof Error ? error : undefined,
-        );
+        componentLogger.error("File processing error", error instanceof Error ? error : undefined);
         toast.error("Error processing file");
       }
     };

@@ -6,11 +6,7 @@ import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.
 
 import { toast } from "sonner";
 
-import {
-  templatesService,
-  type EmailTemplate,
-  type TemplateVersion,
-} from "@/lib/appwrite";
+import { templatesService, type EmailTemplate, type TemplateVersion } from "@/lib/appwrite";
 import { componentLogger } from "@/lib/client-logger";
 import { DEFAULT_TEMPLATES } from "@/lib/templates/default-templates";
 
@@ -35,8 +31,7 @@ export function useTemplateActions({
 }: UseTemplateActionsArgs) {
   const [isLoading, setIsLoading] = useState(false);
   const [showVersionsDialog, setShowVersionsDialog] = useState(false);
-  const [versioningTemplate, setVersioningTemplate] =
-    useState<EmailTemplate | null>(null);
+  const [versioningTemplate, setVersioningTemplate] = useState<EmailTemplate | null>(null);
   const [versions, setVersions] = useState<TemplateVersion[]>([]);
   const [isLoadingVersions, setIsLoadingVersions] = useState(false);
 
@@ -80,18 +75,13 @@ export function useTemplateActions({
     } catch (error) {
       // Revert on error
       setTemplates((prev) => prev.filter((t) => t.$id !== tempId));
-      componentLogger.error(
-        "Error creating template",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error creating template", error instanceof Error ? error : undefined);
       toast.error("Failed to create template - changes reverted");
     }
   };
 
   // Add a default template to user's collection
-  const addDefaultTemplate = async (
-    defaultTemplate: (typeof DEFAULT_TEMPLATES)[0],
-  ) => {
+  const addDefaultTemplate = async (defaultTemplate: (typeof DEFAULT_TEMPLATES)[0]) => {
     if (!userEmail) {
       return;
     }
@@ -135,9 +125,7 @@ export function useTemplateActions({
         return;
       }
 
-      const toastId = toast.loading(
-        `Adding ${templatesToAdd.length} starter templates...`,
-      );
+      const toastId = toast.loading(`Adding ${templatesToAdd.length} starter templates...`);
       let addedCount = 0;
 
       for (const defaultTemplate of templatesToAdd) {
@@ -148,12 +136,9 @@ export function useTemplateActions({
           user_email: userEmail,
         });
         addedCount++;
-        toast.loading(
-          `Adding templates... (${addedCount}/${templatesToAdd.length})`,
-          {
-            id: toastId,
-          },
-        );
+        toast.loading(`Adding templates... (${addedCount}/${templatesToAdd.length})`, {
+          id: toastId,
+        });
       }
 
       toast.success(`Added ${templatesToAdd.length} starter templates!`, {
@@ -171,9 +156,7 @@ export function useTemplateActions({
   };
 
   // Apply a default template directly (without saving)
-  const applyDefaultTemplate = (
-    defaultTemplate: (typeof DEFAULT_TEMPLATES)[0],
-  ) => {
+  const applyDefaultTemplate = (defaultTemplate: (typeof DEFAULT_TEMPLATES)[0]) => {
     sessionStorage.setItem(
       "selectedTemplate",
       JSON.stringify({
@@ -205,15 +188,10 @@ export function useTemplateActions({
         changeNote: changeNote.trim() || undefined,
       });
 
-      toast.success(
-        saveVersion ? "Template updated (version saved)" : "Template updated!",
-      );
+      toast.success(saveVersion ? "Template updated (version saved)" : "Template updated!");
       fetchTemplates();
     } catch (error) {
-      componentLogger.error(
-        "Error updating template",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error updating template", error instanceof Error ? error : undefined);
       toast.error("Failed to update template");
     }
     setIsLoading(false);
@@ -236,10 +214,7 @@ export function useTemplateActions({
     } catch (error) {
       // Revert on error
       setTemplates((prev) => [...prev, templateToDelete]);
-      componentLogger.error(
-        "Error deleting template",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error deleting template", error instanceof Error ? error : undefined);
       toast.error("Failed to delete template - restored");
     }
   };
@@ -314,10 +289,7 @@ export function useTemplateActions({
 
     setIsLoading(true);
     try {
-      await templatesService.restoreVersion(
-        versioningTemplate.$id,
-        version.$id!,
-      );
+      await templatesService.restoreVersion(versioningTemplate.$id, version.$id!);
       toast.success(`Restored to version ${version.version}`);
       setShowVersionsDialog(false);
       setVersioningTemplate(null);

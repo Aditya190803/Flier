@@ -1,8 +1,6 @@
 const NETWORK_RETRY_DELAY_MS = 5000;
 
-export const waitForNetwork = async (
-  shouldStop: () => boolean,
-): Promise<boolean> => {
+export const waitForNetwork = async (shouldStop: () => boolean): Promise<boolean> => {
   if (typeof window === "undefined") {
     return true;
   }

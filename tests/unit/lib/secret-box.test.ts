@@ -43,9 +43,7 @@ describe("secret-box", () => {
     const token = encryptSecret("tamper-me");
     const parts = token.split(".");
     // Flip a character in the ciphertext segment.
-    parts[3] = parts[3].startsWith("A")
-      ? `B${parts[3].slice(1)}`
-      : `A${parts[3].slice(1)}`;
+    parts[3] = parts[3].startsWith("A") ? `B${parts[3].slice(1)}` : `A${parts[3].slice(1)}`;
     expect(decryptSecret(parts.join("."))).toBeNull();
   });
 

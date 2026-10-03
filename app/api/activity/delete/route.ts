@@ -21,10 +21,7 @@ export async function DELETE(request: NextRequest) {
     const deleteAll = searchParams.get("all") === "true";
 
     if (!campaignId && !deleteAll) {
-      return NextResponse.json(
-        { error: "Campaign ID or 'all=true' is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Campaign ID or 'all=true' is required" }, { status: 400 });
     }
 
     const queries = [Query.equal("user_email", auth.email)];
@@ -50,11 +47,7 @@ export async function DELETE(request: NextRequest) {
       }
 
       const deletePromises = response.documents.map((doc) =>
-        databases.deleteDocument(
-          config.databaseId,
-          config.trackingEventsCollectionId,
-          doc.$id,
-        ),
+        databases.deleteDocument(config.databaseId, config.trackingEventsCollectionId, doc.$id),
       );
 
       await Promise.all(deletePromises);
@@ -74,13 +67,7 @@ export async function DELETE(request: NextRequest) {
         : `Tracking data for campaign ${campaignId} deleted successfully`,
     });
   } catch (error) {
-    apiLogger.error(
-      "Error deleting tracking data",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Failed to delete tracking data" },
-      { status: 500 },
-    );
+    apiLogger.error("Error deleting tracking data", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Failed to delete tracking data" }, { status: 500 });
   }
 }

@@ -13,8 +13,7 @@ export interface ScheduledCampaign {
   recipients: string[];
   scheduled_at: string;
   timezone?: string;
-  status:
-    "scheduled" | "processing" | "sent" | "partial" | "failed" | "cancelled";
+  status: "scheduled" | "processing" | "sent" | "partial" | "failed" | "cancelled";
   user_email: string;
   campaign_id: string;
   attachments: StoredScheduledAttachment[];

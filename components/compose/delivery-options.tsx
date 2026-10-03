@@ -80,16 +80,12 @@ export function DeliveryOptions({
                   : "border-muted hover:border-muted-foreground/30 hover:bg-muted/50"
               }`}
             >
-              <div
-                className={`p-2 rounded-lg ${isActive ? "bg-primary/10" : "bg-muted"}`}
-              >
+              <div className={`p-2 rounded-lg ${isActive ? "bg-primary/10" : "bg-muted"}`}>
                 {mode.icon}
               </div>
               <div>
                 <p className="font-medium text-sm">{mode.label}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {mode.description}
-                </p>
+                <p className="text-xs text-muted-foreground mt-1">{mode.description}</p>
               </div>
             </button>
           );
@@ -129,9 +125,7 @@ export function DeliveryOptions({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  setScheduledAt(toDateTimeLocalValue(preset.getDate()))
-                }
+                onClick={() => setScheduledAt(toDateTimeLocalValue(preset.getDate()))}
               >
                 {preset.label}
               </Button>
@@ -143,8 +137,8 @@ export function DeliveryOptions({
           )}
 
           <p className="text-xs text-muted-foreground">
-            Scheduled campaigns are sent from our servers — you can close this
-            tab once it's queued. Manage or cancel them from the Scheduled page.
+            Scheduled campaigns are sent from our servers — you can close this tab once it's queued.
+            Manage or cancel them from the Scheduled page.
           </p>
         </div>
       )}

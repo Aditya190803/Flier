@@ -17,11 +17,7 @@ const draftEmailsCrudService = createCrudService<
 export const draftEmailsService = {
   ...draftEmailsCrudService,
 
-  async updateStatus(
-    emailId: string,
-    status: DraftEmail["status"],
-    error?: string,
-  ) {
+  async updateStatus(emailId: string, status: DraftEmail["status"], error?: string) {
     return apiRequest<DraftEmail>("/api/appwrite/draft-emails", {
       method: "PUT",
       body: JSON.stringify({ id: emailId, status, error }),
@@ -33,10 +29,7 @@ export const draftEmailsService = {
   },
 
   /** Refresh drafts periodically. See {@link pollForUpdates} — not realtime. */
-  subscribeToUserDraftEmails(
-    _userEmail: string,
-    callback: (response: unknown) => void,
-  ) {
+  subscribeToUserDraftEmails(_userEmail: string, callback: (response: unknown) => void) {
     return pollForUpdates(() => callback(undefined));
   },
 };

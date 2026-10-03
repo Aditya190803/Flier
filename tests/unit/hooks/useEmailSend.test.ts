@@ -3,20 +3,10 @@
  */
 
 import { renderHook, act } from "@testing-library/react";
-import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-  afterEach,
-} from "vite-plus/test";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vite-plus/test";
 
 import { useEmailSend } from "@/hooks/useEmailSend";
-import {
-  STORAGE_KEY_CAMPAIGN_STATE,
-  STORAGE_KEY_GMAIL_QUOTA,
-} from "@/lib/constants";
+import { STORAGE_KEY_CAMPAIGN_STATE, STORAGE_KEY_GMAIL_QUOTA } from "@/lib/constants";
 
 // Mock client-logger
 vi.mock("@/lib/client-logger", () => ({
@@ -221,10 +211,7 @@ describe("useEmailSend Hook", () => {
         results: [],
         startedAt: Date.now(),
       };
-      localStorage.setItem(
-        STORAGE_KEY_CAMPAIGN_STATE,
-        JSON.stringify(savedState),
-      );
+      localStorage.setItem(STORAGE_KEY_CAMPAIGN_STATE, JSON.stringify(savedState));
 
       const { result } = renderHook(() => useEmailSend());
 

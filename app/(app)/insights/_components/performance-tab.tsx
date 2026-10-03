@@ -21,28 +21,19 @@ export function PerformanceTab({
     return (
       <div className="border border-border/50 rounded-xl bg-card p-12 flex flex-col items-center justify-center text-center text-muted-foreground shadow-sm">
         <BarChart3 className="h-10 w-10 mb-4 opacity-40 text-primary" />
-        <h3 className="text-lg font-semibold text-foreground mb-1">
-          No Campaign Selected
-        </h3>
+        <h3 className="text-lg font-semibold text-foreground mb-1">No Campaign Selected</h3>
         <p className="max-w-sm text-sm">
-          Select a campaign above to view its delivery funnel and link
-          performance.
+          Select a campaign above to view its delivery funnel and link performance.
         </p>
       </div>
     );
   }
 
-  const campaign = historyData?.recentCampaigns?.find(
-    (c) => c.$id === selectedHeatmapCampaignId,
-  );
-  const events = allTrackingEvents.filter(
-    (e) => e.campaign_id === selectedHeatmapCampaignId,
-  );
+  const campaign = historyData?.recentCampaigns?.find((c) => c.$id === selectedHeatmapCampaignId);
+  const events = allTrackingEvents.filter((e) => e.campaign_id === selectedHeatmapCampaignId);
   const sent = campaign?.sent || 0;
 
-  const openedEmails = new Set(
-    events.filter((e) => e.event_type === "open").map((e) => e.email),
-  );
+  const openedEmails = new Set(events.filter((e) => e.event_type === "open").map((e) => e.email));
 
   if (sent === 0) {
     return (

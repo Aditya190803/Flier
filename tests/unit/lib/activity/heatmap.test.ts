@@ -74,9 +74,7 @@ describe("aggregateClickData", () => {
       makeEvent({ link_url: "not-a-valid-url", email: "x@example.com" }),
     ];
     const result = aggregateClickData(events, "camp-1");
-    const valid = result.links.find(
-      (l) => l.url === "https://example.com/some/path",
-    );
+    const valid = result.links.find((l) => l.url === "https://example.com/some/path");
     const invalid = result.links.find((l) => l.url === "not-a-valid-url");
 
     expect(valid?.displayText).toBe("example.com/some/path");
@@ -170,8 +168,7 @@ describe("extractLinksFromContent", () => {
   });
 
   it("extracts href, inner text (stripped of tags), and position", () => {
-    const html =
-      '<p>See <a href="https://example.com">our <b>site</b></a> now.</p>';
+    const html = '<p>See <a href="https://example.com">our <b>site</b></a> now.</p>';
     const links = extractLinksFromContent(html);
 
     expect(links).toHaveLength(1);
@@ -181,8 +178,7 @@ describe("extractLinksFromContent", () => {
   });
 
   it("extracts multiple links in order", () => {
-    const html =
-      '<a href="https://a.com">A</a> text <a href="https://b.com">B</a>';
+    const html = '<a href="https://a.com">A</a> text <a href="https://b.com">B</a>';
     const links = extractLinksFromContent(html);
     expect(links.map((l) => l.url)).toEqual(["https://a.com", "https://b.com"]);
   });
@@ -193,9 +189,7 @@ describe("mergeHeatmapWithContent", () => {
     const heatmap: ClickHeatmapData = {
       campaignId: "camp-1",
       totalClicks: 5,
-      links: [
-        { url: "https://a.com", clicks: 5, uniqueClicks: 5, percentage: 100 },
-      ],
+      links: [{ url: "https://a.com", clicks: 5, uniqueClicks: 5, percentage: 100 }],
     };
     const contentLinks = [
       { url: "https://a.com", text: "A", position: 0 },

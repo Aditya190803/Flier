@@ -16,13 +16,7 @@ export async function POST(request: NextRequest) {
   try {
     return NextResponse.json(await runScheduledCampaignPass());
   } catch (error) {
-    apiLogger.error(
-      "Scheduled send worker failed",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Scheduled send worker failed" },
-      { status: 500 },
-    );
+    apiLogger.error("Scheduled send worker failed", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Scheduled send worker failed" }, { status: 500 });
   }
 }

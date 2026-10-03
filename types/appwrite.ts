@@ -52,14 +52,7 @@ export interface CampaignDocument extends AppwriteDocument {
   sent?: number;
   /** Recipients that errored */
   failed?: number;
-  status?:
-    | "draft"
-    | "scheduled"
-    | "sending"
-    | "partial"
-    | "completed"
-    | "failed"
-    | "paused";
+  status?: "draft" | "scheduled" | "sending" | "partial" | "completed" | "failed" | "paused";
   campaign_type?: string;
   /** JSON-encoded attachment descriptors */
   attachments?: string | unknown[];
@@ -247,17 +240,13 @@ export interface AnalyticsDocument extends AppwriteDocument {
 /**
  * Type helper for casting Appwrite documents
  */
-export function asDocument<T extends AppwriteDocument>(
-  doc: Models.Document,
-): T {
+export function asDocument<T extends AppwriteDocument>(doc: Models.Document): T {
   return doc as T;
 }
 
 /**
  * Type helper for casting Appwrite document arrays
  */
-export function asDocuments<T extends AppwriteDocument>(
-  docs: Models.Document[],
-): T[] {
+export function asDocuments<T extends AppwriteDocument>(docs: Models.Document[]): T[] {
   return docs as T[];
 }

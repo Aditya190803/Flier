@@ -26,17 +26,14 @@ const EmailClientPreviewSkeleton = () => (
   <div className="flex items-center justify-center p-8">
     <div className="flex flex-col items-center gap-2">
       <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      <span className="text-sm text-muted-foreground">
-        Loading email client preview...
-      </span>
+      <span className="text-sm text-muted-foreground">Loading email client preview...</span>
     </div>
   </div>
 );
 
 // TipTap is ~150KB, load on demand.
 export const LazyRichTextEditor = dynamic(
-  () =>
-    import("@/components/rich-text-editor").then((mod) => mod.RichTextEditor),
+  () => import("@/components/rich-text-editor").then((mod) => mod.RichTextEditor),
   {
     loading: () => <RichTextEditorSkeleton />,
     ssr: false,
@@ -52,10 +49,7 @@ export const LazyEmailPreview = dynamic(
 );
 
 export const LazyEmailClientPreview = dynamic(
-  () =>
-    import("@/components/email-client-preview").then(
-      (mod) => mod.EmailClientPreview,
-    ),
+  () => import("@/components/email-client-preview").then((mod) => mod.EmailClientPreview),
   {
     loading: () => <EmailClientPreviewSkeleton />,
     ssr: false,
@@ -71,10 +65,7 @@ export const LazyCSVUpload = dynamic(
 );
 
 export const LazyKeyboardShortcutsModal = dynamic(
-  () =>
-    import("@/components/keyboard-shortcuts-modal").then(
-      (mod) => mod.KeyboardShortcutsModal,
-    ),
+  () => import("@/components/keyboard-shortcuts-modal").then((mod) => mod.KeyboardShortcutsModal),
   {
     loading: () => null,
     ssr: false,

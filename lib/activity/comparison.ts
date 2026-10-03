@@ -82,9 +82,7 @@ function calculatePeriodMetrics(
 /**
  * Generate week-over-week comparison
  */
-export function generateWeekOverWeekComparison(
-  campaigns: CampaignAnalytics[],
-): ComparisonReport {
+export function generateWeekOverWeekComparison(campaigns: CampaignAnalytics[]): ComparisonReport {
   const now = new Date();
 
   // Current week (last 7 days)
@@ -135,9 +133,7 @@ export function generateWeekOverWeekComparison(
 /**
  * Generate month-over-month comparison
  */
-export function generateMonthOverMonthComparison(
-  campaigns: CampaignAnalytics[],
-): ComparisonReport {
+export function generateMonthOverMonthComparison(campaigns: CampaignAnalytics[]): ComparisonReport {
   const now = new Date();
 
   // Current month
@@ -239,10 +235,7 @@ export function generateCampaignComparison(
 /**
  * Calculate metric changes between periods
  */
-function calculateMetricChanges(
-  current: PeriodMetrics,
-  previous: PeriodMetrics,
-): MetricChanges {
+function calculateMetricChanges(current: PeriodMetrics, previous: PeriodMetrics): MetricChanges {
   return {
     campaigns: calculateChange(current.campaigns, previous.campaigns),
     sent: calculateChange(current.sent, previous.sent),
@@ -281,14 +274,10 @@ export function generateCustomPeriodComparison(
     case "campaign":
       // For campaign comparison, use the two most recent campaigns
       const sortedCampaigns = [...campaigns].sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
       if (sortedCampaigns.length >= 2) {
-        return generateCampaignComparison(
-          sortedCampaigns[0],
-          sortedCampaigns[1],
-        );
+        return generateCampaignComparison(sortedCampaigns[0], sortedCampaigns[1]);
       }
       // Fallback to week comparison if not enough campaigns
       return generateWeekOverWeekComparison(campaigns);
@@ -332,32 +321,18 @@ export function getTrendIndicator(change: ChangeValue): {
 export function formatComparisonSummary(report: ComparisonReport): string[] {
   const summaries: string[] = [];
 
-  summaries.push(
-    `Campaigns: ${report.current.campaigns} vs ${report.previous.campaigns}`,
-  );
-  summaries.push(
-    `Emails Sent: ${report.current.sent} vs ${report.previous.sent}`,
-  );
+  summaries.push(`Campaigns: ${report.current.campaigns} vs ${report.previous.campaigns}`);
+  summaries.push(`Emails Sent: ${report.current.sent} vs ${report.previous.sent}`);
   summaries.push(
     `Success Rate: ${report.current.successRate.toFixed(1)}% vs ${report.previous.successRate.toFixed(1)}%`,
   );
 
-  if (
-    report.current.opens !== undefined &&
-    report.previous.opens !== undefined
-  ) {
-    summaries.push(
-      `Opens: ${report.current.opens} vs ${report.previous.opens}`,
-    );
+  if (report.current.opens !== undefined && report.previous.opens !== undefined) {
+    summaries.push(`Opens: ${report.current.opens} vs ${report.previous.opens}`);
   }
 
-  if (
-    report.current.clicks !== undefined &&
-    report.previous.clicks !== undefined
-  ) {
-    summaries.push(
-      `Clicks: ${report.current.clicks} vs ${report.previous.clicks}`,
-    );
+  if (report.current.clicks !== undefined && report.previous.clicks !== undefined) {
+    summaries.push(`Clicks: ${report.current.clicks} vs ${report.previous.clicks}`);
   }
 
   return summaries;

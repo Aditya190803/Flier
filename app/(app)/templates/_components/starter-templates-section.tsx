@@ -4,10 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { EmailTemplate } from "@/lib/appwrite";
-import {
-  DEFAULT_TEMPLATES,
-  getCategoryInfo,
-} from "@/lib/templates/default-templates";
+import { DEFAULT_TEMPLATES, getCategoryInfo } from "@/lib/templates/default-templates";
 
 const PERSONALIZATION_PLACEHOLDERS = [
   "{{name}}",
@@ -21,12 +18,8 @@ interface StarterTemplatesSectionProps {
   templates: EmailTemplate[];
   isLoading: boolean;
   onAddAllDefaultTemplates: () => void;
-  onApplyDefaultTemplate: (
-    defaultTemplate: (typeof DEFAULT_TEMPLATES)[0],
-  ) => void;
-  onAddDefaultTemplate: (
-    defaultTemplate: (typeof DEFAULT_TEMPLATES)[0],
-  ) => void;
+  onApplyDefaultTemplate: (defaultTemplate: (typeof DEFAULT_TEMPLATES)[0]) => void;
+  onAddDefaultTemplate: (defaultTemplate: (typeof DEFAULT_TEMPLATES)[0]) => void;
 }
 
 export function StarterTemplatesSection({
@@ -48,11 +41,7 @@ export function StarterTemplatesSection({
             Quick-start templates with placeholders for personalization
           </p>
         </div>
-        <Button
-          variant="outline"
-          onClick={onAddAllDefaultTemplates}
-          disabled={isLoading}
-        >
+        <Button variant="outline" onClick={onAddAllDefaultTemplates} disabled={isLoading}>
           <Plus className="h-4 w-4 mr-2" />
           Add All to My Templates
         </Button>
@@ -128,12 +117,9 @@ export function StarterTemplatesSection({
               <Sparkles className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <h4 className="font-medium text-sm mb-1">
-                Personalization Placeholders
-              </h4>
+              <h4 className="font-medium text-sm mb-1">Personalization Placeholders</h4>
               <p className="text-xs text-muted-foreground mb-2">
-                These templates use placeholders that get replaced with actual
-                data when sending:
+                These templates use placeholders that get replaced with actual data when sending:
               </p>
               <div className="flex flex-wrap gap-2">
                 {PERSONALIZATION_PLACEHOLDERS.map((placeholder) => (

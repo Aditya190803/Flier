@@ -7,10 +7,7 @@ import {
   getAttachmentFileType,
   personalizeAttachmentFileName,
 } from "@/lib/attachments/metadata";
-import {
-  getAttachmentSource,
-  getDirectDownloadUrl,
-} from "@/lib/attachments/url";
+import { getAttachmentSource, getDirectDownloadUrl } from "@/lib/attachments/url";
 import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
@@ -66,12 +63,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            "Failed to access the file. Please check the URL is accessible.",
+          error: "Failed to access the file. Please check the URL is accessible.",
           metadata: {
-            fileName: recipientName
-              ? `${recipientName}_attachment.pdf`
-              : "attachment.pdf",
+            fileName: recipientName ? `${recipientName}_attachment.pdf` : "attachment.pdf",
             fileSize: null,
             fileType: "other" as const,
             source,
@@ -82,23 +76,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const contentType =
-      response.headers.get("content-type") || "application/octet-stream";
+    const contentType = response.headers.get("content-type") || "application/octet-stream";
     const contentDisposition = response.headers.get("content-disposition");
     const contentLength = response.headers.get("content-length");
 
-    const fileName = extractAttachmentFileName(
-      url,
-      contentDisposition,
-      undefined,
-      contentType,
-    );
+    const fileName = extractAttachmentFileName(url, contentDisposition, undefined, contentType);
     const fileType = getAttachmentFileType(url, contentType);
     const fileSize = contentLength ? parseInt(contentLength, 10) : null;
-    const personalizedFileName = personalizeAttachmentFileName(
-      fileName,
-      recipientName,
-    );
+    const personalizedFileName = personalizeAttachmentFileName(fileName, recipientName);
 
     logger.debug(`Attachment metadata fetched`, {
       fileName: personalizedFileName,
@@ -120,13 +105,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    logger.error(
-      "Error in attachment-metadata API",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    logger.error("Error in attachment-metadata API", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

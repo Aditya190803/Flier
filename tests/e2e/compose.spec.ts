@@ -10,9 +10,7 @@ test.describe("Compose Email", () => {
   });
 
   test("should display compose form", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", { name: "New Campaign" }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "New Campaign" })).toBeVisible();
   });
 
   test("should have subject input field", async ({ page }) => {
@@ -25,9 +23,7 @@ test.describe("Compose Email", () => {
 
   test("should have rich text editor", async ({ page }) => {
     await page.getByRole("button", { name: /2 Compose/i }).click();
-    const editor = page
-      .locator('[contenteditable="true"]')
-      .or(page.locator(".ProseMirror"));
+    const editor = page.locator('[contenteditable="true"]').or(page.locator(".ProseMirror"));
     await expect(editor).toBeVisible();
   });
 
@@ -67,9 +63,7 @@ test.describe("CSV Upload", () => {
   });
 
   test("should have file upload input", async ({ page }) => {
-    const _fileInput = page
-      .locator('input[type="file"]')
-      .or(page.getByText(/upload|csv|import/i));
+    const _fileInput = page.locator('input[type="file"]').or(page.getByText(/upload|csv|import/i));
 
     // File upload should be available
     await expect(page.locator("body")).toBeVisible();
@@ -81,9 +75,7 @@ test.describe("Template Selection", () => {
     await page.goto("/compose");
 
     // Look for template button/dropdown
-    const templateButton = page
-      .getByRole("button", { name: "Use Template" })
-      .first();
+    const templateButton = page.getByRole("button", { name: "Use Template" }).first();
 
     if (await templateButton.isVisible()) {
       await templateButton.click();

@@ -38,10 +38,7 @@ export function convertOneDriveLink(url: string): string | null {
     downloadUrl = downloadUrl.replace("action=view", "action=download");
     downloadUrl = downloadUrl.replace("action=embed", "action=download");
 
-    if (
-      !downloadUrl.includes("download=1") &&
-      !downloadUrl.includes("action=download")
-    ) {
+    if (!downloadUrl.includes("download=1") && !downloadUrl.includes("action=download")) {
       const separator = downloadUrl.includes("?") ? "&" : "?";
       downloadUrl = `${downloadUrl}${separator}download=1`;
     }
@@ -55,10 +52,7 @@ export function convertOneDriveLink(url: string): string | null {
 export function getDirectDownloadUrl(url: string): string {
   const trimmedUrl = url.trim();
 
-  if (
-    trimmedUrl.includes("drive.google.com") ||
-    trimmedUrl.includes("docs.google.com")
-  ) {
+  if (trimmedUrl.includes("drive.google.com") || trimmedUrl.includes("docs.google.com")) {
     const converted = convertGoogleDriveLink(trimmedUrl);
     if (converted) {
       return converted;
@@ -200,10 +194,7 @@ export function getAttachmentSource(
 ): "google-drive" | "onedrive" | "dropbox" | "direct" {
   const lowerUrl = url.toLowerCase();
 
-  if (
-    lowerUrl.includes("drive.google.com") ||
-    lowerUrl.includes("docs.google.com")
-  ) {
+  if (lowerUrl.includes("drive.google.com") || lowerUrl.includes("docs.google.com")) {
     return "google-drive";
   }
 

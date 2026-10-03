@@ -163,8 +163,7 @@ export const authOptions: NextAuthOptions = {
           await persistRefreshToken({
             userEmail: user.email,
             refreshToken: account.refresh_token,
-            scope:
-              typeof account.scope === "string" ? account.scope : undefined,
+            scope: typeof account.scope === "string" ? account.scope : undefined,
           });
         }
 
@@ -215,9 +214,7 @@ export const authOptions: NextAuthOptions = {
     error(code, metadata) {
       authLogger.error(`NextAuth error: ${code}`, {
         error:
-          metadata instanceof Error
-            ? metadata.message
-            : JSON.stringify(metadata)?.slice(0, 2000),
+          metadata instanceof Error ? metadata.message : JSON.stringify(metadata)?.slice(0, 2000),
       });
     },
     warn(code) {

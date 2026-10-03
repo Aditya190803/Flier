@@ -1,9 +1,6 @@
 import { Clock, ExternalLink, FileText, Mail, Paperclip } from "lucide-react";
 
-import {
-  PieChartWidget,
-  LineChartWidget,
-} from "@/components/activity/dashboard-widgets";
+import { PieChartWidget, LineChartWidget } from "@/components/activity/dashboard-widgets";
 import { EmailHeatmapOverlay } from "@/components/activity/heatmap-overlay";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,10 +18,7 @@ import type { CampaignAnalytics, ClickHeatmapData } from "@/types/activity";
 
 import { CampaignRecipientsSection } from "./campaign-recipients-section";
 
-function getAttachmentUrl(attachment: {
-  fileUrl?: string;
-  appwrite_file_id?: string;
-}) {
+function getAttachmentUrl(attachment: { fileUrl?: string; appwrite_file_id?: string }) {
   if (attachment.appwrite_file_id) {
     return `/api/appwrite/attachments/${attachment.appwrite_file_id}`;
   }
@@ -89,19 +83,13 @@ export function CampaignDetailsDialog({
             <div className="bg-muted/40 rounded-xl p-5 space-y-4 border border-border/70">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold">
-                    {selectedCampaign.subject}
-                  </h3>
+                  <h3 className="text-lg font-semibold">{selectedCampaign.subject}</h3>
                   <p className="text-sm text-muted-foreground mt-1">
                     Sent on {formatDate(selectedCampaign.created_at)}
                   </p>
                 </div>
                 <Badge
-                  variant={
-                    selectedCampaign.status === "completed"
-                      ? "success"
-                      : "secondary"
-                  }
+                  variant={selectedCampaign.status === "completed" ? "success" : "secondary"}
                   className="capitalize"
                 >
                   {selectedCampaign.status}
@@ -136,30 +124,29 @@ export function CampaignDetailsDialog({
               </div>
 
               {/* Engagement Timeline */}
-              {campaignStats?.timeSeries &&
-                campaignStats.timeSeries.length > 0 && (
-                  <div className="bg-background rounded-lg p-4 border">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-                      Engagement Timeline
-                    </h4>
-                    <LineChartWidget
-                      title=""
-                      data={campaignStats.timeSeries.map((d: any) => ({
-                        name: new Date(d.date).toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                        }),
-                        opens: d.opens,
-                        clicks: d.clicks,
-                      }))}
-                      dataKey="opens"
-                      label="Opens"
-                      color="hsl(var(--primary))"
-                      size="small"
-                      className="border-0 shadow-none p-0"
-                    />
-                  </div>
-                )}
+              {campaignStats?.timeSeries && campaignStats.timeSeries.length > 0 && (
+                <div className="bg-background rounded-lg p-4 border">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+                    Engagement Timeline
+                  </h4>
+                  <LineChartWidget
+                    title=""
+                    data={campaignStats.timeSeries.map((d: any) => ({
+                      name: new Date(d.date).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                      }),
+                      opens: d.opens,
+                      clicks: d.clicks,
+                    }))}
+                    dataKey="opens"
+                    label="Opens"
+                    color="hsl(var(--primary))"
+                    size="small"
+                    className="border-0 shadow-none p-0"
+                  />
+                </div>
+              )}
 
               {/* Advanced Insights */}
               {campaignStats && (
@@ -171,9 +158,7 @@ export function CampaignDetailsDialog({
                     </h4>
                     <div className="space-y-2">
                       <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">
-                          First Open
-                        </span>
+                        <span className="text-muted-foreground">First Open</span>
                         <span className="font-medium">
                           {campaignStats.timing?.timeToFirstOpen
                             ? `${Math.round(campaignStats.timing.timeToFirstOpen / 60)}m`
@@ -181,9 +166,7 @@ export function CampaignDetailsDialog({
                         </span>
                       </div>
                       <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">
-                          First Click
-                        </span>
+                        <span className="text-muted-foreground">First Click</span>
                         <span className="font-medium">
                           {campaignStats.timing?.timeToFirstClick
                             ? `${Math.round(campaignStats.timing.timeToFirstClick / 60)}m`
@@ -270,52 +253,41 @@ export function CampaignDetailsDialog({
             </div>
 
             {/* Attachments */}
-            {selectedCampaign.attachments &&
-              selectedCampaign.attachments.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="font-medium flex items-center gap-2">
-                    <Paperclip className="h-4 w-4 text-muted-foreground" />
-                    Attachments ({selectedCampaign.attachments.length})
-                  </h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {selectedCampaign.attachments.map(
-                      (attachment: any, index: number) => (
-                        <div
-                          key={index}
-                          className="bg-muted/50 border rounded-lg p-3 flex items-center justify-between"
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <FileText className="h-4 w-4 text-primary flex-shrink-0" />
-                            <div className="min-w-0">
-                              <div className="text-sm font-medium truncate">
-                                {attachment.fileName}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                {(attachment.fileSize / 1024 / 1024).toFixed(2)}{" "}
-                                MB
-                              </div>
-                            </div>
+            {selectedCampaign.attachments && selectedCampaign.attachments.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-medium flex items-center gap-2">
+                  <Paperclip className="h-4 w-4 text-muted-foreground" />
+                  Attachments ({selectedCampaign.attachments.length})
+                </h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {selectedCampaign.attachments.map((attachment: any, index: number) => (
+                    <div
+                      key={index}
+                      className="bg-muted/50 border rounded-lg p-3 flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <FileText className="h-4 w-4 text-primary flex-shrink-0" />
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium truncate">{attachment.fileName}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {(attachment.fileSize / 1024 / 1024).toFixed(2)} MB
                           </div>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            asChild
-                            className="h-8 w-8"
-                          >
-                            <a
-                              href={getAttachmentUrl(attachment)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
-                          </Button>
                         </div>
-                      ),
-                    )}
-                  </div>
+                      </div>
+                      <Button variant="outline" size="icon" asChild className="h-8 w-8">
+                        <a
+                          href={getAttachmentUrl(attachment)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
 
             <CampaignRecipientsSection
               selectedCampaign={selectedCampaign}

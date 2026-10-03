@@ -59,9 +59,7 @@ export const storageService = {
     });
 
     if (!response.ok) {
-      const error = await response
-        .json()
-        .catch(() => ({ error: "Upload failed" }));
+      const error = await response.json().catch(() => ({ error: "Upload failed" }));
       throw new Error(error.error || "Failed to upload file");
     }
 
@@ -89,9 +87,7 @@ export const storageService = {
   getFileUrl(fileId: string) {
     const endpoint = getRequiredEnv("NEXT_PUBLIC_APPWRITE_ENDPOINT");
     const projectId = getRequiredEnv("NEXT_PUBLIC_APPWRITE_PROJECT_ID");
-    const bucketId = getRequiredEnv(
-      "NEXT_PUBLIC_APPWRITE_ATTACHMENTS_BUCKET_ID",
-    );
+    const bucketId = getRequiredEnv("NEXT_PUBLIC_APPWRITE_ATTACHMENTS_BUCKET_ID");
 
     return `${endpoint}/storage/buckets/${bucketId}/files/${encodeURIComponent(
       fileId,

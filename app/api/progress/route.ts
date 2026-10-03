@@ -38,10 +38,7 @@ export async function GET(request: NextRequest) {
 
     const campaignId = new URL(request.url).searchParams.get("campaignId");
     if (!campaignId) {
-      return NextResponse.json(
-        { error: "Missing campaignId" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Missing campaignId" }, { status: 400 });
     }
 
     // Ownership: campaign must belong to the session user when it exists in
@@ -56,17 +53,10 @@ export async function GET(request: NextRequest) {
         const owned = await databases.listDocuments(
           config.databaseId,
           config.campaignsCollectionId,
-          [
-            Query.equal("$id", campaignId),
-            Query.equal("user_email", auth.email),
-            Query.limit(1),
-          ],
+          [Query.equal("$id", campaignId), Query.equal("user_email", auth.email), Query.limit(1)],
         );
         if (owned.total > 0) {
-          persistedDoc = owned.documents[0] as unknown as Record<
-            string,
-            unknown
-          >;
+          persistedDoc = owned.documents[0] as unknown as Record<string, unknown>;
         } else if (!global.emailProgress?.has(campaignId)) {
           return NextResponse.json({ error: "Not found" }, { status: 404 });
         }
@@ -131,13 +121,7 @@ export async function GET(request: NextRequest) {
         : null,
     });
   } catch (error) {
-    apiLogger.error(
-      "Progress API error",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Failed to get progress" },
-      { status: 500 },
-    );
+    apiLogger.error("Progress API error", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Failed to get progress" }, { status: 500 });
   }
 }

@@ -3,10 +3,7 @@ import type { CSVRow } from "@/types/email";
 
 import type { ComposeAttachment, Contact } from "./compose-types";
 
-export function findCsvRow(
-  csvData: CSVRow[],
-  email: string,
-): Record<string, string> {
+export function findCsvRow(csvData: CSVRow[], email: string): Record<string, string> {
   return (
     csvData.find((row) => {
       const rowEmail = row.email || row.Email || row.EMAIL || "";
@@ -23,12 +20,8 @@ export function buildRecipientFields(input: {
 }): Record<string, string> & { email: string } {
   const { email, csvData, manualEntries, contacts } = input;
   const csvRow = findCsvRow(csvData, email);
-  const manualEntry = manualEntries.find(
-    (e) => e.email.toLowerCase() === email.toLowerCase(),
-  );
-  const contact = contacts.find(
-    (c) => c.email.toLowerCase() === email.toLowerCase(),
-  );
+  const manualEntry = manualEntries.find((e) => e.email.toLowerCase() === email.toLowerCase());
+  const contact = contacts.find((c) => c.email.toLowerCase() === email.toLowerCase());
 
   return {
     email,
@@ -59,16 +52,8 @@ export function buildPersonalizedEmails(input: {
   attachments: ComposeAttachment[];
   personalizedAttachment?: { url: string; fileName?: string };
 }> {
-  const {
-    recipients,
-    subject,
-    content,
-    csvData,
-    manualEntries,
-    contacts,
-    attachments,
-    pdfColumn,
-  } = input;
+  const { recipients, subject, content, csvData, manualEntries, contacts, attachments, pdfColumn } =
+    input;
 
   return recipients.map((email) => {
     const csvRow = findCsvRow(csvData, email);

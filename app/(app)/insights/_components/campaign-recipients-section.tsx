@@ -100,9 +100,7 @@ export function CampaignRecipientsSection({
           <Button
             variant="outline"
             size="sm"
-            onClick={() =>
-              copyEmailList(getRecipientsArray(selectedCampaign.recipients))
-            }
+            onClick={() => copyEmailList(getRecipientsArray(selectedCampaign.recipients))}
           >
             <Copy className="h-3 w-3 mr-1" />
             Copy All
@@ -137,9 +135,7 @@ export function CampaignRecipientsSection({
             variant="outline"
             size="sm"
             onClick={async () => {
-              const analytics = insightsCampaigns.find(
-                (a) => a.id === selectedCampaign.$id,
-              );
+              const analytics = insightsCampaigns.find((a) => a.id === selectedCampaign.$id);
               if (!analytics) {
                 return;
               }
@@ -165,11 +161,7 @@ export function CampaignRecipientsSection({
                     end: new Date(analytics.createdAt),
                   },
                 });
-                downloadFile(
-                  pdf,
-                  `campaign-${selectedCampaign.$id}-report.pdf`,
-                  "application/pdf",
-                );
+                downloadFile(pdf, `campaign-${selectedCampaign.$id}-report.pdf`, "application/pdf");
                 toast.success("Campaign report exported!");
               } catch (_error) {
                 toast.error("Failed to export PDF");
@@ -197,8 +189,8 @@ export function CampaignRecipientsSection({
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete Tracking Data?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will permanently delete all tracking events (opens,
-                  clicks) for this campaign. This action cannot be undone.
+                  This will permanently delete all tracking events (opens, clicks) for this
+                  campaign. This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -276,16 +268,12 @@ export function CampaignRecipientsSection({
         {isLoadingEngagement ? (
           <div className="p-8 text-center">
             <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">
-              Loading engagement data...
-            </p>
+            <p className="text-sm text-muted-foreground">Loading engagement data...</p>
           </div>
         ) : recipientEngagement.length > 0 ? (
           <div className="divide-y divide-border">
             {recipientEngagement
-              .filter((r: any) =>
-                r.email.toLowerCase().includes(recipientSearch.toLowerCase()),
-              )
+              .filter((r: any) => r.email.toLowerCase().includes(recipientSearch.toLowerCase()))
               .map((recipient: any, index: number) => (
                 <div
                   key={index}
@@ -303,24 +291,17 @@ export function CampaignRecipientsSection({
                       <Eye className="h-3.5 w-3.5" />
                     </div>
                     <div>
-                      <div className="text-sm font-medium">
-                        {recipient.email}
-                      </div>
+                      <div className="text-sm font-medium">{recipient.email}</div>
                       <div className="flex gap-3 mt-0.5">
                         <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                          <Eye className="h-2.5 w-2.5" /> {recipient.opens}{" "}
-                          opens
+                          <Eye className="h-2.5 w-2.5" /> {recipient.opens} opens
                         </span>
                         <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                          <MousePointer2 className="h-2.5 w-2.5" />{" "}
-                          {recipient.clicks} clicks
+                          <MousePointer2 className="h-2.5 w-2.5" /> {recipient.clicks} clicks
                         </span>
                         {recipient.last_active && (
                           <span className="text-[10px] text-muted-foreground">
-                            Last active:{" "}
-                            {new Date(
-                              recipient.last_active,
-                            ).toLocaleDateString()}
+                            Last active: {new Date(recipient.last_active).toLocaleDateString()}
                           </span>
                         )}
                       </div>
@@ -328,10 +309,7 @@ export function CampaignRecipientsSection({
                   </div>
                   <div className="flex gap-2">
                     {recipient.opens > 0 && (
-                      <Badge
-                        variant="success"
-                        className="text-[10px] px-1.5 py-0"
-                      >
+                      <Badge variant="success" className="text-[10px] px-1.5 py-0">
                         Engaged
                       </Badge>
                     )}
@@ -339,15 +317,12 @@ export function CampaignRecipientsSection({
                 </div>
               ))}
           </div>
-        ) : selectedCampaign.send_results &&
-          selectedCampaign.send_results.length > 0 ? (
+        ) : selectedCampaign.send_results && selectedCampaign.send_results.length > 0 ? (
           <div className="divide-y divide-border">
             {selectedCampaign.send_results
               .filter((result: any) => {
                 const email = result.email || "";
-                const matchesSearch = email
-                  .toLowerCase()
-                  .includes(recipientSearch.toLowerCase());
+                const matchesSearch = email.toLowerCase().includes(recipientSearch.toLowerCase());
                 const matchesFilter =
                   filterStatus === "all" ||
                   (filterStatus === "success" && result.status === "success") ||
@@ -384,14 +359,9 @@ export function CampaignRecipientsSection({
           <div className="p-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {getRecipientsArray(selectedCampaign.recipients)
-                .filter((email) =>
-                  email.toLowerCase().includes(recipientSearch.toLowerCase()),
-                )
+                .filter((email) => email.toLowerCase().includes(recipientSearch.toLowerCase()))
                 .map((email, index) => (
-                  <div
-                    key={index}
-                    className="bg-background rounded-lg p-2 text-sm truncate border"
-                  >
+                  <div key={index} className="bg-background rounded-lg p-2 text-sm truncate border">
                     {email}
                   </div>
                 ))}

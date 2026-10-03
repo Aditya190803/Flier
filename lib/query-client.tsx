@@ -7,10 +7,7 @@
 
 import { useState, type ReactNode } from "react";
 
-import {
-  QueryClient,
-  QueryClientProvider as Provider,
-} from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider as Provider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 /**
@@ -25,8 +22,7 @@ const defaultQueryClientConfig = {
       gcTime: 1000 * 60 * 30, // 30 minutes (formerly cacheTime)
       // Retry failed queries
       retry: 2,
-      retryDelay: (attemptIndex: number) =>
-        Math.min(1000 * 2 ** attemptIndex, 30000),
+      retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
       // Refetch on window focus (useful for keeping data fresh)
       refetchOnWindowFocus: true,
       // Don't refetch on mount if data is fresh
@@ -44,9 +40,7 @@ const defaultQueryClientConfig = {
  */
 export function QueryProvider({ children }: { children: ReactNode }) {
   // Create QueryClient in useState to ensure it's created once per client
-  const [queryClient] = useState(
-    () => new QueryClient(defaultQueryClientConfig),
-  );
+  const [queryClient] = useState(() => new QueryClient(defaultQueryClientConfig));
 
   return (
     <Provider client={queryClient}>
@@ -71,8 +65,7 @@ export const queryKeys = {
     list: (userEmail: string, filters?: Record<string, unknown>) =>
       ["contacts", "list", userEmail, filters] as const,
     detail: (id: string) => ["contacts", "detail", id] as const,
-    duplicates: (userEmail: string) =>
-      ["contacts", "duplicates", userEmail] as const,
+    duplicates: (userEmail: string) => ["contacts", "duplicates", userEmail] as const,
   },
 
   // Campaigns

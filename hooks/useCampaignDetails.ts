@@ -37,10 +37,7 @@ export function useCampaignDetails(selectedCampaign: EmailCampaign | null) {
           `/api/activity/campaign-stats?campaign_id=${selectedCampaign.$id}&advanced=true`,
         ).then((res) => (res.ok ? res.json() : null));
 
-        const [recipientsData, statsData] = await Promise.all([
-          recipientsPromise,
-          statsPromise,
-        ]);
+        const [recipientsData, statsData] = await Promise.all([recipientsPromise, statsPromise]);
 
         setRecipientEngagement(recipientsData.recipients || []);
         setCampaignStats(statsData);

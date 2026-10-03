@@ -63,10 +63,7 @@ export interface PaginationState<T> {
  * @param options - Pagination options
  * @returns Pagination state and controls
  */
-export function usePagination<T>(
-  items: T[],
-  options: PaginationOptions = {},
-): PaginationState<T> {
+export function usePagination<T>(items: T[], options: PaginationOptions = {}): PaginationState<T> {
   const {
     pageSize: initialPageSize = 10,
     initialPage = 1,

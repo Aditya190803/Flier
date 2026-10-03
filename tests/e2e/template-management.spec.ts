@@ -83,9 +83,7 @@ test.describe("Template Management", () => {
   });
 
   test("should search templates", async ({ page }) => {
-    const searchInput = page
-      .getByPlaceholder(/search/i)
-      .or(page.locator('input[type="search"]'));
+    const searchInput = page.getByPlaceholder(/search/i).or(page.locator('input[type="search"]'));
 
     if (await searchInput.first().isVisible()) {
       await searchInput.first().fill("welcome");
@@ -241,9 +239,7 @@ test.describe("Template Rich Text Editor", () => {
       await createButton.first().click();
 
       // Look for rich text editor
-      const _editor = page
-        .locator('[contenteditable="true"]')
-        .or(page.locator(".ProseMirror"));
+      const _editor = page.locator('[contenteditable="true"]').or(page.locator(".ProseMirror"));
 
       await expect(page.locator("body")).toBeVisible();
     }

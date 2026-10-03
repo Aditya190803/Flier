@@ -16,29 +16,22 @@ import { usePagination } from "@/hooks/usePagination";
 import { useTemplateActions } from "@/hooks/useTemplateActions";
 import { useTemplates } from "@/hooks/useTemplates";
 import type { EmailTemplate } from "@/lib/appwrite";
-import {
-  TEMPLATE_CATEGORIES,
-  getCategoryInfo,
-} from "@/lib/templates/default-templates";
+import { TEMPLATE_CATEGORIES, getCategoryInfo } from "@/lib/templates/default-templates";
 
-import {
-  CreateTemplateDialog,
-  type NewTemplateState,
-} from "./_components/create-template-dialog";
+import { CreateTemplateDialog, type NewTemplateState } from "./_components/create-template-dialog";
 import { StarterTemplatesSection } from "./_components/starter-templates-section";
 import { TemplatesPageSkeleton } from "./_components/templates-page-skeleton";
 
 export default function TemplatesPage() {
   const { session, status, router } = useAuthGuard();
-  const { templates, setTemplates, isLoadingData, fetchTemplates } =
-    useTemplates(session?.user?.email ?? undefined);
+  const { templates, setTemplates, isLoadingData, fetchTemplates } = useTemplates(
+    session?.user?.email ?? undefined,
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(
-    null,
-  );
+  const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
   const [saveVersion, setSaveVersion] = useState(false);
   const [changeNote, setChangeNote] = useState("");
   const [isMounted, setIsMounted] = useState(false);
@@ -129,8 +122,7 @@ export default function TemplatesPage() {
       const matchesSearch =
         template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         template.subject.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory =
-        !selectedCategory || template.category === selectedCategory;
+      const matchesCategory = !selectedCategory || template.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
   }, [templates, searchTerm, selectedCategory]);
@@ -161,12 +153,8 @@ export default function TemplatesPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">
-              Email Templates
-            </h1>
-            <p className="text-muted-foreground">
-              Create and manage reusable email templates
-            </p>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Email Templates</h1>
+            <p className="text-muted-foreground">Create and manage reusable email templates</p>
           </div>
           <CreateTemplateDialog
             open={showCreateDialog}
@@ -202,9 +190,7 @@ export default function TemplatesPage() {
             {TEMPLATE_CATEGORIES.map((cat) => (
               <Button
                 key={cat.value}
-                variant={
-                  selectedCategory === cat.value ? "secondary" : "outline"
-                }
+                variant={selectedCategory === cat.value ? "secondary" : "outline"}
                 size="sm"
                 onClick={() => setSelectedCategory(cat.value)}
               >
@@ -219,8 +205,7 @@ export default function TemplatesPage() {
           <>
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-muted-foreground">
-                Showing {paginatedTemplates.length} of{" "}
-                {filteredTemplates.length} templates
+                Showing {paginatedTemplates.length} of {filteredTemplates.length} templates
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -258,14 +243,9 @@ export default function TemplatesPage() {
                   hasNextPage={hasNextPage}
                   onPageChange={goToPage}
                   onPageSizeChange={setPageSize}
-                  getPageNumbers={() =>
-                    Array.from({ length: totalPages }, (_, i) => i + 1)
-                  }
+                  getPageNumbers={() => Array.from({ length: totalPages }, (_, i) => i + 1)}
                   startIndex={(currentPage - 1) * pageSize}
-                  endIndex={Math.min(
-                    currentPage * pageSize - 1,
-                    filteredTemplates.length - 1,
-                  )}
+                  endIndex={Math.min(currentPage * pageSize - 1, filteredTemplates.length - 1)}
                 />
               </div>
             )}
@@ -273,11 +253,7 @@ export default function TemplatesPage() {
         ) : (
           <EmptyStateCard
             icon={<FileText className="h-8 w-8 text-muted-foreground" />}
-            title={
-              searchTerm || selectedCategory
-                ? "No templates found"
-                : "No templates yet"
-            }
+            title={searchTerm || selectedCategory ? "No templates found" : "No templates yet"}
             description={
               searchTerm || selectedCategory
                 ? "Try adjusting your search or filter"

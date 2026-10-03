@@ -11,10 +11,7 @@ import {
   loadCampaignSendState,
   persistCampaignSendState,
 } from "@/lib/services/campaign-send-state";
-import {
-  EmailService,
-  type PersonalizedEmail,
-} from "@/lib/services/email-service";
+import { EmailService, type PersonalizedEmail } from "@/lib/services/email-service";
 import { getOfflineAccessToken } from "@/lib/services/oauth-token-store";
 import {
   claimNextDueCampaign,
@@ -49,9 +46,7 @@ function findCsvRow(
  * Subject and body are passed through as authored; `EmailService` resolves
  * `{{placeholders}}` from `originalRowData` at send time.
  */
-function buildPersonalizedEmails(
-  campaign: ScheduledCampaignRecord,
-): PersonalizedEmail[] {
+function buildPersonalizedEmails(campaign: ScheduledCampaignRecord): PersonalizedEmail[] {
   const attachments = toAttachmentData(campaign.attachments);
   const column = campaign.has_personalized_attachments
     ? campaign.personalized_attachment_column
@@ -68,9 +63,7 @@ function buildPersonalizedEmails(
     }
 
     const personalizedAttachmentUrl =
-      column && csvRow?.[column] && isPdfUrl(csvRow[column])
-        ? csvRow[column]
-        : undefined;
+      column && csvRow?.[column] && isPdfUrl(csvRow[column]) ? csvRow[column] : undefined;
 
     return {
       to: recipient,
@@ -146,9 +139,7 @@ async function dispatchCampaign(
     const state = await loadCampaignSendState(campaignId, campaign.user_email);
 
     // Skip anyone already processed on an earlier tick.
-    const pending = allEmails.filter(
-      (email) => !state.processedEmails.has(email.to.toLowerCase()),
-    );
+    const pending = allEmails.filter((email) => !state.processedEmails.has(email.to.toLowerCase()));
 
     let chunkSent = 0;
     let chunkFailed = 0;
@@ -156,10 +147,7 @@ async function dispatchCampaign(
     let done = pending.length === 0;
 
     if (pending.length > 0) {
-      const emailService = new EmailService(
-        token.accessToken,
-        campaign.user_email,
-      );
+      const emailService = new EmailService(token.accessToken, campaign.user_email);
 
       const chunk = await emailService.sendPersonalizedBatch(pending, {
         verifyBeforeSending: true,
@@ -170,8 +158,7 @@ async function dispatchCampaign(
         },
         // Transactional mail ignores the unsubscribe list by design.
         checkUnsubscribe: campaign.is_marketing
-          ? async (email: string) =>
-              checkUserUnsubscribed(campaign.user_email, email)
+          ? async (email: string) => checkUserUnsubscribed(campaign.user_email, email)
           : undefined,
         deadline,
       });

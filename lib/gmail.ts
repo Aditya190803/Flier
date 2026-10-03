@@ -1,17 +1,10 @@
-import {
-  encodeQuotedPrintable,
-  encodeSubject,
-  validateAndSanitizeEmail,
-} from "./email/encoding";
+import { encodeQuotedPrintable, encodeSubject, validateAndSanitizeEmail } from "./email/encoding";
 import { buildGmailMimeBody } from "./email/mime-builder";
 import { injectTracking, sanitizeHTML } from "./email-formatting";
 import { emailLogger } from "./logger";
 
 import type { AttachmentData } from "./email/attachment-manager";
-export {
-  clearAttachmentCache,
-  preResolveAttachments,
-} from "./email/attachment-manager";
+export { clearAttachmentCache, preResolveAttachments } from "./email/attachment-manager";
 export type { AttachmentData } from "./email/attachment-manager";
 export { encodeQuotedPrintable } from "./email/encoding";
 
@@ -113,9 +106,7 @@ export async function sendEmailWithTemplate(
   bcc?: string[],
 ): Promise<any> {
   if (!cachedEmailTemplate) {
-    throw new Error(
-      "No email template cached. Call preBuildEmailTemplate() first.",
-    );
+    throw new Error("No email template cached. Call preBuildEmailTemplate() first.");
   }
 
   const validatedTo = validateAndSanitizeEmail(to);
@@ -164,18 +155,15 @@ export async function sendEmailWithTemplate(
   const timeoutId = setTimeout(() => controller.abort(), SEND_TIMEOUT);
 
   try {
-    const response = await fetch(
-      "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ raw: encodedEmail }),
-        signal: controller.signal,
+    const response = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({ raw: encodedEmail }),
+      signal: controller.signal,
+    });
 
     clearTimeout(timeoutId);
 
@@ -268,8 +256,7 @@ export async function sendEmailViaAPI(
   const TIMEOUT_PER_5MB = 60000; // 1 minute per 5MB
   const MAX_TIMEOUT = 600000; // 10 minutes max
   const calculatedTimeout =
-    BASE_TIMEOUT +
-    Math.ceil(totalAttachmentSize / (5 * 1024 * 1024)) * TIMEOUT_PER_5MB;
+    BASE_TIMEOUT + Math.ceil(totalAttachmentSize / (5 * 1024 * 1024)) * TIMEOUT_PER_5MB;
   const SEND_TIMEOUT = Math.min(calculatedTimeout, MAX_TIMEOUT);
 
   emailLogger.debug(`Send timeout set`, {
@@ -347,10 +334,7 @@ export async function sendEmailViaAPI(
   if (hasHtmlTag || hasBodyTag) {
     // If it's already a full document, just ensure the CSS is there
     if (processedHtmlBody.includes("</head>")) {
-      formattedHtmlBody = processedHtmlBody.replace(
-        "</head>",
-        `${zeroMarginCss}</head>`,
-      );
+      formattedHtmlBody = processedHtmlBody.replace("</head>", `${zeroMarginCss}</head>`);
     } else {
       formattedHtmlBody = `${zeroMarginCss}${processedHtmlBody}`;
     }
@@ -443,13 +427,9 @@ export async function sendEmailViaAPI(
 
       // Provide specific error messages for common issues
       if (errorDetails.includes("Invalid To header")) {
-        throw new Error(
-          `Invalid email address: ${validatedTo}. Please check the email format.`,
-        );
+        throw new Error(`Invalid email address: ${validatedTo}. Please check the email format.`);
       } else if (errorDetails.includes("rateLimitExceeded")) {
-        throw new Error(
-          `Gmail rate limit exceeded. Please wait before sending more emails.`,
-        );
+        throw new Error(`Gmail rate limit exceeded. Please wait before sending more emails.`);
       } else if (errorDetails.includes("quotaExceeded")) {
         throw new Error(`Gmail quota exceeded. Daily sending limit reached.`);
       }

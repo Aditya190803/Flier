@@ -1,10 +1,4 @@
-import {
-  CheckCircle,
-  ExternalLink,
-  PowerOff,
-  Send,
-  type LucideIcon,
-} from "lucide-react";
+import { CheckCircle, ExternalLink, PowerOff, Send, type LucideIcon } from "lucide-react";
 
 import type { Webhook as WebhookType } from "@/lib/appwrite";
 
@@ -19,8 +13,7 @@ export const WEBHOOK_EVENT_TYPES: {
   {
     value: "campaign.sent",
     label: "Campaign Sent",
-    description:
-      "Triggered when all emails in a campaign are successfully sent",
+    description: "Triggered when all emails in a campaign are successfully sent",
     icon: Send,
   },
   {
@@ -32,15 +25,13 @@ export const WEBHOOK_EVENT_TYPES: {
   {
     value: "email.opened",
     label: "Email Opened",
-    description:
-      "Triggered when a recipient opens your email (via tracking pixel)",
+    description: "Triggered when a recipient opens your email (via tracking pixel)",
     icon: CheckCircle,
   },
   {
     value: "email.clicked",
     label: "Link Clicked",
-    description:
-      "Triggered when a recipient clicks any tracked link in your email",
+    description: "Triggered when a recipient clicks any tracked link in your email",
     icon: ExternalLink,
   },
   {
@@ -54,7 +45,5 @@ export const WEBHOOK_EVENT_TYPES: {
 export function generateWebhookSecret(): string {
   const array = new Uint8Array(32);
   crypto.getRandomValues(array);
-  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
-    "",
-  );
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }

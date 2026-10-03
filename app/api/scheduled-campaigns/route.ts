@@ -2,11 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { isAuthed, requireSession } from "@/lib/api-auth";
-import {
-  MAX_SCHEDULE_HORIZON_MS,
-  MIN_SCHEDULE_LEAD_MS,
-  SCHEDULED_STATUS,
-} from "@/lib/constants";
+import { MAX_SCHEDULE_HORIZON_MS, MIN_SCHEDULE_LEAD_MS, SCHEDULED_STATUS } from "@/lib/constants";
 import { apiLogger } from "@/lib/logger";
 import { hasUsableRefreshToken } from "@/lib/services/oauth-token-store";
 import {
@@ -17,11 +13,7 @@ import {
   listScheduledCampaignsForUser,
   updateScheduledCampaign,
 } from "@/lib/services/scheduled-campaign-store";
-import {
-  scheduledCampaignSchema,
-  updateScheduledCampaignSchema,
-  validate,
-} from "@/lib/validation";
+import { scheduledCampaignSchema, updateScheduledCampaignSchema, validate } from "@/lib/validation";
 
 /**
  * CRUD for campaigns queued to send at a future time.
@@ -37,8 +29,7 @@ const EDITABLE_STATUSES: string[] = [SCHEDULED_STATUS.SCHEDULED];
 function notConfigured() {
   return NextResponse.json(
     {
-      error:
-        "Scheduled sending is not configured. Set DATABASE_URL and run `npm run db:migrate`.",
+      error: "Scheduled sending is not configured. Set DATABASE_URL and run `npm run db:migrate`.",
     },
     { status: 503 },
   );
@@ -103,10 +94,7 @@ export async function GET(request: NextRequest) {
       "Error fetching scheduled campaigns",
       error instanceof Error ? { message: error.message } : undefined,
     );
-    return NextResponse.json(
-      { error: "Failed to fetch scheduled campaigns" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch scheduled campaigns" }, { status: 500 });
   }
 }
 
@@ -125,10 +113,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const parsed = validate(scheduledCampaignSchema, body);
     if (!parsed.success || !parsed.data) {
-      return NextResponse.json(
-        { error: parsed.message || "Invalid request" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: parsed.message || "Invalid request" }, { status: 400 });
     }
 
     const timing = validateSendTime(parsed.data.scheduled_at);
@@ -175,10 +160,7 @@ export async function POST(request: NextRequest) {
       "Error creating scheduled campaign",
       error instanceof Error ? { message: error.message } : undefined,
     );
-    return NextResponse.json(
-      { error: "Failed to schedule campaign" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to schedule campaign" }, { status: 500 });
   }
 }
 
@@ -197,10 +179,7 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const parsed = validate(updateScheduledCampaignSchema, body);
     if (!parsed.success || !parsed.data) {
-      return NextResponse.json(
-        { error: parsed.message || "Invalid request" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: parsed.message || "Invalid request" }, { status: 400 });
     }
 
     const { id, ...changes } = parsed.data;
@@ -241,11 +220,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
     }
 
-    const changed = await updateScheduledCampaign(
-      id,
-      updates,
-      SCHEDULED_STATUS.SCHEDULED,
-    );
+    const changed = await updateScheduledCampaign(id, updates, SCHEDULED_STATUS.SCHEDULED);
     if (!changed) {
       return NextResponse.json(
         { error: "Campaign started sending before the change was applied" },
@@ -260,10 +235,7 @@ export async function PUT(request: NextRequest) {
       "Error updating scheduled campaign",
       error instanceof Error ? { message: error.message } : undefined,
     );
-    return NextResponse.json(
-      { error: "Failed to update scheduled campaign" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to update scheduled campaign" }, { status: 500 });
   }
 }
 
@@ -283,10 +255,7 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json(
-        { error: "Campaign ID required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Campaign ID required" }, { status: 400 });
     }
 
     const record = await getScheduledCampaign(id);
@@ -319,9 +288,6 @@ export async function DELETE(request: NextRequest) {
       "Error deleting scheduled campaign",
       error instanceof Error ? { message: error.message } : undefined,
     );
-    return NextResponse.json(
-      { error: "Failed to delete scheduled campaign" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to delete scheduled campaign" }, { status: 500 });
   }
 }

@@ -32,10 +32,7 @@ export function useTemplates(userEmail: string | undefined) {
       });
       setTemplates(templatesData);
     } catch (error) {
-      componentLogger.error(
-        "Error fetching templates",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error fetching templates", error instanceof Error ? error : undefined);
       toast.error("Failed to load templates");
     }
   }, [userEmail]);
@@ -49,12 +46,9 @@ export function useTemplates(userEmail: string | undefined) {
       setIsLoadingData(false);
     };
     load();
-    const unsubscribe = templatesService.subscribeToUserTemplates(
-      userEmail,
-      () => {
-        fetchTemplates();
-      },
-    );
+    const unsubscribe = templatesService.subscribeToUserTemplates(userEmail, () => {
+      fetchTemplates();
+    });
     return () => {
       if (unsubscribe) {
         unsubscribe();

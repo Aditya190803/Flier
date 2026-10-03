@@ -47,8 +47,7 @@ export function InsightsSummaryCards({
       <StatsCardWidget
         title="Open Rate"
         value={
-          summary?.averageOpenRate !== null &&
-          summary?.averageOpenRate !== undefined
+          summary?.averageOpenRate !== null && summary?.averageOpenRate !== undefined
             ? `${summary.averageOpenRate.toFixed(1)}%`
             : "N/A"
         }

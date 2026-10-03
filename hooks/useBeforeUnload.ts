@@ -13,9 +13,7 @@ export function useBeforeUnload(shouldWarn: boolean, message?: string) {
       if (shouldWarn) {
         e.preventDefault();
         // Modern browsers require returnValue to be set
-        e.returnValue =
-          message ||
-          "You have unsaved changes. Are you sure you want to leave?";
+        e.returnValue = message || "You have unsaved changes. Are you sure you want to leave?";
         return e.returnValue;
       }
       return undefined;

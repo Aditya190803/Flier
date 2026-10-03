@@ -33,15 +33,11 @@ export function CampaignFunnelWidget({ sent, events }: Props) {
     };
   }, [events]);
 
-  const openRate =
-    sent > 0 ? Math.min(100, (uniqueOpens / sent) * 100).toFixed(1) : "0.0";
-  const clickThroughRate =
-    sent > 0 ? Math.min(100, (uniqueClicks / sent) * 100).toFixed(1) : "0.0";
+  const openRate = sent > 0 ? Math.min(100, (uniqueOpens / sent) * 100).toFixed(1) : "0.0";
+  const clickThroughRate = sent > 0 ? Math.min(100, (uniqueClicks / sent) * 100).toFixed(1) : "0.0";
   // Specifically: Click-to-Open Rate (CTOR)
   const clickToOpenRate =
-    uniqueOpens > 0
-      ? Math.min(100, (uniqueClicks / uniqueOpens) * 100).toFixed(1)
-      : "0.0";
+    uniqueOpens > 0 ? Math.min(100, (uniqueClicks / uniqueOpens) * 100).toFixed(1) : "0.0";
 
   return (
     <div className="border border-border/50 rounded-xl bg-card shadow-sm p-4 md:p-6 mb-6">
@@ -58,12 +54,8 @@ export function CampaignFunnelWidget({ sent, events }: Props) {
               </div>
               Successfully Sent
             </div>
-            <div className="text-3xl font-bold text-foreground">
-              {sent.toLocaleString()}
-            </div>
-            <div className="text-xs text-muted-foreground mt-2 hidden md:block opacity-0">
-              .
-            </div>
+            <div className="text-3xl font-bold text-foreground">{sent.toLocaleString()}</div>
+            <div className="text-xs text-muted-foreground mt-2 hidden md:block opacity-0">.</div>
           </div>
           {/* connector arrow line for desktop */}
           <div className="hidden md:block absolute top-[50%] -right-[15%] w-[30%] h-px bg-border/80 z-0" />

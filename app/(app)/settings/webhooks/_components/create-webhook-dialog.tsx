@@ -60,9 +60,7 @@ export function CreateWebhookDialog({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Create Webhook</DialogTitle>
-          <DialogDescription>
-            Send HTTP POST requests when events occur
-          </DialogDescription>
+          <DialogDescription>Send HTTP POST requests when events occur</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pt-4">
           <div className="space-y-2">
@@ -71,9 +69,7 @@ export function CreateWebhookDialog({
               id="name"
               placeholder="e.g., Slack Notification"
               value={newWebhook.name}
-              onChange={(e) =>
-                setNewWebhook({ ...newWebhook, name: e.target.value })
-              }
+              onChange={(e) => setNewWebhook({ ...newWebhook, name: e.target.value })}
             />
           </div>
           <div className="space-y-2">
@@ -83,9 +79,7 @@ export function CreateWebhookDialog({
               type="url"
               placeholder="https://your-service.com/webhook"
               value={newWebhook.url}
-              onChange={(e) =>
-                setNewWebhook({ ...newWebhook, url: e.target.value })
-              }
+              onChange={(e) => setNewWebhook({ ...newWebhook, url: e.target.value })}
             />
           </div>
           <div className="space-y-2">
@@ -108,9 +102,7 @@ export function CreateWebhookDialog({
                   />
                   <div>
                     <p className="font-medium">{event.label}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {event.description}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{event.description}</p>
                   </div>
                 </label>
               ))}
@@ -137,13 +129,10 @@ export function CreateWebhookDialog({
               id="secret"
               placeholder="Used to sign webhook payloads"
               value={newWebhook.secret}
-              onChange={(e) =>
-                setNewWebhook({ ...newWebhook, secret: e.target.value })
-              }
+              onChange={(e) => setNewWebhook({ ...newWebhook, secret: e.target.value })}
             />
             <p className="text-xs text-muted-foreground">
-              If set, payloads will be signed with HMAC-SHA256 in the
-              X-Flier-Signature header
+              If set, payloads will be signed with HMAC-SHA256 in the X-Flier-Signature header
             </p>
           </div>
           <div className="flex gap-2 pt-4">

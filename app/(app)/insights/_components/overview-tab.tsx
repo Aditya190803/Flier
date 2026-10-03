@@ -38,11 +38,7 @@ export function OverviewTab({
 }: OverviewTabProps) {
   return (
     <div className="space-y-8">
-      <InsightsSummaryCards
-        historyData={historyData}
-        summary={summary}
-        comparison={comparison}
-      />
+      <InsightsSummaryCards historyData={historyData} summary={summary} comparison={comparison} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Activity Chart */}
@@ -58,9 +54,7 @@ export function OverviewTab({
 
         {/* Comparison Widget */}
         <div className="h-full">
-          {comparison && (
-            <ComparisonWidget report={comparison} className="h-full" />
-          )}
+          {comparison && <ComparisonWidget report={comparison} className="h-full" />}
         </div>
       </div>
 
@@ -83,9 +77,7 @@ export function OverviewTab({
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Delivery Success</span>
-                <span className="font-medium">
-                  {historyData.successRate.toFixed(1)}%
-                </span>
+                <span className="font-medium">{historyData.successRate.toFixed(1)}%</span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div
@@ -98,9 +90,7 @@ export function OverviewTab({
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Open Rate</span>
-                <span className="font-medium">
-                  {summary?.averageOpenRate?.toFixed(1) || 0}%
-                </span>
+                <span className="font-medium">{summary?.averageOpenRate?.toFixed(1) || 0}%</span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div
@@ -113,9 +103,7 @@ export function OverviewTab({
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Click Rate</span>
-                <span className="font-medium">
-                  {summary?.averageClickRate?.toFixed(1) || 0}%
-                </span>
+                <span className="font-medium">{summary?.averageClickRate?.toFixed(1) || 0}%</span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div

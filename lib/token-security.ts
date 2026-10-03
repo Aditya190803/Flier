@@ -320,8 +320,7 @@ export async function refreshAccessToken(
       refreshToken: data.refresh_token || refreshToken,
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     authLogger.error(
       "Token refresh exception",
       undefined,
@@ -366,11 +365,7 @@ export async function refreshWithRetry(
       );
     }
 
-    const result = await refreshAccessToken(
-      tokenInfo.refreshToken!,
-      clientId,
-      clientSecret,
-    );
+    const result = await refreshAccessToken(tokenInfo.refreshToken!, clientId, clientSecret);
 
     if (result.success) {
       return result;
@@ -379,10 +374,7 @@ export async function refreshWithRetry(
     lastError = result.error;
 
     // Don't retry on certain errors
-    if (
-      result.error?.includes("invalid_grant") ||
-      result.error?.includes("invalid_client")
-    ) {
+    if (result.error?.includes("invalid_grant") || result.error?.includes("invalid_client")) {
       break;
     }
   }
@@ -429,9 +421,7 @@ export const tokenSecurityGuidelines = {
  * @param tokenInfo Token information to sanitize
  * @returns Sanitized token info safe for logging
  */
-export function sanitizeTokenForLogging(
-  tokenInfo: TokenInfo,
-): Record<string, unknown> {
+export function sanitizeTokenForLogging(tokenInfo: TokenInfo): Record<string, unknown> {
   return {
     hasAccessToken: !!tokenInfo.accessToken,
     accessTokenLength: tokenInfo.accessToken?.length || 0,

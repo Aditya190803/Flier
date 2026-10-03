@@ -1,12 +1,6 @@
 import { BarChart3, Eye, Mail, MousePointer2, Send } from "lucide-react";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { aggregateClickData } from "@/lib/activity/heatmap";
 import { cn } from "@/lib/utils";
 import type { TrackingEvent } from "@/types/activity";
@@ -21,10 +15,7 @@ interface CampaignSelectorProps {
   campaigns: CampaignSummary[];
   allTrackingEvents: TrackingEvent[];
   selectedCampaignId: string | null;
-  onSelectCampaign: (
-    campaignId: string,
-    heatmap: ReturnType<typeof aggregateClickData>,
-  ) => void;
+  onSelectCampaign: (campaignId: string, heatmap: ReturnType<typeof aggregateClickData>) => void;
 }
 
 export function CampaignSelector({
@@ -41,8 +32,7 @@ export function CampaignSelector({
           Select Campaign for Analysis
         </CardTitle>
         <CardDescription className="text-xs">
-          Choose a campaign to view its detailed metrics, heatmaps, and event
-          logs.
+          Choose a campaign to view its detailed metrics, heatmaps, and event logs.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -52,21 +42,14 @@ export function CampaignSelector({
             const campaignEvents = allTrackingEvents.filter(
               (event) => event.campaign_id === campaign.$id,
             );
-            const opens = campaignEvents.filter(
-              (event) => event.event_type === "open",
-            ).length;
-            const clicks = campaignEvents.filter(
-              (event) => event.event_type === "click",
-            ).length;
+            const opens = campaignEvents.filter((event) => event.event_type === "open").length;
+            const clicks = campaignEvents.filter((event) => event.event_type === "click").length;
 
             return (
               <button
                 key={campaign.$id}
                 onClick={() => {
-                  onSelectCampaign(
-                    campaign.$id,
-                    aggregateClickData(campaignEvents, campaign.$id),
-                  );
+                  onSelectCampaign(campaign.$id, aggregateClickData(campaignEvents, campaign.$id));
                 }}
                 className={cn(
                   "shrink-0 px-3 py-2 rounded-lg border text-left transition-all hover:bg-muted/50 w-[180px]",

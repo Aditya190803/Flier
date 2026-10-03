@@ -79,18 +79,13 @@ function NavGroup({
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => {
-            const isExactOnlyRoute =
-              item.href === "/dashboard" || item.href === "/settings";
+            const isExactOnlyRoute = item.href === "/dashboard" || item.href === "/settings";
             const isActive = isExactOnlyRoute
               ? pathname === item.href
               : pathname === item.href || pathname.startsWith(item.href + "/");
             return (
               <SidebarMenuItem key={item.name}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive}
-                  tooltip={item.name}
-                >
+                <SidebarMenuButton asChild isActive={isActive} tooltip={item.name}>
                   <Link href={item.href}>
                     <item.icon />
                     <span>{item.name}</span>
@@ -140,9 +135,7 @@ export function AppSidebar() {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Flier</span>
-                  <span className="truncate text-xs text-muted-foreground">
-                    Email Campaigns
-                  </span>
+                  <span className="truncate text-xs text-muted-foreground">Email Campaigns</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -172,14 +165,10 @@ export function AppSidebar() {
                       src={session?.user?.image || undefined}
                       alt={session?.user?.name || "User"}
                     />
-                    <AvatarFallback className="rounded-lg text-xs">
-                      {userInitials}
-                    </AvatarFallback>
+                    <AvatarFallback className="rounded-lg text-xs">{userInitials}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">
-                      {session?.user?.name || "User"}
-                    </span>
+                    <span className="truncate font-semibold">{session?.user?.name || "User"}</span>
                     <span className="truncate text-xs text-muted-foreground">
                       {session?.user?.email || ""}
                     </span>

@@ -108,25 +108,17 @@ export default function AuthError() {
           <div className="mx-auto mb-4 p-3 bg-destructive/10 rounded-full w-fit">
             <AlertTriangle className="h-8 w-8 text-destructive" />
           </div>
-          <CardTitle className="text-xl text-destructive">
-            Authentication Error
-          </CardTitle>
+          <CardTitle className="text-xl text-destructive">Authentication Error</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="text-center">
-            <p className="text-foreground mb-3 font-medium">
-              {getErrorMessage(error)}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {getErrorSolution(error)}
-            </p>
+            <p className="text-foreground mb-3 font-medium">{getErrorMessage(error)}</p>
+            <p className="text-sm text-muted-foreground">{getErrorSolution(error)}</p>
           </div>
 
           {(error || errorDescription) && (
             <div className="bg-muted p-4 rounded-lg space-y-2">
-              <p className="text-xs text-muted-foreground mb-2 font-medium">
-                Error Details:
-              </p>
+              <p className="text-xs text-muted-foreground mb-2 font-medium">Error Details:</p>
               {error && (
                 <code className="text-sm font-mono text-destructive bg-destructive/10 p-2 rounded block">
                   {error}
@@ -141,32 +133,20 @@ export default function AuthError() {
           )}
 
           <div className="space-y-3">
-            <Button
-              onClick={handleRetry}
-              className="w-full"
-              disabled={isLoading}
-            >
-              <RefreshCw
-                className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
-              />
+            <Button onClick={handleRetry} className="w-full" disabled={isLoading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
               Try Again
             </Button>
 
             <div className="grid grid-cols-2 gap-2">
               <Button variant="outline" asChild>
-                <Link
-                  href="/"
-                  className="flex items-center justify-center gap-2"
-                >
+                <Link href="/" className="flex items-center justify-center gap-2">
                   <Home className="h-4 w-4" />
                   Home
                 </Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link
-                  href="/env-check"
-                  className="flex items-center justify-center gap-2"
-                >
+                <Link href="/env-check" className="flex items-center justify-center gap-2">
                   <Settings className="h-4 w-4" />
                   Config
                 </Link>
@@ -176,8 +156,8 @@ export default function AuthError() {
 
           <div className="text-center">
             <p className="text-xs text-muted-foreground">
-              If this error persists, please check your environment
-              configuration or contact support.
+              If this error persists, please check your environment configuration or contact
+              support.
             </p>
           </div>
         </CardContent>

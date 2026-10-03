@@ -41,8 +41,7 @@ const loadCampaignSendState = vi.fn();
 const persistCampaignSendState = vi.fn();
 vi.mock("@/lib/services/campaign-send-state", () => ({
   loadCampaignSendState: (...args: unknown[]) => loadCampaignSendState(...args),
-  persistCampaignSendState: (...args: unknown[]) =>
-    persistCampaignSendState(...args),
+  persistCampaignSendState: (...args: unknown[]) => persistCampaignSendState(...args),
 }));
 
 vi.mock("@/lib/logger", async () => {
@@ -156,9 +155,7 @@ describe("POST /api/send-email — chunked sending", () => {
     expect(data.done).toBe(false);
     expect(data.remaining).toBe(2);
     expect(data.summary.sent).toBe(1);
-    expect(persistCampaignSendState).toHaveBeenCalledWith(
-      expect.objectContaining({ done: false }),
-    );
+    expect(persistCampaignSendState).toHaveBeenCalledWith(expect.objectContaining({ done: false }));
   });
 
   it("skips already-processed recipients on resume (idempotency)", async () => {
@@ -190,10 +187,7 @@ describe("POST /api/send-email — chunked sending", () => {
     // Only the two not-yet-processed recipients should have been handed to
     // the email service.
     const [sentEmails] = sendPersonalizedBatch.mock.calls[0];
-    expect(sentEmails.map((e: { to: string }) => e.to)).toEqual([
-      "b@example.com",
-      "c@example.com",
-    ]);
+    expect(sentEmails.map((e: { to: string }) => e.to)).toEqual(["b@example.com", "c@example.com"]);
 
     expect(data.done).toBe(true);
     expect(data.summary.sent).toBe(3); // 1 previously + 2 this chunk
@@ -204,11 +198,7 @@ describe("POST /api/send-email — chunked sending", () => {
     loadCampaignSendState.mockResolvedValue({
       docId: "campaign_test_123",
       exists: true,
-      processedEmails: new Set([
-        "a@example.com",
-        "b@example.com",
-        "c@example.com",
-      ]),
+      processedEmails: new Set(["a@example.com", "b@example.com", "c@example.com"]),
       results: [
         { email: "a@example.com", status: "success" },
         { email: "b@example.com", status: "success" },

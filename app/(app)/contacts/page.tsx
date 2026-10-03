@@ -4,14 +4,7 @@ import { useEffect, useState } from "react";
 
 import Link from "next/link";
 
-import {
-  Users,
-  Mail,
-  Download,
-  Upload,
-  Tag,
-  CloudDownload,
-} from "lucide-react";
+import { Users, Mail, Download, Upload, Tag, CloudDownload } from "lucide-react";
 
 import { ContactGroupsTab } from "@/components/contacts/contact-groups-tab";
 import { ContactListTab } from "@/components/contacts/contact-list-tab";
@@ -28,35 +21,18 @@ import { useGmailContactsImport } from "@/hooks/useGmailContactsImport";
 import { usePagination } from "@/hooks/usePagination";
 import { useVirtualScroll } from "@/hooks/useVirtualScroll";
 import type { ContactGroup } from "@/lib/appwrite";
-import {
-  getAllTags,
-  getContactGroups,
-  getGroupColor,
-  GROUP_COLORS,
-} from "@/lib/contacts/groups";
+import { getAllTags, getContactGroups, getGroupColor, GROUP_COLORS } from "@/lib/contacts/groups";
 import { addTagToContact, removeTagFromContact } from "@/lib/contacts/tags";
 
-import {
-  AddContactDialog,
-  type NewContactState,
-} from "./components/add-contact-dialog";
+import { AddContactDialog, type NewContactState } from "./components/add-contact-dialog";
 import { ContactCard } from "./components/contact-card";
 import { ContactsPageSkeleton } from "./components/contacts-page-skeleton";
-import {
-  CreateGroupDialog,
-  type NewGroupState,
-} from "./components/create-group-dialog";
+import { CreateGroupDialog, type NewGroupState } from "./components/create-group-dialog";
 
 export default function ContactsPage() {
   const { session, status } = useAuthGuard();
-  const {
-    contacts,
-    setContacts,
-    groups,
-    isLoadingData,
-    fetchContacts,
-    fetchGroups,
-  } = useContactsData(session?.user?.email ?? undefined);
+  const { contacts, setContacts, groups, isLoadingData, fetchContacts, fetchGroups } =
+    useContactsData(session?.user?.email ?? undefined);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -64,8 +40,7 @@ export default function ContactsPage() {
   const [showEditGroup, setShowEditGroup] = useState(false);
   const [editingGroup, setEditingGroup] = useState<ContactGroup | null>(null);
   const [showAddToGroup, setShowAddToGroup] = useState(false);
-  const [selectedContactForGroup, setSelectedContactForGroup] =
-    useState<Contact | null>(null);
+  const [selectedContactForGroup, setSelectedContactForGroup] = useState<Contact | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [activeTab, setActiveTab] = useState("contacts");
   const [viewMode, setViewMode] = useState<"grid" | "virtual">("grid");
@@ -118,15 +93,11 @@ export default function ContactsPage() {
       contact.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contact.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contact.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.tags?.some((tag) =>
-        tag.toLowerCase().includes(searchTerm.toLowerCase()),
-      );
+      contact.tags?.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesGroup =
       !selectedGroup ||
-      groups
-        .find((g) => g.$id === selectedGroup)
-        ?.contact_ids.includes(contact.$id);
+      groups.find((g) => g.$id === selectedGroup)?.contact_ids.includes(contact.$id);
 
     const matchesTag = !selectedTag || contact.tags?.includes(selectedTag);
 
@@ -238,10 +209,7 @@ export default function ContactsPage() {
     setEditingContact(null);
   };
 
-  const handleAddContactToGroup = async (
-    contactId: string,
-    groupId: string,
-  ) => {
+  const handleAddContactToGroup = async (contactId: string, groupId: string) => {
     addContactToGroup(contactId, groupId);
     setShowAddToGroup(false);
     setSelectedContactForGroup(null);
@@ -262,9 +230,7 @@ export default function ContactsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">Contacts</h1>
-            <p className="text-muted-foreground">
-              Manage your email contacts and groups
-            </p>
+            <p className="text-muted-foreground">Manage your email contacts and groups</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <AddContactDialog
@@ -287,11 +253,7 @@ export default function ContactsPage() {
               onCreateGroup={handleCreateGroup}
             />
 
-            <Button
-              variant="outline"
-              onClick={exportContacts}
-              disabled={contacts.length === 0}
-            >
+            <Button variant="outline" onClick={exportContacts} disabled={contacts.length === 0}>
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
@@ -316,11 +278,7 @@ export default function ContactsPage() {
           </div>
         </div>
 
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="space-y-6"
-        >
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList>
             <TabsTrigger value="contacts" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
@@ -391,9 +349,7 @@ export default function ContactsPage() {
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
                   <h3 className="text-lg font-semibold mb-1">Ready to send?</h3>
-                  <p className="text-muted-foreground">
-                    Use your contacts in an email campaign
-                  </p>
+                  <p className="text-muted-foreground">Use your contacts in an email campaign</p>
                 </div>
                 <Button asChild>
                   <Link href="/compose">

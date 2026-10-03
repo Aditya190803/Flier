@@ -3,19 +3,12 @@ import { type NextRequest, NextResponse } from "next/server";
 import { isAuthed, requireSession } from "@/lib/api-auth";
 import { SEND_EMAIL_CHUNK_BUDGET_MS } from "@/lib/constants";
 import { apiLogger } from "@/lib/logger";
-import {
-  rateLimitAsync,
-  rateLimitUserEmailAsync,
-  RATE_LIMITS,
-} from "@/lib/rate-limit";
+import { rateLimitAsync, rateLimitUserEmailAsync, RATE_LIMITS } from "@/lib/rate-limit";
 import {
   loadCampaignSendState,
   persistCampaignSendState,
 } from "@/lib/services/campaign-send-state";
-import {
-  EmailService,
-  type PersonalizedEmail,
-} from "@/lib/services/email-service";
+import { EmailService, type PersonalizedEmail } from "@/lib/services/email-service";
 import { checkUserUnsubscribed } from "@/lib/services/unsubscribe-service";
 import { sendEmailRequestSchema, validate } from "@/lib/validation";
 
@@ -38,10 +31,7 @@ import { sendEmailRequestSchema, validate } from "@/lib/validation";
 export async function POST(request: NextRequest) {
   const requestStartedAt = Date.now();
   try {
-    const rateLimitResponse = await rateLimitAsync(
-      request,
-      RATE_LIMITS.sendEmail,
-    );
+    const rateLimitResponse = await rateLimitAsync(request, RATE_LIMITS.sendEmail);
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
@@ -54,10 +44,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const parsed = validate(sendEmailRequestSchema, body);
     if (!parsed.success || !parsed.data) {
-      return NextResponse.json(
-        { error: parsed.message || "Invalid request" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: parsed.message || "Invalid request" }, { status: 400 });
     }
 
     const {
@@ -75,26 +62,23 @@ export async function POST(request: NextRequest) {
     } = parsed.data;
 
     // Per-message Cc/Bcc wins; campaign-level values fill in otherwise.
-    const withCampaignCcBcc = (
-      email: PersonalizedEmail,
-    ): PersonalizedEmail => ({
+    const withCampaignCcBcc = (email: PersonalizedEmail): PersonalizedEmail => ({
       ...email,
       cc: email.cc ?? (campaignCc?.length ? campaignCc : undefined),
       bcc: email.bcc ?? (campaignBcc?.length ? campaignBcc : undefined),
     });
 
-    let personalizedEmails: PersonalizedEmail[] | undefined =
-      rawPersonalized?.map((e) =>
-        withCampaignCcBcc({
-          to: e.to,
-          subject: e.subject,
-          message: e.message,
-          originalRowData: e.originalRowData ?? {},
-          attachments: e.attachments,
-          cc: e.cc,
-          bcc: e.bcc,
-        }),
-      );
+    let personalizedEmails: PersonalizedEmail[] | undefined = rawPersonalized?.map((e) =>
+      withCampaignCcBcc({
+        to: e.to,
+        subject: e.subject,
+        message: e.message,
+        originalRowData: e.originalRowData ?? {},
+        attachments: e.attachments,
+        cc: e.cc,
+        bcc: e.bcc,
+      }),
+    );
 
     if (!personalizedEmails && recipients && Array.isArray(recipients)) {
       if (variants && variants.length > 0) {
@@ -120,10 +104,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!personalizedEmails || personalizedEmails.length === 0) {
-      return NextResponse.json(
-        { error: "No emails provided" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "No emails provided" }, { status: 400 });
     }
 
     // Stable id for this campaign's persisted send state. Falls back to a
@@ -141,9 +122,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (pending.length === 0 && state.exists) {
-      const skipped = state.results.filter(
-        (r) => r.status === "skipped",
-      ).length;
+      const skipped = state.results.filter((r) => r.status === "skipped").length;
       return NextResponse.json({
         results: state.results,
         summary: {
@@ -159,10 +138,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const userRateLimitResponse = await rateLimitUserEmailAsync(
-      auth.email,
-      pending.length,
-    );
+    const userRateLimitResponse = await rateLimitUserEmailAsync(auth.email, pending.length);
     if (userRateLimitResponse) {
       return userRateLimitResponse;
     }
@@ -217,13 +193,7 @@ export async function POST(request: NextRequest) {
       remaining: Math.max(0, total - allResults.length),
     });
   } catch (error) {
-    apiLogger.error(
-      "Send email API error",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Failed to process email request" },
-      { status: 500 },
-    );
+    apiLogger.error("Send email API error", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Failed to process email request" }, { status: 500 });
   }
 }

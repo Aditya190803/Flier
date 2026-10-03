@@ -146,9 +146,7 @@ export interface PersistChunkInput {
 }
 
 /** Persist the accumulated results after processing a chunk. */
-export async function persistCampaignSendState(
-  input: PersistChunkInput,
-): Promise<void> {
+export async function persistCampaignSendState(input: PersistChunkInput): Promise<void> {
   if (!config.databaseId || !config.campaignsCollectionId) {
     return;
   }
@@ -164,35 +162,25 @@ export async function persistCampaignSendState(
 
   try {
     if (input.existed) {
-      await databases.updateDocument(
-        config.databaseId,
-        config.campaignsCollectionId,
-        input.docId,
-        {
-          sent,
-          failed,
-          status,
-          send_results,
-        },
-      );
+      await databases.updateDocument(config.databaseId, config.campaignsCollectionId, input.docId, {
+        sent,
+        failed,
+        status,
+        send_results,
+      });
     } else {
-      await databases.createDocument(
-        config.databaseId,
-        config.campaignsCollectionId,
-        input.docId,
-        {
-          subject: input.subject || "",
-          content: input.content || "",
-          recipients: JSON.stringify(input.fullRecipients),
-          sent,
-          failed,
-          status,
-          user_email: input.userEmail,
-          campaign_type: "bulk-chunked",
-          send_results,
-          created_at: new Date().toISOString(),
-        },
-      );
+      await databases.createDocument(config.databaseId, config.campaignsCollectionId, input.docId, {
+        subject: input.subject || "",
+        content: input.content || "",
+        recipients: JSON.stringify(input.fullRecipients),
+        sent,
+        failed,
+        status,
+        user_email: input.userEmail,
+        campaign_type: "bulk-chunked",
+        send_results,
+        created_at: new Date().toISOString(),
+      });
     }
   } catch (err) {
     apiLogger.error("Failed to persist campaign send state", {

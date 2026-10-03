@@ -66,9 +66,7 @@ export default function RealtimeSendPage() {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     setSendProgress(100);
-    setProcessingStatus(
-      `Campaign completed! ${totalEmails} emails sent successfully.`,
-    );
+    setProcessingStatus(`Campaign completed! ${totalEmails} emails sent successfully.`);
     setEmailsSent(totalEmails); // Ensure final count is correct
     setEmailsRemaining(0); // Ensure remaining is 0
     setIsLoading(false);
@@ -108,11 +106,7 @@ export default function RealtimeSendPage() {
                 />
               </div>
 
-              <Button
-                onClick={simulateEmailSending}
-                disabled={isLoading}
-                className="w-full"
-              >
+              <Button onClick={simulateEmailSending} disabled={isLoading} className="w-full">
                 {isLoading ? (
                   <>
                     <div className="h-4 w-4 mr-2 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -139,9 +133,7 @@ export default function RealtimeSendPage() {
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-3 mb-4">
                     <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                    <h2 className="text-2xl font-bold">
-                      Sending Your Campaign
-                    </h2>
+                    <h2 className="text-2xl font-bold">Sending Your Campaign</h2>
                   </div>
                   <p className="text-muted-foreground">
                     Please keep this window open while we send your emails
@@ -151,12 +143,8 @@ export default function RealtimeSendPage() {
                 {/* Progress Bar */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">
-                      Overall Progress
-                    </span>
-                    <span className="text-sm font-bold text-primary">
-                      {sendProgress}%
-                    </span>
+                    <span className="text-sm font-medium">Overall Progress</span>
+                    <span className="text-sm font-bold text-primary">{sendProgress}%</span>
                   </div>
                   <Progress value={sendProgress} className="w-full h-4" />
                 </div>
@@ -164,33 +152,21 @@ export default function RealtimeSendPage() {
                 {/* Real-time Statistics */}
                 <div className="grid grid-cols-2 gap-6">
                   <div className="text-center p-6 bg-success/10 rounded-lg border-2 border-success/20">
-                    <div className="text-4xl font-bold text-success mb-2">
-                      {emailsSent}
-                    </div>
-                    <div className="text-sm font-medium text-success">
-                      Emails Sent
-                    </div>
+                    <div className="text-4xl font-bold text-success mb-2">{emailsSent}</div>
+                    <div className="text-sm font-medium text-success">Emails Sent</div>
                   </div>
                   <div className="text-center p-6 bg-warning/10 rounded-lg border-2 border-warning/20">
-                    <div className="text-4xl font-bold text-warning mb-2">
-                      {emailsRemaining}
-                    </div>
-                    <div className="text-sm font-medium text-warning">
-                      Remaining
-                    </div>
+                    <div className="text-4xl font-bold text-warning mb-2">{emailsRemaining}</div>
+                    <div className="text-sm font-medium text-warning">Remaining</div>
                   </div>
                 </div>
 
                 {/* Processing Method Info */}
                 {currentProcessingMethod && (
                   <div className="text-center p-4 bg-muted rounded-lg border border-border">
-                    <div className="text-lg font-semibold mb-2">
-                      {currentProcessingMethod}
-                    </div>
+                    <div className="text-lg font-semibold mb-2">{currentProcessingMethod}</div>
                     {processingStatus && (
-                      <div className="text-sm text-muted-foreground">
-                        {processingStatus}
-                      </div>
+                      <div className="text-sm text-muted-foreground">{processingStatus}</div>
                     )}
                   </div>
                 )}
@@ -202,8 +178,7 @@ export default function RealtimeSendPage() {
                   </p>
                   {!isLoading && (
                     <p className="text-sm text-muted-foreground mt-2">
-                      Campaign completed! This screen will close automatically
-                      in a few seconds.
+                      Campaign completed! This screen will close automatically in a few seconds.
                     </p>
                   )}
                 </div>

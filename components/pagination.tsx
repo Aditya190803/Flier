@@ -2,12 +2,7 @@
 
 import React from "react";
 
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -80,14 +75,11 @@ export function Pagination({
   }
 
   return (
-    <div
-      className={`flex flex-col sm:flex-row items-center justify-between gap-4 ${className}`}
-    >
+    <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 ${className}`}>
       {/* Item count info */}
       {showItemCount && (
         <div className="text-sm text-muted-foreground">
-          Showing {startIndex + 1} to {Math.min(endIndex + 1, totalItems)} of{" "}
-          {totalItems} items
+          Showing {startIndex + 1} to {Math.min(endIndex + 1, totalItems)} of {totalItems} items
         </div>
       )}
 
@@ -95,9 +87,7 @@ export function Pagination({
         {/* Page size selector */}
         {showPageSize && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground hidden sm:inline">
-              Items per page:
-            </span>
+            <span className="text-sm text-muted-foreground hidden sm:inline">Items per page:</span>
             <Select
               value={String(pageSize)}
               onValueChange={(value) => onPageSizeChange(Number(value))}
@@ -148,10 +138,7 @@ export function Pagination({
               if (page === -1) {
                 // Ellipsis
                 return (
-                  <span
-                    key={`ellipsis-${index}`}
-                    className="px-2 text-muted-foreground"
-                  >
+                  <span key={`ellipsis-${index}`} className="px-2 text-muted-foreground">
                     ...
                   </span>
                 );
@@ -222,12 +209,7 @@ export function PaginationCompact({
   className = "",
 }: Pick<
   PaginationProps,
-  | "currentPage"
-  | "totalPages"
-  | "hasPreviousPage"
-  | "hasNextPage"
-  | "onPageChange"
-  | "className"
+  "currentPage" | "totalPages" | "hasPreviousPage" | "hasNextPage" | "onPageChange" | "className"
 >) {
   return (
     <div className={`flex items-center gap-2 ${className}`}>

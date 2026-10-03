@@ -61,10 +61,7 @@ describe("Email Formatter", () => {
   describe("sanitizeHtml", () => {
     it("should remove script tags", () => {
       const input = '<p>Hello</p><script>alert("xss")</script>';
-      const sanitized = input.replace(
-        /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-        "",
-      );
+      const sanitized = input.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
 
       expect(sanitized).not.toContain("<script>");
       expect(sanitized).toContain("<p>Hello</p>");
@@ -144,8 +141,7 @@ describe("CSV Parsing", () => {
     });
 
     it("should handle empty values", () => {
-      const csv =
-        "name,email,company\nJohn,john@test.com,\nJane,jane@test.com,Acme";
+      const csv = "name,email,company\nJohn,john@test.com,\nJane,jane@test.com,Acme";
       const lines = csv.split("\n");
       const headers = lines[0].split(",");
       const rows = lines.slice(1).map((line) => {

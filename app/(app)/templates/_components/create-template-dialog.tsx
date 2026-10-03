@@ -51,9 +51,7 @@ export function CreateTemplateDialog({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Template</DialogTitle>
-          <DialogDescription>
-            Create a reusable email template for your campaigns
-          </DialogDescription>
+          <DialogDescription>Create a reusable email template for your campaigns</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pt-4">
           <div className="grid grid-cols-2 gap-4">
@@ -63,9 +61,7 @@ export function CreateTemplateDialog({
                 id="name"
                 placeholder="e.g., Welcome Email"
                 value={newTemplate.name}
-                onChange={(e) =>
-                  setNewTemplate({ ...newTemplate, name: e.target.value })
-                }
+                onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
               />
             </div>
             <div className="space-y-2">
@@ -110,20 +106,14 @@ export function CreateTemplateDialog({
             <Label>Email Content</Label>
             <RichTextEditor
               content={newTemplate.content}
-              onChange={(content) =>
-                setNewTemplate({ ...newTemplate, content })
-              }
+              onChange={(content) => setNewTemplate({ ...newTemplate, content })}
               placeholder="Compose your template content..."
             />
           </div>
           <div className="flex gap-2 pt-4">
             <Button
               onClick={onCreateTemplate}
-              disabled={
-                isLoading ||
-                !newTemplate.name.trim() ||
-                !newTemplate.subject.trim()
-              }
+              disabled={isLoading || !newTemplate.name.trim() || !newTemplate.subject.trim()}
               className="flex-1"
             >
               Create Template

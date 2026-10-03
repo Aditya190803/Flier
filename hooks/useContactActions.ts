@@ -77,10 +77,7 @@ export function useContactActions({
     } catch (error) {
       // Revert on error
       setContacts((prev) => prev.filter((c) => c.$id !== tempId));
-      componentLogger.error(
-        "Error adding contact",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error adding contact", error instanceof Error ? error : undefined);
       toast.error("Failed to add contact - changes reverted");
     }
   };
@@ -102,9 +99,7 @@ export function useContactActions({
     };
 
     // Optimistically update UI
-    setContacts((prev) =>
-      prev.map((c) => (c.$id === editingContact.$id ? updatedContact : c)),
-    );
+    setContacts((prev) => prev.map((c) => (c.$id === editingContact.$id ? updatedContact : c)));
     toast.success("Contact updated!");
 
     try {
@@ -121,10 +116,7 @@ export function useContactActions({
     } catch (error) {
       // Revert on error
       setContacts(() => previousContacts);
-      componentLogger.error(
-        "Error updating contact",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error updating contact", error instanceof Error ? error : undefined);
       toast.error("Failed to update contact - changes reverted");
     }
   };
@@ -146,20 +138,13 @@ export function useContactActions({
     } catch (error) {
       // Revert on error
       setContacts((prev) => [...prev, contactToDelete]);
-      componentLogger.error(
-        "Error deleting contact",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error deleting contact", error instanceof Error ? error : undefined);
       toast.error("Failed to delete contact - restored");
     }
   };
 
   // Group functions
-  const createGroup = async (newGroup: {
-    name: string;
-    description: string;
-    color: string;
-  }) => {
+  const createGroup = async (newGroup: { name: string; description: string; color: string }) => {
     if (!userEmail || !newGroup.name.trim()) {
       return;
     }
@@ -177,10 +162,7 @@ export function useContactActions({
       toast.success("Group created!");
       fetchGroups();
     } catch (error) {
-      componentLogger.error(
-        "Error creating group",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error creating group", error instanceof Error ? error : undefined);
       toast.error("Failed to create group");
     }
     setIsLoading(false);
@@ -207,10 +189,7 @@ export function useContactActions({
       toast.success("Group updated!");
       fetchGroups();
     } catch (error) {
-      componentLogger.error(
-        "Error updating group",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error updating group", error instanceof Error ? error : undefined);
       toast.error("Failed to update group");
     }
     setIsLoading(false);
@@ -225,10 +204,7 @@ export function useContactActions({
       }
       fetchGroups();
     } catch (error) {
-      componentLogger.error(
-        "Error deleting group",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error deleting group", error instanceof Error ? error : undefined);
       toast.error("Failed to delete group");
     }
   };

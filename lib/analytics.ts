@@ -33,5 +33,4 @@ export function generateLinkId(): string {
 /**
  * Tracking disclosure text
  */
-export const TRACKING_DISCLOSURE =
-  "This email includes tracking to help us improve our content.";
+export const TRACKING_DISCLOSURE = "This email includes tracking to help us improve our content.";

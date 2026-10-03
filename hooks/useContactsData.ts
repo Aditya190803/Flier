@@ -4,11 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { toast } from "sonner";
 
-import {
-  contactsService,
-  contactGroupsService,
-  type ContactGroup,
-} from "@/lib/appwrite";
+import { contactsService, contactGroupsService, type ContactGroup } from "@/lib/appwrite";
 import { componentLogger } from "@/lib/client-logger";
 
 export interface Contact {
@@ -58,10 +54,7 @@ export function useContactsData(userEmail: string | undefined) {
       });
       setContacts(contactsData);
     } catch (error) {
-      componentLogger.error(
-        "Error fetching contacts",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error fetching contacts", error instanceof Error ? error : undefined);
       toast.error("Failed to load contacts");
     }
   }, [userEmail]);
@@ -74,10 +67,7 @@ export function useContactsData(userEmail: string | undefined) {
       const response = await contactGroupsService.listByUser(userEmail);
       setGroups(response.documents);
     } catch (error) {
-      componentLogger.error(
-        "Error fetching groups",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error fetching groups", error instanceof Error ? error : undefined);
     }
   }, [userEmail]);
 
@@ -91,12 +81,9 @@ export function useContactsData(userEmail: string | undefined) {
     };
     loadData();
 
-    const unsubscribe = contactsService.subscribeToUserContacts(
-      userEmail,
-      () => {
-        fetchContacts();
-      },
-    );
+    const unsubscribe = contactsService.subscribeToUserContacts(userEmail, () => {
+      fetchContacts();
+    });
     return () => {
       if (unsubscribe) {
         unsubscribe();

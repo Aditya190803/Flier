@@ -22,10 +22,7 @@ export function authorizeCron(request: NextRequest): NextResponse | null {
 
   if (!secret) {
     if (process.env.NODE_ENV === "production") {
-      return NextResponse.json(
-        { error: "CRON_SECRET is not configured" },
-        { status: 503 },
-      );
+      return NextResponse.json({ error: "CRON_SECRET is not configured" }, { status: 503 });
     }
     return null;
   }

@@ -4,15 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 
 import { useRouter } from "next/navigation";
 
-import {
-  Pen,
-  Plus,
-  Trash2,
-  Edit,
-  MoreVertical,
-  Star,
-  ArrowLeft,
-} from "lucide-react";
+import { Pen, Plus, Trash2, Edit, MoreVertical, Star, ArrowLeft } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
@@ -59,8 +51,7 @@ export default function SignaturesPage() {
   const [signatures, setSignatures] = useState<EmailSignature[]>([]);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [editingSignature, setEditingSignature] =
-    useState<EmailSignature | null>(null);
+  const [editingSignature, setEditingSignature] = useState<EmailSignature | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
@@ -109,11 +100,7 @@ export default function SignaturesPage() {
   }, [session?.user?.email, fetchSignatures]);
 
   const createSignature = async () => {
-    if (
-      !session?.user?.email ||
-      !newSignature.name.trim() ||
-      !newSignature.content.trim()
-    ) {
+    if (!session?.user?.email || !newSignature.name.trim() || !newSignature.content.trim()) {
       return;
     }
 
@@ -130,10 +117,7 @@ export default function SignaturesPage() {
       toast.success("Signature created!");
       fetchSignatures();
     } catch (error) {
-      componentLogger.error(
-        "Error creating signature",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error creating signature", error instanceof Error ? error : undefined);
       toast.error("Failed to create signature");
     }
     setIsLoading(false);
@@ -157,10 +141,7 @@ export default function SignaturesPage() {
       toast.success("Signature updated!");
       fetchSignatures();
     } catch (error) {
-      componentLogger.error(
-        "Error updating signature",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error updating signature", error instanceof Error ? error : undefined);
       toast.error("Failed to update signature");
     }
     setIsLoading(false);
@@ -172,10 +153,7 @@ export default function SignaturesPage() {
       toast.success("Signature deleted");
       fetchSignatures();
     } catch (error) {
-      componentLogger.error(
-        "Error deleting signature",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error deleting signature", error instanceof Error ? error : undefined);
       toast.error("Failed to delete signature");
     }
   };
@@ -190,10 +168,7 @@ export default function SignaturesPage() {
       toast.success("Default signature updated");
       fetchSignatures();
     } catch (error) {
-      componentLogger.error(
-        "Error setting default",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Error setting default", error instanceof Error ? error : undefined);
       toast.error("Failed to set default signature");
     }
   };
@@ -265,17 +240,15 @@ export default function SignaturesPage() {
                 <DialogHeader>
                   <DialogTitle>Create Signature</DialogTitle>
                   <DialogDescription>
-                    Create a reusable email signature. The name is for your
-                    reference only — only the content below will be added to
-                    your emails.
+                    Create a reusable email signature. The name is for your reference only — only
+                    the content below will be added to your emails.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Signature Name *</Label>
                     <p className="text-xs text-muted-foreground">
-                      This name is just for identification and won't appear in
-                      your emails
+                      This name is just for identification and won't appear in your emails
                     </p>
                     <Input
                       id="name"
@@ -292,14 +265,12 @@ export default function SignaturesPage() {
                   <div className="space-y-2">
                     <Label>Signature Content *</Label>
                     <p className="text-xs text-muted-foreground">
-                      This rich text content will be added to the bottom of
-                      emails when you select this signature
+                      This rich text content will be added to the bottom of emails when you select
+                      this signature
                     </p>
                     <RichTextEditor
                       content={newSignature.content}
-                      onChange={(content) =>
-                        setNewSignature({ ...newSignature, content })
-                      }
+                      onChange={(content) => setNewSignature({ ...newSignature, content })}
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -327,9 +298,7 @@ export default function SignaturesPage() {
                   </Button>
                   <Button
                     onClick={createSignature}
-                    disabled={
-                      isLoading || !newSignature.name || !newSignature.content
-                    }
+                    disabled={isLoading || !newSignature.name || !newSignature.content}
                   >
                     {isLoading ? "Creating..." : "Create Signature"}
                   </Button>
@@ -348,14 +317,9 @@ export default function SignaturesPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-lg">
-                          {signature.name}
-                        </h3>
+                        <h3 className="font-semibold text-lg">{signature.name}</h3>
                         {signature.is_default && (
-                          <Badge
-                            variant="secondary"
-                            className="flex items-center gap-1"
-                          >
+                          <Badge variant="secondary" className="flex items-center gap-1">
                             <Star className="h-3 w-3" />
                             Default
                           </Badge>
@@ -387,9 +351,7 @@ export default function SignaturesPage() {
                           Edit
                         </DropdownMenuItem>
                         {!signature.is_default && (
-                          <DropdownMenuItem
-                            onClick={() => setAsDefault(signature.$id!)}
-                          >
+                          <DropdownMenuItem onClick={() => setAsDefault(signature.$id!)}>
                             <Star className="h-4 w-4 mr-2" />
                             Set as Default
                           </DropdownMenuItem>
@@ -406,12 +368,10 @@ export default function SignaturesPage() {
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Delete Signature
-                              </AlertDialogTitle>
+                              <AlertDialogTitle>Delete Signature</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to delete "
-                                {signature.name}"? This action cannot be undone.
+                                Are you sure you want to delete "{signature.name}"? This action
+                                cannot be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -454,9 +414,7 @@ export default function SignaturesPage() {
               <li>• Include your name, title, and contact information</li>
               <li>• Keep it concise - 3-5 lines is ideal</li>
               <li>• Add links to your social profiles or website</li>
-              <li>
-                • Set a default signature to automatically add it to all emails
-              </li>
+              <li>• Set a default signature to automatically add it to all emails</li>
             </ul>
           </CardContent>
         </Card>
@@ -468,8 +426,8 @@ export default function SignaturesPage() {
           <DialogHeader>
             <DialogTitle>Edit Signature</DialogTitle>
             <DialogDescription>
-              Update your email signature. The name is for your reference only —
-              only the content below will be added to your emails.
+              Update your email signature. The name is for your reference only — only the content
+              below will be added to your emails.
             </DialogDescription>
           </DialogHeader>
           {editingSignature && (
@@ -477,8 +435,7 @@ export default function SignaturesPage() {
               <div className="space-y-2">
                 <Label>Signature Name *</Label>
                 <p className="text-xs text-muted-foreground">
-                  This name is just for identification and won't appear in your
-                  emails
+                  This name is just for identification and won't appear in your emails
                 </p>
                 <Input
                   value={editingSignature.name}
@@ -494,9 +451,7 @@ export default function SignaturesPage() {
                 <Label>Signature Content</Label>
                 <RichTextEditor
                   content={editingSignature.content}
-                  onChange={(content) =>
-                    setEditingSignature({ ...editingSignature, content })
-                  }
+                  onChange={(content) => setEditingSignature({ ...editingSignature, content })}
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -520,9 +475,7 @@ export default function SignaturesPage() {
                 <Button
                   onClick={updateSignature}
                   disabled={
-                    isLoading ||
-                    !editingSignature.name.trim() ||
-                    !editingSignature.content.trim()
+                    isLoading || !editingSignature.name.trim() || !editingSignature.content.trim()
                   }
                   className="flex-1"
                 >
