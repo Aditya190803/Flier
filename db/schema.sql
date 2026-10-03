@@ -69,3 +69,12 @@ CREATE TABLE IF NOT EXISTS delivery_worker_health (
   id integer PRIMARY KEY CHECK (id = 1),
   last_tick timestamptz NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS saved_audiences (
+  id uuid PRIMARY KEY,
+  user_email text NOT NULL,
+  name varchar(100) NOT NULL,
+  filters jsonb NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS saved_audiences_user_idx ON saved_audiences(user_email);

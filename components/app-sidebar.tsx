@@ -50,6 +50,7 @@ import {
 
 const mainNav = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Campaigns", href: "/campaigns", icon: Mail },
   { name: "Compose", href: "/compose", icon: PenSquare },
   { name: "Scheduled", href: "/scheduled", icon: CalendarClock },
   { name: "Drafts", href: "/draft", icon: Clock },

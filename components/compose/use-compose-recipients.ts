@@ -48,6 +48,8 @@ export function useComposeRecipients({
 
   // Handle CSV data
   const handleCsvData = (data: CSVRow[]) => {
+    setSelectedContacts(new Set());
+    setSelectedGroups(new Set());
     setCsvData(data);
 
     // Extract headers from first row

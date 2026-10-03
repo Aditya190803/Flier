@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { Users, Mail, Download, Upload, Tag, CloudDownload } from "lucide-react";
 
+import { ContactImportDialog } from "@/components/contacts/contact-import-dialog";
 import { ContactGroupsTab } from "@/components/contacts/contact-groups-tab";
 import { ContactListTab } from "@/components/contacts/contact-list-tab";
 import { ContactManagementDialogs } from "@/components/contacts/contact-management-dialogs";
@@ -81,7 +82,7 @@ export default function ContactsPage() {
     setSelectedGroup,
   });
 
-  const { exportContacts, handleFileImport } = useContactImportExport({
+  const { exportContacts, handleFileImport, importer } = useContactImportExport({
     userEmail: session?.user?.email,
     contacts,
     fetchContacts,
@@ -363,6 +364,7 @@ export default function ContactsPage() {
         )}
       </main>
 
+      <ContactImportDialog importer={importer} />
       <ContactManagementDialogs
         groups={groups}
         groupColors={GROUP_COLORS}

@@ -21,6 +21,7 @@ import {
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
+import { FirstCampaignChecklist } from "@/components/first-campaign-checklist";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -276,6 +277,12 @@ export default function DashboardPage() {
       <PageShell>
         {/* Header */}
         <DashboardHeader userName={session?.user?.name?.split(" ")[0] || "there"} />
+        {session?.user?.email && (
+          <FirstCampaignChecklist
+            userEmail={session.user.email}
+            sent={campaigns.some((campaign) => campaign.sent > 0)}
+          />
+        )}
 
         {/* KPI Cards */}
         <AnalyticsMetrics campaigns={campaigns} />
