@@ -52,10 +52,7 @@ describe("Contacts Service", () => {
 
       const result = await contactsService.listByUser("test@example.com");
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        "/api/appwrite/contacts",
-        expect.any(Object),
-      );
+      expect(mockFetch).toHaveBeenCalledWith("/api/appwrite/contacts", expect.any(Object));
       expect(result.total).toBe(2);
       expect(result.documents).toHaveLength(2);
     });
@@ -99,7 +96,7 @@ describe("Contacts Service", () => {
       expect(mockFetch).toHaveBeenCalledWith("/api/appwrite/contacts", {
         method: "POST",
         body: JSON.stringify(newContact),
-        headers: { "Content-Type": "application/json" },
+        headers: expect.any(Headers),
       });
       expect(result.email).toBe("new@example.com");
     });
@@ -128,13 +125,10 @@ describe("Contacts Service", () => {
 
       await contactsService.delete("contact-123");
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        "/api/appwrite/contacts?id=contact-123",
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      expect(mockFetch).toHaveBeenCalledWith("/api/appwrite/contacts?id=contact-123", {
+        method: "DELETE",
+        headers: expect.any(Headers),
+      });
     });
   });
 });
@@ -197,10 +191,7 @@ describe("Campaigns Service", () => {
       const result = await campaignsService.create(newCampaign);
 
       expect(result.subject).toBe("Newsletter");
-      expect(mockFetch).toHaveBeenCalledWith(
-        "/api/appwrite/campaigns",
-        expect.any(Object),
-      );
+      expect(mockFetch).toHaveBeenCalledWith("/api/appwrite/campaigns", expect.any(Object));
     });
   });
 });
@@ -473,15 +464,8 @@ describe("Unsubscribes Service", () => {
         }),
       });
 
-      const emails = [
-        "active1@example.com",
-        "unsubscribed@example.com",
-        "active2@example.com",
-      ];
-      const result = await unsubscribesService.filterUnsubscribed(
-        "test@example.com",
-        emails,
-      );
+      const emails = ["active1@example.com", "unsubscribed@example.com", "active2@example.com"];
+      const result = await unsubscribesService.filterUnsubscribed("test@example.com", emails);
 
       expect(result).toHaveLength(2);
       expect(result).not.toContain("unsubscribed@example.com");

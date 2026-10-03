@@ -1,1 +1,1 @@
-npx lint-staged
+vp exec lint-staged

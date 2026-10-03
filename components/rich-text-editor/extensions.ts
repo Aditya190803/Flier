@@ -3,12 +3,7 @@ import Highlight from "@tiptap/extension-highlight";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
-import {
-  Table,
-  TableCell,
-  TableHeader,
-  TableRow,
-} from "@tiptap/extension-table";
+import { Table, TableCell, TableHeader, TableRow } from "@tiptap/extension-table";
 import TextAlign from "@tiptap/extension-text-align";
 import { TextStyle } from "@tiptap/extension-text-style";
 import Typography from "@tiptap/extension-typography";
@@ -39,6 +34,8 @@ const CustomLink = Link.extend({
 export function createRichTextEditorExtensions(placeholder: string) {
   return [
     StarterKit.configure({
+      link: false,
+      underline: false,
       paragraph: {
         HTMLAttributes: {
           class: "editor-paragraph",

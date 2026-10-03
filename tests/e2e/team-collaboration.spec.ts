@@ -191,7 +191,7 @@ test.describe("Team Collaboration Features", () => {
 
     if (await teamLink.first().isVisible()) {
       await teamLink.first().click();
-      await expect(page.url()).toContain("team");
+      await expect(page).toHaveURL(/team/);
     }
   });
 

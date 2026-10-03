@@ -162,7 +162,7 @@ test.describe("Contact Groups", () => {
       // Dialog should open
       const dialog = page.locator('[role="dialog"]');
       if (await dialog.first().isVisible()) {
-        const groupNameInput = page.getByPlaceholder(/group name|name/i);
+        const groupNameInput = dialog.getByRole("textbox", { name: "Group Name *" });
         await expect(groupNameInput.first()).toBeVisible();
       }
     }

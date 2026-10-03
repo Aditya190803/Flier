@@ -1,5 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const port = Number(process.env.E2E_PORT || 3100);
+const baseURL = `http://localhost:${port}`;
+
 const chromiumProject = {
   name: "chromium",
   use: { ...devices["Desktop Chrome"] },
@@ -40,7 +43,7 @@ export default defineConfig({
   reporter: "html",
 
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL,
     storageState: "test-results/e2e-auth.json",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
@@ -51,9 +54,10 @@ export default defineConfig({
   projects: process.env.CI ? [chromiumProject] : browserProjects,
 
   webServer: {
-    command: "npm run dev",
-    url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
+    command: `vp run dev --port ${port}`,
+    url: baseURL,
+    reuseExistingServer: false,
+    env: { E2E_TEST: "true", NEXTAUTH_URL: baseURL, NODE_ENV: "development" },
     timeout: 120 * 1000,
   },
 });
