@@ -172,12 +172,28 @@ export function useDraftPersistence({
             setAttachments(
               campaign.attachments.map((att: any) => ({
                 name: att.fileName || att.name,
-                size: att.fileSize || att.size || 0,
+                fileSize: att.fileSize || att.size || 0,
                 type: att.fileType || att.type || "application/octet-stream",
-                path: att.fileUrl || att.path || "",
+                data: att.appwrite_file_id ? "appwrite" : att.fileUrl || "",
+                appwriteUrl: att.fileUrl,
+                appwriteFileId: att.appwrite_file_id,
               })),
             );
           }
+          if (Array.isArray(campaign.csv_data)) {
+            setCsvData(campaign.csv_data);
+            setCsvHeaders(Object.keys(campaign.csv_data[0] || {}));
+          }
+          if (Array.isArray(campaign.cc)) {
+            setCc(serializeEmailList(campaign.cc));
+            setShowCc(campaign.cc.length > 0);
+          }
+          if (Array.isArray(campaign.bcc)) {
+            setBcc(serializeEmailList(campaign.bcc));
+            setShowBcc(campaign.bcc.length > 0);
+          }
+          setShowPersonalizedAttachments(Boolean(campaign.has_personalized_attachments));
+          setPdfColumn(campaign.personalized_attachment_column || null);
           sessionStorage.removeItem("duplicateCampaign");
           toast.success("Campaign duplicated! You can now edit and send.");
           return; // Don't load draft if duplicating campaign

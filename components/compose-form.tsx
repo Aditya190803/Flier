@@ -320,6 +320,13 @@ export function ComposeForm() {
         pdfColumn: showPersonalizedAttachments ? pdfColumn : null,
       });
       await apiRequest("/api/send-test-email", { method: "POST", body: JSON.stringify(email) });
+      if (session?.user?.email) {
+        try {
+          localStorage.setItem(`flier:test-sent:${session.user.email}`, "true");
+        } catch {
+          /* Storage may be disabled. */
+        }
+      }
       toast.success("Test email sent to " + session?.user?.email);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Test email failed");

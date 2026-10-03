@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { CSVRow } from "@/types/email";
 
+import { SavedAudiences } from "./saved-audiences";
 import type { Contact, ContactGroup } from "./compose-types";
 
 interface ManualEntry {
@@ -77,6 +78,7 @@ export function RecipientsStep({
 }: RecipientsStepProps) {
   return (
     <div className="divide-y divide-border/70 -mx-4 md:-mx-6 lg:-mx-8">
+      <SavedAudiences groups={groups} onApply={handleCsvData} />
       <section className="px-4 md:px-6 lg:px-8 py-6">
         <div className="flex items-start gap-3 mb-4">
           <div className="h-9 w-9 rounded-xl border bg-muted/20 flex items-center justify-center text-muted-foreground">

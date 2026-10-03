@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 
 import { isAuthed, requireSession } from "@/lib/api-auth";
 import { respondWithOwnedDocument } from "@/lib/appwrite/single-document";
-import { databases, config, Query, ID } from "@/lib/appwrite-server";
+import { databases, config, ID } from "@/lib/appwrite-server";
+import { listOwnedContacts } from "@/lib/services/contact-directory";
+import { contactSchema, validate } from "@/lib/validation";
 import { apiLogger } from "@/lib/logger";
 import type { ContactDocument } from "@/types/appwrite";
 
@@ -20,16 +22,8 @@ export async function GET(request: NextRequest) {
       return single;
     }
 
-    const response = await databases.listDocuments(config.databaseId, config.contactsCollectionId, [
-      Query.equal("user_email", auth.email),
-      Query.orderDesc("created_at"),
-      Query.limit(1000),
-    ]);
-
-    return NextResponse.json({
-      total: response.total,
-      documents: response.documents,
-    });
+    const documents = await listOwnedContacts(auth.email);
+    return NextResponse.json({ total: documents.length, documents });
   } catch (error: unknown) {
     apiLogger.error("Error fetching contacts", error instanceof Error ? error : undefined);
     return NextResponse.json(
@@ -50,7 +44,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { email, name, company, phone, tags } = body;
+    const parsed = validate(contactSchema, body);
+    if (!parsed.success || !parsed.data) {
+      return NextResponse.json({ error: parsed.message || "Invalid contact" }, { status: 400 });
+    }
+    const { email, name, company, phone, tags } = parsed.data;
 
     const result = await databases.createDocument(
       config.databaseId,
