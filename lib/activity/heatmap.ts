@@ -3,19 +3,12 @@
  * Aggregates and visualizes click data by link
  */
 
-import type {
-  ClickHeatmapData,
-  LinkClickData,
-  TrackingEvent,
-} from "@/types/activity";
+import type { ClickHeatmapData, LinkClickData, TrackingEvent } from "@/types/activity";
 
 /**
  * Aggregate tracking events into heatmap data
  */
-export function aggregateClickData(
-  events: TrackingEvent[],
-  campaignId: string,
-): ClickHeatmapData {
+export function aggregateClickData(events: TrackingEvent[], campaignId: string): ClickHeatmapData {
   // Filter to only click events for this campaign
   const clickEvents = events.filter(
     (e) => e.event_type === "click" && e.campaign_id === campaignId,
@@ -128,10 +121,7 @@ export function calculateLinkCTR(clicks: number, totalSent: number): number {
 /**
  * Get top performing links from heatmap data
  */
-export function getTopLinks(
-  heatmapData: ClickHeatmapData,
-  limit: number = 5,
-): LinkClickData[] {
+export function getTopLinks(heatmapData: ClickHeatmapData, limit: number = 5): LinkClickData[] {
   return heatmapData.links.slice(0, limit);
 }
 

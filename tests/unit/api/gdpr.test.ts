@@ -2,13 +2,10 @@
  * Unit tests for GDPR API routes
  */
 import { getServerSession } from "next-auth";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vite-plus/test";
 
 import { databases, ID } from "@/lib/appwrite-server";
-import {
-  createMockLoggerModule,
-  createSpyLogger,
-} from "@/tests/helpers/mockLoggerModule";
+import { createMockLoggerModule, createSpyLogger } from "@/tests/helpers/mockLoggerModule";
 
 // Mock next-auth
 vi.mock("next-auth", () => ({
@@ -82,33 +79,17 @@ describe("GDPR API Routes", () => {
         // Mock campaigns
         .mockResolvedValueOnce({
           total: 1,
-          documents: [
-            { $id: "camp1", subject: "Test Campaign", status: "completed" },
-          ],
+          documents: [{ $id: "camp1", subject: "Test Campaign", status: "completed" }],
         } as any)
         // Mock templates
         .mockResolvedValueOnce({
           total: 1,
-          documents: [
-            { $id: "t1", name: "Welcome Template", content: "<p>Hello</p>" },
-          ],
+          documents: [{ $id: "t1", name: "Welcome Template", content: "<p>Hello</p>" }],
         } as any);
 
-      const contactsResult = await databases.listDocuments(
-        "test-db",
-        "contacts",
-        [],
-      );
-      const campaignsResult = await databases.listDocuments(
-        "test-db",
-        "campaigns",
-        [],
-      );
-      const templatesResult = await databases.listDocuments(
-        "test-db",
-        "templates",
-        [],
-      );
+      const contactsResult = await databases.listDocuments("test-db", "contacts", []);
+      const campaignsResult = await databases.listDocuments("test-db", "campaigns", []);
+      const templatesResult = await databases.listDocuments("test-db", "templates", []);
 
       const exportData = {
         contacts: contactsResult.documents,
@@ -131,16 +112,11 @@ describe("GDPR API Routes", () => {
         timestamp: new Date().toISOString(),
       } as any);
 
-      const logEntry = await databases.createDocument(
-        "test-db",
-        "gdpr-logs",
-        ID.unique(),
-        {
-          action: "data_export",
-          user_email: "user@example.com",
-          timestamp: new Date().toISOString(),
-        },
-      );
+      const logEntry = await databases.createDocument("test-db", "gdpr-logs", ID.unique(), {
+        action: "data_export",
+        user_email: "user@example.com",
+        timestamp: new Date().toISOString(),
+      });
 
       expect(logEntry.$id).toBe("log-1");
       expect((logEntry as any).action).toBe("data_export");
@@ -174,16 +150,8 @@ describe("GDPR API Routes", () => {
       vi.mocked(databases.deleteDocument).mockResolvedValue({} as any);
 
       const contacts = await databases.listDocuments("test-db", "contacts", []);
-      const campaigns = await databases.listDocuments(
-        "test-db",
-        "campaigns",
-        [],
-      );
-      const templates = await databases.listDocuments(
-        "test-db",
-        "templates",
-        [],
-      );
+      const campaigns = await databases.listDocuments("test-db", "campaigns", []);
+      const templates = await databases.listDocuments("test-db", "templates", []);
 
       // Delete all documents
       for (const doc of contacts.documents) {
@@ -208,17 +176,12 @@ describe("GDPR API Routes", () => {
         timestamp: new Date().toISOString(),
       } as any);
 
-      const logEntry = await databases.createDocument(
-        "test-db",
-        "gdpr-logs",
-        ID.unique(),
-        {
-          action: "data_deletion",
-          user_email: "user@example.com",
-          items_deleted: { contacts: 2, campaigns: 1, templates: 1 },
-          timestamp: new Date().toISOString(),
-        },
-      );
+      const logEntry = await databases.createDocument("test-db", "gdpr-logs", ID.unique(), {
+        action: "data_deletion",
+        user_email: "user@example.com",
+        items_deleted: { contacts: 2, campaigns: 1, templates: 1 },
+        timestamp: new Date().toISOString(),
+      });
 
       expect((logEntry as any).action).toBe("data_deletion");
     });
@@ -241,17 +204,12 @@ describe("GDPR API Routes", () => {
         timestamp: new Date().toISOString(),
       } as any);
 
-      const consent = await databases.createDocument(
-        "test-db",
-        "gdpr-logs",
-        ID.unique(),
-        {
-          user_email: "user@example.com",
-          consent_type: "marketing",
-          granted: true,
-          timestamp: new Date().toISOString(),
-        },
-      );
+      const consent = await databases.createDocument("test-db", "gdpr-logs", ID.unique(), {
+        user_email: "user@example.com",
+        consent_type: "marketing",
+        granted: true,
+        timestamp: new Date().toISOString(),
+      });
 
       expect((consent as any).granted).toBe(true);
     });
@@ -265,17 +223,12 @@ describe("GDPR API Routes", () => {
         timestamp: new Date().toISOString(),
       } as any);
 
-      const consent = await databases.createDocument(
-        "test-db",
-        "gdpr-logs",
-        ID.unique(),
-        {
-          user_email: "user@example.com",
-          consent_type: "marketing",
-          granted: false,
-          timestamp: new Date().toISOString(),
-        },
-      );
+      const consent = await databases.createDocument("test-db", "gdpr-logs", ID.unique(), {
+        user_email: "user@example.com",
+        consent_type: "marketing",
+        granted: false,
+        timestamp: new Date().toISOString(),
+      });
 
       expect((consent as any).granted).toBe(false);
     });
@@ -323,23 +276,19 @@ describe("GDPR API Routes", () => {
     });
 
     it("should handle deletion failure gracefully", async () => {
-      vi.mocked(databases.deleteDocument).mockRejectedValueOnce(
-        new Error("Deletion failed"),
-      );
+      vi.mocked(databases.deleteDocument).mockRejectedValueOnce(new Error("Deletion failed"));
 
-      await expect(
-        databases.deleteDocument("test-db", "contacts", "contact-1"),
-      ).rejects.toThrow("Deletion failed");
+      await expect(databases.deleteDocument("test-db", "contacts", "contact-1")).rejects.toThrow(
+        "Deletion failed",
+      );
     });
 
     it("should handle export failure gracefully", async () => {
-      vi.mocked(databases.listDocuments).mockRejectedValueOnce(
-        new Error("Export failed"),
-      );
+      vi.mocked(databases.listDocuments).mockRejectedValueOnce(new Error("Export failed"));
 
-      await expect(
-        databases.listDocuments("test-db", "contacts", []),
-      ).rejects.toThrow("Export failed");
+      await expect(databases.listDocuments("test-db", "contacts", [])).rejects.toThrow(
+        "Export failed",
+      );
     });
   });
 });

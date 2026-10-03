@@ -43,8 +43,7 @@ const quickStartTemplates: QuickStartTemplate[] = [
     name: "Thank You",
     icon: "🙏",
     subject: "Thank you, {{name}}!",
-    content:
-      "<p>Dear {{name}},</p><p>Thank you so much for your support!</p><p>Warm regards</p>",
+    content: "<p>Dear {{name}},</p><p>Thank you so much for your support!</p><p>Warm regards</p>",
   },
   {
     name: "Meeting",
@@ -118,9 +117,7 @@ export function TemplatePickerDialog({
       <DialogContent className="w-[95vw] max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Choose a Template</DialogTitle>
-          <DialogDescription>
-            Select a template to use as a starting point
-          </DialogDescription>
+          <DialogDescription>Select a template to use as a starting point</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pt-4">
           <div className="relative">
@@ -140,9 +137,7 @@ export function TemplatePickerDialog({
             <>
               {userTemplates.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-muted-foreground">
-                    Your Templates
-                  </h4>
+                  <h4 className="text-sm font-medium text-muted-foreground">Your Templates</h4>
                   {userTemplates.map((template) => (
                     <button
                       key={template.$id}
@@ -180,15 +175,11 @@ export function TemplatePickerDialog({
                         <button
                           key={index}
                           type="button"
-                          onClick={() =>
-                            onApplyTemplate(templateAsEmailTemplate)
-                          }
+                          onClick={() => onApplyTemplate(templateAsEmailTemplate)}
                           className="flex items-center gap-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors text-left"
                         >
                           <span className="text-lg">{template.icon}</span>
-                          <span className="text-sm font-medium">
-                            {template.name}
-                          </span>
+                          <span className="text-sm font-medium">{template.name}</span>
                         </button>
                       );
                     })}
@@ -196,11 +187,7 @@ export function TemplatePickerDialog({
                 </div>
               )}
 
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={onBrowseAllTemplates}
-              >
+              <Button variant="outline" className="w-full" onClick={onBrowseAllTemplates}>
                 <FileText className="h-4 w-4 mr-2" />
                 Browse All Templates
               </Button>

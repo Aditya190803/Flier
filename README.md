@@ -1,13 +1,13 @@
-# EchoMail 📧
+# Flier 📧
 
-[![Built with Next.js](https://img.shields.io/badge/Built%20with-Next.js%2015-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Built with Next.js](https://img.shields.io/badge/Built%20with-Next.js%2016-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Gmail API](https://img.shields.io/badge/Gmail-API-red?style=for-the-badge&logo=gmail)](https://developers.google.com/gmail/api)
 [![Appwrite](https://img.shields.io/badge/Appwrite-FD366E?style=for-the-badge&logo=appwrite&logoColor=white)](https://appwrite.io/)
 
 ## 🚀 Overview
 
-**EchoMail** is a powerful, modern email marketing platform that seamlessly integrates with Gmail API to send personalized bulk emails. Built with Next.js 15 and TypeScript, it offers a professional-grade solution for businesses and individuals looking to manage email campaigns with Gmail-like formatting and reliability.
+**Flier** is a powerful, modern email marketing platform that seamlessly integrates with Gmail API to send personalized bulk emails. Built with Next.js 16 and TypeScript, it offers a professional-grade solution for businesses and individuals looking to manage email campaigns with Gmail-like formatting and reliability.
 
 ## ✨ Key Features
 
@@ -56,8 +56,8 @@
 ### 🔒 **Security, Privacy & GDPR Compliance**
 
 - Secure OAuth 2.0 authentication
-- No email credentials stored
-- End-to-end encrypted API communications
+- Offline Google refresh tokens are encrypted at rest for background delivery
+- HTTPS protects API communications in transit
 - **GDPR Compliance Tools:**
   - Data export (download all your data as JSON)
   - Data deletion (right to be forgotten)
@@ -78,7 +78,7 @@
 ### 🔗 **Webhooks & Integrations**
 
 - Configure webhook notifications for email events
-- Real-time event callbacks (sent, opened, clicked, bounced)
+- Event callbacks for sent, opened and clicked messages; bounce ingestion is not implemented
 - Custom webhook endpoints with secret verification
 
 ### ⌨️ **Keyboard Shortcuts**
@@ -98,23 +98,24 @@
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: Next.js 15, React 19, TypeScript
+- **Frontend**: Next.js 16, React 19, TypeScript
 - **Styling**: Tailwind CSS, shadcn/ui components, Radix UI
 - **Authentication**: NextAuth.js with Google OAuth
-- **Database & Storage**: Appwrite (Cloud or Self-hosted)
+- **Data**: Heroku Postgres for scheduled delivery; Appwrite for existing app data and attachment storage
 - **Email**: Gmail API with automatic token refresh
 - **Rich Text**: TipTap editor
 - **Icons**: Lucide React
 - **Date Handling**: date-fns
 - **Notifications**: Sonner toast
 - **Testing**: Vitest, Playwright
-- **Deployment**: Vercel
+- **Deployment**: Heroku (single web dyno with an integrated clock)
 
 ## 📋 Prerequisites
 
 Before you begin, ensure you have:
 
-- Node.js 20+ installed
+- Node.js 24 and the Vite+ `vp` CLI installed
+- PostgreSQL for local scheduled-delivery development
 - Gmail account
 - Google Cloud Project with Gmail API enabled
 - Appwrite project set up (Cloud or Self-hosted)
@@ -124,19 +125,19 @@ Before you begin, ensure you have:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Aditya190803/echomail.git
-cd echomail
+git clone https://github.com/Aditya190803/flier.git
+cd flier
 ```
 
 ### 2. Install Dependencies
 
 ```bash
-npm install
+vp install
 ```
 
 ### 3. Set Up Environment Variables
 
-Create a `.env.local` file in the root directory:
+Copy `.env.example` to `.env.local` and fill in values:
 
 ```env
 # NextAuth Configuration
@@ -146,6 +147,11 @@ NEXTAUTH_SECRET=your-secret-key-here
 # Google OAuth (Gmail API)
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# Scheduled sending (Heroku sets this automatically in production)
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/flier
+TOKEN_ENCRYPTION_KEY=generate-with-openssl-rand-base64-32
+CRON_SECRET=generate-a-long-random-secret
 
 # Appwrite Configuration
 NEXT_PUBLIC_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
@@ -188,7 +194,7 @@ UPSTASH_REDIS_REST_TOKEN=your-upstash-token
 4. Create OAuth 2.0 credentials
 5. Add authorized redirect URIs:
    - `http://localhost:3000/api/auth/callback/google` (development)
-   - `https://echomail.adityamer.dev/api/auth/callback/google` (production)
+   - `https://sendflier.tech/api/auth/callback/google` (production)
 
 ### 5. Set Up Appwrite
 
@@ -209,10 +215,18 @@ The setup script creates all required collections:
 - **Teams**: teams, team_members
 - **Compliance**: audit_logs, consents
 
+Create the Postgres tables used by scheduled sending:
+
+```bash
+vp run db:migrate
+```
+
+See [Heroku Deployment](docs/HEROKU_DEPLOYMENT.md) for production setup.
+
 ### 6. Run the Development Server
 
 ```bash
-npm run dev
+vp run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to see your application.
@@ -265,7 +279,7 @@ Open [http://localhost:3000](http://localhost:3000) to see your application.
 
 ## 🔒 Token Refresh
 
-EchoMail includes automatic token refresh for long-running campaigns:
+Flier includes automatic token refresh for long-running campaigns:
 
 - Monitors token expiry during bulk email sends
 - Automatically refreshes tokens every 10 emails
@@ -285,13 +299,13 @@ The compose form automatically saves drafts:
 
 ### Quick Fixes
 
-| Issue              | Quick Solution                       |
-| ------------------ | ------------------------------------ |
-| App won't start    | `rm -rf node_modules && npm install` |
-| Auth not working   | Clear cookies, sign out/in           |
-| Emails not sending | Check Gmail API quota                |
-| Database errors    | Run `npm run appwrite:setup`         |
-| Build fails        | `npm run lint` then fix errors       |
+| Issue              | Quick Solution                      |
+| ------------------ | ----------------------------------- |
+| App won't start    | `rm -rf node_modules && vp install` |
+| Auth not working   | Clear cookies, sign out/in          |
+| Emails not sending | Check Gmail API quota               |
+| Database errors    | Run `vp run appwrite:setup`         |
+| Build fails        | `vp run lint` then fix errors       |
 
 ### Common Issues
 
@@ -316,7 +330,7 @@ Error: invalid_grant
 
 - Ensure redirect URIs in Google Cloud Console match exactly:
   - Development: `http://localhost:3000/api/auth/callback/google`
-  - Production: `https://echomail.adityamer.dev/api/auth/callback/google`
+  - Production: `https://sendflier.tech/api/auth/callback/google`
 - Note: URIs are case-sensitive and must not have trailing slashes
 
 **Problem:** "Access blocked: This app's request is invalid"
@@ -332,7 +346,7 @@ Error: invalid_grant
 **Solution:**
 
 - Gmail API has daily limits (500 emails/day for free accounts, 2000 for Google Workspace)
-- Add delays between bulk sends (EchoMail adds 1 second automatically)
+- Add delays between bulk sends (Flier adds 1 second automatically)
 - Check the sending progress in `/dashboard`
 - Wait 24 hours if quota exceeded
 
@@ -347,7 +361,7 @@ Error: invalid_grant
 **Solution:**
 
 - MJML is server-side only; ensure you're not importing it in client components
-- Run `npm install` to ensure mjml dependencies are installed
+- Run `vp install` to ensure mjml dependencies are installed
 - Check for syntax errors in your email HTML template
 
 **Problem:** Attachments not sending
@@ -363,7 +377,7 @@ Error: invalid_grant
 **Solution:**
 
 1. Verify all Appwrite environment variables are set correctly
-2. Run `npm run appwrite:setup` to create collections
+2. Run `vp run appwrite:setup` to create collections
 3. Check that your Appwrite API key has proper permissions
 4. Ensure the Appwrite endpoint is accessible
 5. Check Appwrite project status in the dashboard
@@ -371,7 +385,7 @@ Error: invalid_grant
 **Problem:** Collection not found errors
 **Solution:**
 
-- Run the setup script: `npm run appwrite:setup`
+- Run the setup script: `vp run appwrite:setup`
 - Verify collection IDs match in `.env.local`
 - Check if collections were deleted in Appwrite console
 
@@ -387,8 +401,8 @@ Error: invalid_grant
 **Problem:** Build fails with type errors
 
 ```bash
-npm run lint        # Check for linting issues
-npm run build       # Attempt production build
+vp run lint        # Check for linting issues
+vp run build       # Attempt production build
 ```
 
 **Problem:** "Module not found" errors
@@ -396,14 +410,14 @@ npm run build       # Attempt production build
 
 ```bash
 rm -rf node_modules .next
-npm install
-npm run dev
+vp install
+vp run dev
 ```
 
 **Problem:** Large bundle size
 
 ```bash
-npm run build:analyze   # Opens bundle analyzer
+vp run build:analyze   # Opens bundle analyzer
 ```
 
 **Problem:** CORS errors in development
@@ -450,7 +464,7 @@ npm run build:analyze   # Opens bundle analyzer
 **Problem:** Different behavior in production vs development
 **Solution:**
 
-1. Verify production environment variables are set in Vercel/hosting platform
+1. Verify production environment variables are set in Heroku config vars
 2. Check for `process.env.NODE_ENV` dependent code
 3. Review build logs for warnings
 
@@ -472,7 +486,7 @@ LOG_LEVEL=debug
 
 - **Browser Console**: Client-side errors and warnings
 - **Terminal**: Server-side logs during development
-- **Vercel Logs**: Production server logs
+- **Heroku Logs**: Production web and scheduled-delivery logs
 - **Appwrite Console**: Database and storage operations
 
 ### Getting Help
@@ -505,3 +519,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [shadcn/ui](https://ui.shadcn.com/) - UI components
 - [Tailwind CSS](https://tailwindcss.com/) - Styling
 - [Gmail API](https://developers.google.com/gmail/api) - Email sending
+
+## Campaign review and measurement
+
+See [delivery operations](docs/DELIVERY_OPERATIONS.md), [campaign productivity](docs/CAMPAIGN_PRODUCTIVITY.md), and [team review and metrics](docs/TEAM_REVIEW_AND_METRICS.md). Apply `vp run db:migrate` before deploying these features.

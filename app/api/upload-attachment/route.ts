@@ -1,17 +1,15 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getServerSession } from "next-auth";
-
+import { isAuthed, requireSession } from "@/lib/api-auth";
 import { serverStorageService } from "@/lib/appwrite-server";
-import { authOptions } from "@/lib/auth";
 import { apiLogger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
     const formData = await request.formData();
@@ -34,7 +32,7 @@ export async function POST(request: NextRequest) {
           buffer,
           file.name,
           file.type,
-          session.user.email,
+          auth.email,
         );
 
         uploadResults.push({
@@ -45,10 +43,7 @@ export async function POST(request: NextRequest) {
           appwrite_file_id: result.fileId,
         });
       } catch (error) {
-        apiLogger.error(
-          `Error uploading ${file.name}`,
-          error instanceof Error ? error : undefined,
-        );
+        apiLogger.error(`Error uploading ${file.name}`, error instanceof Error ? error : undefined);
         uploadResults.push({
           fileName: file.name,
           error: `Failed to upload: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -61,13 +56,7 @@ export async function POST(request: NextRequest) {
       uploads: uploadResults,
     });
   } catch (error) {
-    apiLogger.error(
-      "Upload API error",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    apiLogger.error("Upload API error", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

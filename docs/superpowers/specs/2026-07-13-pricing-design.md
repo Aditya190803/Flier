@@ -1,4 +1,4 @@
-# EchoMail Pricing Design
+# Flier Pricing Design
 
 **Date:** 2026-07-13  
 **Status:** Approved for implementation  
@@ -23,7 +23,7 @@
 | Contacts                    | 1,000 | 5,000    | 25,000   | Custom     |
 | Basic analytics             | ✅    | ✅       | ✅       | ✅         |
 | Advanced analytics + export | ❌    | ✅       | ✅       | ✅         |
-| A/B, drip, webhooks, teams  | ❌    | ❌       | ✅       | ✅         |
+| A/B, webhooks, teams        | ❌    | ❌       | ✅       | ✅         |
 | Checkout                    | —     | Razorpay | Razorpay | Sales only |
 
 Annual ≈ 2 months free (10× monthly).
@@ -58,7 +58,6 @@ Annual ≈ 2 months free (10× monthly).
 | A/B create                                | `abTesting`                           |
 | Webhook create                            | `webhooks`                            |
 | Team create                               | `teams`                               |
-| Drip (when exposed via API)               | `drip`                                |
 
 ## Razorpay flow
 

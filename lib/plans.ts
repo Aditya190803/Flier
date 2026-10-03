@@ -9,7 +9,6 @@ export type PlanFeature =
   | "advancedAnalytics"
   | "exportReports"
   | "abTesting"
-  | "drip"
   | "webhooks"
   | "teams";
 
@@ -47,7 +46,6 @@ export const PLANS: Record<PlanId, Plan> = {
         advancedAnalytics: false,
         exportReports: false,
         abTesting: false,
-        drip: false,
         webhooks: false,
         teams: false,
       },
@@ -68,7 +66,6 @@ export const PLANS: Record<PlanId, Plan> = {
         advancedAnalytics: true,
         exportReports: true,
         abTesting: false,
-        drip: false,
         webhooks: false,
         teams: false,
       },
@@ -90,7 +87,6 @@ export const PLANS: Record<PlanId, Plan> = {
         advancedAnalytics: true,
         exportReports: true,
         abTesting: true,
-        drip: true,
         webhooks: true,
         teams: true,
       },
@@ -111,7 +107,6 @@ export const PLANS: Record<PlanId, Plan> = {
         advancedAnalytics: true,
         exportReports: true,
         abTesting: true,
-        drip: true,
         webhooks: true,
         teams: true,
       },
@@ -168,10 +163,7 @@ export function resolveRazorpayPlan(
   return map[razorpayPlanId] ?? null;
 }
 
-export function getRazorpayPlanId(
-  planId: PlanId,
-  interval: BillingInterval,
-): string | null {
+export function getRazorpayPlanId(planId: PlanId, interval: BillingInterval): string | null {
   if (planId === "insights" && interval === "monthly") {
     return process.env.RAZORPAY_PLAN_INSIGHTS_MONTHLY || null;
   }

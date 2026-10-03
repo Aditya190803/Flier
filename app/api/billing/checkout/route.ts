@@ -3,10 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
-import {
-  createRazorpaySubscription,
-  isRazorpayConfigured,
-} from "@/lib/billing";
+import { createRazorpaySubscription, isRazorpayConfigured } from "@/lib/billing";
 import { apiLogger } from "@/lib/logger";
 import { type BillingInterval, type PlanId, PLANS } from "@/lib/plans";
 
@@ -63,8 +60,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       subscriptionId: subscription.id,
-      razorpayKeyId:
-        process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID,
+      razorpayKeyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID,
       planId,
       interval,
       planName: plan.name,
@@ -74,10 +70,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    apiLogger.error(
-      "Billing checkout error",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Billing checkout error", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
         error: "Checkout failed",

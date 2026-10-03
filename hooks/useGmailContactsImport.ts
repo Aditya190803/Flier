@@ -31,9 +31,7 @@ export function useGmailContactsImport({
 }: UseGmailContactsImportOptions) {
   const [showGmailImport, setShowGmailImport] = useState(false);
   const [gmailContacts, setGmailContacts] = useState<GmailContact[]>([]);
-  const [selectedGmailContacts, setSelectedGmailContacts] = useState<
-    Set<string>
-  >(new Set());
+  const [selectedGmailContacts, setSelectedGmailContacts] = useState<Set<string>>(new Set());
   const [isLoadingGmail, setIsLoadingGmail] = useState(false);
   const [gmailImportError, setGmailImportError] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
@@ -63,9 +61,7 @@ export function useGmailContactsImport({
       }
 
       const data = await response.json();
-      const importedContacts = Array.isArray(data?.contacts)
-        ? data.contacts
-        : [];
+      const importedContacts = Array.isArray(data?.contacts) ? data.contacts : [];
       if (!Array.isArray(data?.contacts)) {
         componentLogger.warn("Unexpected Google contacts response shape", data);
       }
@@ -73,24 +69,17 @@ export function useGmailContactsImport({
       const existingEmails = new Set(
         existingContacts
           .map((contact) =>
-            typeof contact.email === "string"
-              ? contact.email.toLowerCase().trim()
-              : "",
+            typeof contact.email === "string" ? contact.email.toLowerCase().trim() : "",
           )
           .filter((email): email is string => Boolean(email)),
       );
       const newContacts = importedContacts.filter((contact: GmailContact) => {
-        const email =
-          typeof contact.email === "string"
-            ? contact.email.toLowerCase().trim()
-            : "";
+        const email = typeof contact.email === "string" ? contact.email.toLowerCase().trim() : "";
         return Boolean(email) && !existingEmails.has(email);
       });
 
       setGmailContacts(newContacts);
-      setSelectedGmailContacts(
-        new Set(newContacts.map((contact: GmailContact) => contact.email)),
-      );
+      setSelectedGmailContacts(new Set(newContacts.map((contact: GmailContact) => contact.email)));
 
       if (newContacts.length === 0 && importedContacts.length > 0) {
         toast.info("All your Google contacts are already imported!");
@@ -101,9 +90,7 @@ export function useGmailContactsImport({
         error instanceof Error ? error : undefined,
       );
       setGmailImportError(
-        error instanceof Error
-          ? error.message
-          : "Failed to fetch Google contacts",
+        error instanceof Error ? error.message : "Failed to fetch Google contacts",
       );
     } finally {
       setIsLoadingGmail(false);
@@ -135,17 +122,11 @@ export function useGmailContactsImport({
     }
 
     setIsImporting(true);
-    const toastId = toast.loading(
-      `Importing ${contactsToImport.length} contacts from Google...`,
-    );
+    const toastId = toast.loading(`Importing ${contactsToImport.length} contacts from Google...`);
     let successCount = 0;
 
     try {
-      for (
-        let index = 0;
-        index < contactsToImport.length;
-        index += IMPORT_BATCH_SIZE
-      ) {
+      for (let index = 0; index < contactsToImport.length; index += IMPORT_BATCH_SIZE) {
         const batch = contactsToImport.slice(index, index + IMPORT_BATCH_SIZE);
         const results = await Promise.all(
           batch.map(async (contact) => {
@@ -179,21 +160,17 @@ export function useGmailContactsImport({
       const failedCount = totalCount - successCount;
 
       if (successCount === totalCount) {
-        toast.success(
-          `Successfully imported ${successCount} contacts from Google`,
-          {
-            id: toastId,
-          },
-        );
+        toast.success(`Successfully imported ${successCount} contacts from Google`, {
+          id: toastId,
+        });
       } else if (successCount === 0) {
         toast.error(`0 of ${totalCount} contacts imported from Google`, {
           id: toastId,
         });
       } else {
-        toast.warning(
-          `${successCount} of ${totalCount} contacts imported, ${failedCount} failed`,
-          { id: toastId },
-        );
+        toast.warning(`${successCount} of ${totalCount} contacts imported, ${failedCount} failed`, {
+          id: toastId,
+        });
       }
 
       closeGmailImportDialog();
@@ -221,9 +198,7 @@ export function useGmailContactsImport({
       return;
     }
 
-    setSelectedGmailContacts(
-      new Set(gmailContacts.map((contact) => contact.email)),
-    );
+    setSelectedGmailContacts(new Set(gmailContacts.map((contact) => contact.email)));
   };
 
   return {

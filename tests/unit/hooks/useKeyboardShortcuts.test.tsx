@@ -4,7 +4,7 @@
 import React from "react";
 
 import { renderHook, act, render } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vite-plus/test";
 
 const { mockPush, mockToast } = vi.hoisted(() => ({
   mockPush: vi.fn(),
@@ -86,13 +86,9 @@ describe("useKeyboardShortcuts Hook", () => {
         },
       ];
 
-      const { result } = renderHook(() =>
-        useKeyboardShortcuts(customShortcuts),
-      );
+      const { result } = renderHook(() => useKeyboardShortcuts(customShortcuts));
 
-      const hasCustom = result.current.shortcuts.some(
-        (s) => s.key === "x" && s.ctrl === true,
-      );
+      const hasCustom = result.current.shortcuts.some((s) => s.key === "x" && s.ctrl === true);
       expect(hasCustom).toBe(true);
     });
   });
@@ -236,15 +232,11 @@ describe("useComposeShortcuts Hook", () => {
     const { result } = renderHook(() => useComposeShortcuts(options));
 
     // Should have send shortcut (Ctrl+Enter)
-    const sendShortcut = result.current.shortcuts.find(
-      (s) => s.key === "Enter" && s.ctrl,
-    );
+    const sendShortcut = result.current.shortcuts.find((s) => s.key === "Enter" && s.ctrl);
     expect(sendShortcut).toBeDefined();
 
     // Should have save shortcut (Ctrl+S)
-    const saveShortcut = result.current.shortcuts.find(
-      (s) => s.key === "s" && s.ctrl && !s.shift,
-    );
+    const saveShortcut = result.current.shortcuts.find((s) => s.key === "s" && s.ctrl && !s.shift);
     expect(saveShortcut).toBeDefined();
   });
 

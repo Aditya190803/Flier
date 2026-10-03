@@ -3,7 +3,7 @@
  * Tests team management, member invitations, and permissions
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* oxlint-disable @typescript-eslint/no-unused-vars */
 import { test, expect } from "@playwright/test";
 
 test.describe("Team Collaboration", () => {
@@ -187,13 +187,11 @@ test.describe("Team Collaboration Features", () => {
 
   test("should access team settings from main settings", async ({ page }) => {
     // Look for team settings link
-    const teamLink = page
-      .getByRole("link", { name: /team/i })
-      .or(page.getByText(/team settings/i));
+    const teamLink = page.getByRole("link", { name: /team/i }).or(page.getByText(/team settings/i));
 
     if (await teamLink.first().isVisible()) {
       await teamLink.first().click();
-      await expect(page.url()).toContain("team");
+      await expect(page).toHaveURL(/team/);
     }
   });
 

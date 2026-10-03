@@ -42,8 +42,8 @@ export function PremiumGate({
           Unlock {featureName}
         </h3>
         <p className="text-xs text-muted-foreground max-w-xs mb-5">
-          Advanced tracking and export are on Insights (₹299/mo) and above. Same
-          send volume as Free — just the data.
+          Advanced tracking and export are on Insights (₹299/mo) and above. Same send volume as Free
+          — just the data.
         </p>
         {onUpgrade ? (
           <Button
@@ -55,11 +55,7 @@ export function PremiumGate({
             {ctaLabel}
           </Button>
         ) : (
-          <Button
-            size="sm"
-            asChild
-            className="shadow-lg shadow-primary/25 hover:shadow-primary/35"
-          >
+          <Button size="sm" asChild className="shadow-lg shadow-primary/25 hover:shadow-primary/35">
             <Link href={href}>
               <Zap className="h-3.5 w-3.5 mr-2 text-yellow-300 fill-yellow-300" />
               {ctaLabel}

@@ -6,11 +6,7 @@ export type AttachmentFileType =
   | "presentation"
   | "other";
 
-export type AttachmentSource =
-  | "google-drive"
-  | "onedrive"
-  | "dropbox"
-  | "direct";
+export type AttachmentSource = "google-drive" | "onedrive" | "dropbox" | "direct";
 
 export interface AttachmentMetadata {
   fileName: string;
@@ -30,21 +26,13 @@ function safeDecodeURIComponent(value: string): string {
   }
 }
 
-function extractFilenameFromContentDisposition(
-  contentDisposition: string,
-): string | null {
-  const filenameStarMatch = contentDisposition.match(
-    /filename\*=(?:UTF-8'[^']*'|)([^;]+)/i,
-  );
+function extractFilenameFromContentDisposition(contentDisposition: string): string | null {
+  const filenameStarMatch = contentDisposition.match(/filename\*=(?:UTF-8'[^']*'|)([^;]+)/i);
   if (filenameStarMatch?.[1]) {
-    return safeDecodeURIComponent(
-      filenameStarMatch[1].trim().replace(/^["']|["']$/g, ""),
-    );
+    return safeDecodeURIComponent(filenameStarMatch[1].trim().replace(/^["']|["']$/g, ""));
   }
 
-  const filenameMatch = contentDisposition.match(
-    /filename=(?:["']?)([^"';\n]+)(?:["']?)/i,
-  );
+  const filenameMatch = contentDisposition.match(/filename=(?:["']?)([^"';\n]+)(?:["']?)/i);
   if (filenameMatch?.[1]) {
     return safeDecodeURIComponent(filenameMatch[1].trim());
   }
@@ -77,9 +65,7 @@ export function extractAttachmentFileName(
     // Ignore invalid URLs and continue to fallback generation.
   }
 
-  const sanitizedName = recipientName
-    ? recipientName.replace(/[^a-zA-Z0-9]/g, "_")
-    : "attachment";
+  const sanitizedName = recipientName ? recipientName.replace(/[^a-zA-Z0-9]/g, "_") : "attachment";
 
   let extension = ".pdf";
 
@@ -88,10 +74,7 @@ export function extractAttachmentFileName(
       extension = ".docx";
     } else if (contentType.includes("doc")) {
       extension = ".doc";
-    } else if (
-      contentType.includes("powerpoint") ||
-      contentType.includes("pptx")
-    ) {
+    } else if (contentType.includes("powerpoint") || contentType.includes("pptx")) {
       extension = ".pptx";
     } else if (contentType.includes("ppt")) {
       extension = ".ppt";
@@ -131,20 +114,14 @@ function getExtensionFromUrl(url: string): string {
   return "";
 }
 
-export function getAttachmentFileType(
-  url: string,
-  contentType?: string,
-): AttachmentFileType {
+export function getAttachmentFileType(url: string, contentType?: string): AttachmentFileType {
   const lowerType = (contentType || "").toLowerCase();
   const extension = getExtensionFromUrl(url);
 
   if (lowerType.includes("pdf") || extension === ".pdf") {
     return "pdf";
   }
-  if (
-    lowerType.includes("image") ||
-    /\.(jpg|jpeg|png|gif|webp|svg)$/.test(extension)
-  ) {
+  if (lowerType.includes("image") || /\.(jpg|jpeg|png|gif|webp|svg)$/.test(extension)) {
     return "image";
   }
   if (
@@ -174,10 +151,7 @@ export function getAttachmentFileType(
   return "other";
 }
 
-export function personalizeAttachmentFileName(
-  fileName: string,
-  recipientName?: string,
-): string {
+export function personalizeAttachmentFileName(fileName: string, recipientName?: string): string {
   if (!recipientName || !fileName.includes(".")) {
     return fileName;
   }
@@ -185,11 +159,7 @@ export function personalizeAttachmentFileName(
   const ext = fileName.substring(fileName.lastIndexOf("."));
   const baseName = fileName.substring(0, fileName.lastIndexOf("."));
 
-  if (
-    baseName === "attachment" ||
-    baseName === "document" ||
-    baseName === "file"
-  ) {
+  if (baseName === "attachment" || baseName === "document" || baseName === "file") {
     return `${recipientName.replace(/[^a-zA-Z0-9]/g, "_")}${ext}`;
   }
 

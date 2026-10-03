@@ -13,10 +13,7 @@ interface Props {
 
 export function GlobalLeaderboard({ events, limit = 10 }: Props) {
   const topUsers = useMemo(() => {
-    const userStats = new Map<
-      string,
-      { opens: number; clicks: number; score: number }
-    >();
+    const userStats = new Map<string, { opens: number; clicks: number; score: number }>();
 
     events.forEach((ev) => {
       if (!ev.email) {
@@ -51,12 +48,8 @@ export function GlobalLeaderboard({ events, limit = 10 }: Props) {
     return (
       <div className="border border-border/50 rounded-xl bg-card p-12 flex flex-col items-center justify-center text-center text-muted-foreground shadow-sm h-full">
         <Trophy className="h-10 w-10 mb-4 opacity-40 text-amber-500" />
-        <h3 className="text-lg font-semibold text-foreground mb-1">
-          No Superfans Yet
-        </h3>
-        <p className="max-w-sm text-sm">
-          Send more campaigns to see your most engaged recipients.
-        </p>
+        <h3 className="text-lg font-semibold text-foreground mb-1">No Superfans Yet</h3>
+        <p className="max-w-sm text-sm">Send more campaigns to see your most engaged recipients.</p>
       </div>
     );
   }
@@ -86,10 +79,7 @@ export function GlobalLeaderboard({ events, limit = 10 }: Props) {
           </thead>
           <tbody className="divide-y divide-border">
             {topUsers.map((user, i) => (
-              <tr
-                key={user.email}
-                className="hover:bg-muted/30 transition-colors"
-              >
+              <tr key={user.email} className="hover:bg-muted/30 transition-colors">
                 <td className="px-6 py-3">
                   <div
                     className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold ${
@@ -105,9 +95,7 @@ export function GlobalLeaderboard({ events, limit = 10 }: Props) {
                     {i + 1}
                   </div>
                 </td>
-                <td className="px-6 py-3 font-medium text-foreground">
-                  {user.email}
-                </td>
+                <td className="px-6 py-3 font-medium text-foreground">{user.email}</td>
                 <td className="px-6 py-3 text-right whitespace-nowrap">
                   <span className="flex items-center justify-end gap-1.5 text-muted-foreground text-[13px]">
                     <Mail className="h-3 w-3 opacity-70" /> {user.opens}
@@ -115,8 +103,7 @@ export function GlobalLeaderboard({ events, limit = 10 }: Props) {
                 </td>
                 <td className="px-6 py-3 text-right whitespace-nowrap">
                   <span className="flex items-center justify-end gap-1.5 text-muted-foreground text-[13px]">
-                    <MousePointer2 className="h-3 w-3 opacity-70" />{" "}
-                    {user.clicks}
+                    <MousePointer2 className="h-3 w-3 opacity-70" /> {user.clicks}
                   </span>
                 </td>
               </tr>

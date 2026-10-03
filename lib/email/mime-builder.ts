@@ -72,9 +72,7 @@ export function buildGmailMimeBody({
 
       bodyParts.push(`--${mixedBoundary}`);
       bodyParts.push(`Content-Type: ${safeType}; name="${encodedFilename}"`);
-      bodyParts.push(
-        `Content-Disposition: attachment; filename="${encodedFilename}"`,
-      );
+      bodyParts.push(`Content-Disposition: attachment; filename="${encodedFilename}"`);
       bodyParts.push(`Content-Transfer-Encoding: base64`);
       bodyParts.push("");
       bodyParts.push(attachment.data);

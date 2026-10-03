@@ -3,7 +3,7 @@
  * Tests keyboard shortcut functionality across the application
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* oxlint-disable @typescript-eslint/no-unused-vars */
 import { test, expect } from "@playwright/test";
 
 test.describe("Keyboard Shortcuts", () => {
@@ -15,9 +15,7 @@ test.describe("Keyboard Shortcuts", () => {
       await page.keyboard.press("Control+/");
 
       // Modal should open
-      const modal = page
-        .locator('[role="dialog"]')
-        .or(page.getByText(/keyboard shortcuts/i));
+      const modal = page.locator('[role="dialog"]').or(page.getByText(/keyboard shortcuts/i));
 
       await expect(page.locator("body")).toBeVisible();
     });
@@ -209,9 +207,7 @@ test.describe("Keyboard Shortcuts", () => {
     test("should bold text with Ctrl+B", async ({ page }) => {
       await page.goto("/compose");
 
-      const editor = page
-        .locator('[contenteditable="true"]')
-        .or(page.locator(".ProseMirror"));
+      const editor = page.locator('[contenteditable="true"]').or(page.locator(".ProseMirror"));
 
       if (await editor.first().isVisible()) {
         await editor.first().click();
@@ -228,9 +224,7 @@ test.describe("Keyboard Shortcuts", () => {
     test("should italicize text with Ctrl+I", async ({ page }) => {
       await page.goto("/compose");
 
-      const editor = page
-        .locator('[contenteditable="true"]')
-        .or(page.locator(".ProseMirror"));
+      const editor = page.locator('[contenteditable="true"]').or(page.locator(".ProseMirror"));
 
       if (await editor.first().isVisible()) {
         await editor.first().click();
@@ -247,9 +241,7 @@ test.describe("Keyboard Shortcuts", () => {
     test("should underline text with Ctrl+U", async ({ page }) => {
       await page.goto("/compose");
 
-      const editor = page
-        .locator('[contenteditable="true"]')
-        .or(page.locator(".ProseMirror"));
+      const editor = page.locator('[contenteditable="true"]').or(page.locator(".ProseMirror"));
 
       if (await editor.first().isVisible()) {
         await editor.first().click();
@@ -266,9 +258,7 @@ test.describe("Keyboard Shortcuts", () => {
     test("should undo with Ctrl+Z", async ({ page }) => {
       await page.goto("/compose");
 
-      const editor = page
-        .locator('[contenteditable="true"]')
-        .or(page.locator(".ProseMirror"));
+      const editor = page.locator('[contenteditable="true"]').or(page.locator(".ProseMirror"));
 
       if (await editor.first().isVisible()) {
         await editor.first().click();
@@ -285,9 +275,7 @@ test.describe("Keyboard Shortcuts", () => {
     test("should redo with Ctrl+Shift+Z", async ({ page }) => {
       await page.goto("/compose");
 
-      const editor = page
-        .locator('[contenteditable="true"]')
-        .or(page.locator(".ProseMirror"));
+      const editor = page.locator('[contenteditable="true"]').or(page.locator(".ProseMirror"));
 
       if (await editor.first().isVisible()) {
         await editor.first().click();
@@ -315,9 +303,7 @@ test.describe("Keyboard Shortcuts", () => {
       await expect(page.locator("body")).toBeVisible();
     });
 
-    test("should not trigger shortcuts when typing in inputs", async ({
-      page,
-    }) => {
+    test("should not trigger shortcuts when typing in inputs", async ({ page }) => {
       await page.goto("/compose");
 
       const subjectInput = page.getByPlaceholder(/subject/i);
@@ -333,14 +319,10 @@ test.describe("Keyboard Shortcuts", () => {
       }
     });
 
-    test("should not trigger shortcuts when typing in textarea", async ({
-      page,
-    }) => {
+    test("should not trigger shortcuts when typing in textarea", async ({ page }) => {
       await page.goto("/compose");
 
-      const editor = page
-        .locator('[contenteditable="true"]')
-        .or(page.locator("textarea"));
+      const editor = page.locator('[contenteditable="true"]').or(page.locator("textarea"));
 
       if (await editor.first().isVisible()) {
         await editor.first().focus();

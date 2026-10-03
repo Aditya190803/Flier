@@ -37,9 +37,7 @@ export function PublicHeader() {
   return (
     <header
       className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "border-b bg-background/90 backdrop-blur-xl shadow-sm"
-          : "bg-transparent"
+        scrolled ? "border-b bg-background/90 backdrop-blur-xl shadow-sm" : "bg-transparent"
       }`}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -49,7 +47,7 @@ export function PublicHeader() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm group-hover:scale-105 transition-transform duration-200">
               <Mail className="h-4 w-4" />
             </div>
-            <span className="text-base font-bold tracking-tight">EchoMail</span>
+            <span className="text-base font-bold tracking-tight">Flier</span>
           </Link>
 
           {/* Desktop nav */}
@@ -96,11 +94,7 @@ export function PublicHeader() {
               aria-label="Toggle menu"
               aria-expanded={mobileOpen}
             >
-              {mobileOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
@@ -109,9 +103,7 @@ export function PublicHeader() {
       {/* Mobile menu */}
       <div
         className={`md:hidden border-b bg-background/95 backdrop-blur-xl overflow-hidden transition-all duration-300 ${
-          mobileOpen
-            ? "max-h-96 opacity-100 visible"
-            : "max-h-0 opacity-0 invisible"
+          mobileOpen ? "max-h-96 opacity-100 visible" : "max-h-0 opacity-0 invisible"
         }`}
         aria-hidden={!mobileOpen}
       >

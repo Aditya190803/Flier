@@ -74,10 +74,7 @@ export async function POST(request: NextRequest) {
       message: `Token valid for ${minutesRemaining} more minutes`,
     });
   } catch (error) {
-    apiLogger.error(
-      "Token refresh check error",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Token refresh check error", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
         success: false,
@@ -134,10 +131,7 @@ export async function GET(request: NextRequest) {
       isExpiringSoon: minutesRemaining < 10,
     });
   } catch (error) {
-    apiLogger.error(
-      "Token status check error",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Token status check error", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
         valid: false,

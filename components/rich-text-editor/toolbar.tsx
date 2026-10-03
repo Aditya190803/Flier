@@ -27,10 +27,7 @@ import {
   Undo,
 } from "lucide-react";
 
-import {
-  HIGHLIGHT_COLORS,
-  TEXT_COLORS,
-} from "@/components/rich-text-editor/constants";
+import { HIGHLIGHT_COLORS, TEXT_COLORS } from "@/components/rich-text-editor/constants";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
@@ -132,9 +129,7 @@ function DropdownMenu({
         }`}
       >
         {buttonContent}
-        <ChevronDown
-          className={`h-3 w-3 transition-transform ${isOpen ? "rotate-180" : ""}`}
-        />
+        <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </Button>
       {isOpen && (
         <div
@@ -268,20 +263,18 @@ export function EditorToolbar({
           menuRef={colorPickerRef}
         >
           <div className="p-2">
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-medium">
-              Text Color
-            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-medium">Text Color</p>
             <div className="grid grid-cols-4 gap-1.5">
               {TEXT_COLORS.map((c) => (
                 <button
                   key={c.name}
                   className="w-7 h-7 rounded-md border border-gray-200 dark:border-zinc-600 hover:scale-110 hover:shadow-md transition-all duration-150"
                   style={{
-                    backgroundColor:
-                      c.color === "inherit" ? "var(--foreground)" : c.color,
+                    backgroundColor: c.color === "inherit" ? "var(--foreground)" : c.color,
                   }}
                   onClick={() => onSetTextColor(c.color)}
                   title={c.name}
+                  aria-label={c.name}
                 />
               ))}
             </div>
@@ -308,6 +301,7 @@ export function EditorToolbar({
                   style={{ backgroundColor: c.color }}
                   onClick={() => onSetHighlightColor(c.color)}
                   title={c.name}
+                  aria-label={c.name}
                 />
               ))}
             </div>
@@ -420,26 +414,21 @@ export function EditorToolbar({
                     <button
                       key={`${rowIndex}-${colIndex}`}
                       className={`w-5 h-5 border rounded-sm transition-colors ${
-                        hoveredCell &&
-                        rowIndex <= hoveredCell.row &&
-                        colIndex <= hoveredCell.col
+                        hoveredCell && rowIndex <= hoveredCell.row && colIndex <= hoveredCell.col
                           ? "bg-blue-500 border-blue-600"
                           : "bg-gray-100 dark:bg-zinc-700 border-gray-300 dark:border-zinc-600 hover:bg-gray-200 dark:hover:bg-zinc-600"
                       }`}
-                      onMouseEnter={() =>
-                        setHoveredCell({ row: rowIndex, col: colIndex })
-                      }
+                      onMouseEnter={() => setHoveredCell({ row: rowIndex, col: colIndex })}
                       onMouseLeave={() => setHoveredCell(null)}
                       onClick={() => onInsertTable(rowIndex + 1, colIndex + 1)}
                       title={`${rowIndex + 1} × ${colIndex + 1}`}
+                      aria-label={`Insert ${rowIndex + 1} by ${colIndex + 1} table`}
                     />
                   )),
                 )}
               </div>
               <p className="text-xs text-center text-gray-500 dark:text-gray-400">
-                {hoveredCell
-                  ? `${hoveredCell.row + 1} × ${hoveredCell.col + 1}`
-                  : "Select size"}
+                {hoveredCell ? `${hoveredCell.row + 1} × ${hoveredCell.col + 1}` : "Select size"}
               </p>
             </div>
           ) : (

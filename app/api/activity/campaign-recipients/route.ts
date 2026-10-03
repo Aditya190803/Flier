@@ -1,9 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { getServerSession } from "next-auth";
-
+import { isAuthed, requireSession } from "@/lib/api-auth";
 import { databases, config, Query } from "@/lib/appwrite-server";
-import { authOptions } from "@/lib/auth";
 import { apiLogger } from "@/lib/logger";
 import type { TrackingEvent } from "@/types/activity";
 
@@ -14,20 +12,16 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
     const { searchParams } = new URL(request.url);
     const campaignId = searchParams.get("campaign_id");
 
     if (!campaignId) {
-      return NextResponse.json(
-        { error: "Campaign ID is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Campaign ID is required" }, { status: 400 });
     }
 
     const limit = parseInt(searchParams.get("limit") || "100");
@@ -39,7 +33,7 @@ export async function GET(request: NextRequest) {
       config.databaseId,
       config.trackingEventsCollectionId,
       [
-        Query.equal("user_email", session.user.email),
+        Query.equal("user_email", auth.email),
         Query.equal("campaign_id", campaignId),
         Query.limit(5000),
       ],
@@ -102,9 +96,6 @@ export async function GET(request: NextRequest) {
       "Error fetching recipient engagement",
       error instanceof Error ? error : undefined,
     );
-    return NextResponse.json(
-      { error: "Failed to fetch recipient engagement" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch recipient engagement" }, { status: 500 });
   }
 }

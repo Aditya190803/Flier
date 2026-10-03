@@ -1,9 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getServerSession } from "next-auth";
-
-import { authOptions } from "@/lib/auth";
+import { isAuthed, requireSession } from "@/lib/api-auth";
 import { apiLogger } from "@/lib/logger";
 
 interface GoogleContact {
@@ -37,10 +35,9 @@ interface GoogleContactsResponse {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.accessToken) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    const auth = await requireSession(request, { accessToken: true });
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
     const { searchParams } = new URL(request.url);
@@ -48,13 +45,8 @@ export async function GET(request: NextRequest) {
     const pageSize = searchParams.get("pageSize") || "100";
 
     // Build the Google People API URL
-    const apiUrl = new URL(
-      "https://people.googleapis.com/v1/people/me/connections",
-    );
-    apiUrl.searchParams.set(
-      "personFields",
-      "names,emailAddresses,phoneNumbers,organizations",
-    );
+    const apiUrl = new URL("https://people.googleapis.com/v1/people/me/connections");
+    apiUrl.searchParams.set("personFields", "names,emailAddresses,phoneNumbers,organizations");
     apiUrl.searchParams.set("pageSize", pageSize);
     if (pageToken) {
       apiUrl.searchParams.set("pageToken", pageToken);
@@ -62,7 +54,7 @@ export async function GET(request: NextRequest) {
 
     const response = await fetch(apiUrl.toString(), {
       headers: {
-        Authorization: `Bearer ${session.accessToken}`,
+        Authorization: `Bearer ${auth.accessToken}`,
       },
     });
 
@@ -73,8 +65,7 @@ export async function GET(request: NextRequest) {
       if (response.status === 403) {
         return NextResponse.json(
           {
-            error:
-              "Permission denied. Please sign out and sign in again to grant contacts access.",
+            error: "Permission denied. Please sign out and sign in again to grant contacts access.",
           },
           { status: 403 },
         );
@@ -92,10 +83,7 @@ export async function GET(request: NextRequest) {
 
     // Transform the contacts to our format
     const contacts = (data.connections || [])
-      .filter(
-        (contact) =>
-          contact.emailAddresses && contact.emailAddresses.length > 0,
-      )
+      .filter((contact) => contact.emailAddresses && contact.emailAddresses.length > 0)
       .map((contact) => ({
         name:
           contact.names?.[0]?.displayName ||
@@ -114,13 +102,7 @@ export async function GET(request: NextRequest) {
       totalItems: data.totalPeople || data.totalItems || contacts.length,
     });
   } catch (error) {
-    apiLogger.error(
-      "Error fetching Google contacts",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    apiLogger.error("Error fetching Google contacts", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

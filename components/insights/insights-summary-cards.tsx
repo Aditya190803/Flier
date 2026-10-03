@@ -29,7 +29,7 @@ export function InsightsSummaryCards({
         trend={comparison?.changes.campaigns}
       />
       <StatsCardWidget
-        title="Delivery Rate"
+        title="Gmail Acceptance Rate"
         value={`${historyData.successRate.toFixed(1)}%`}
         icon={<Percent className="h-5 w-5 text-success" />}
         trend={comparison?.changes.successRate}
@@ -37,7 +37,7 @@ export function InsightsSummaryCards({
         gradientTo="success/5"
       />
       <StatsCardWidget
-        title="Emails Delivered"
+        title="Gmail Accepted Sends"
         value={historyData.totalSent}
         icon={<Send className="h-5 w-5 text-secondary" />}
         trend={comparison?.changes.sent}
@@ -45,12 +45,11 @@ export function InsightsSummaryCards({
         gradientTo="secondary/5"
       />
       <StatsCardWidget
-        title="Open Rate"
+        title="Recorded Open Rate (estimate)"
         value={
-          summary?.averageOpenRate !== null &&
-          summary?.averageOpenRate !== undefined
+          summary?.averageOpenRate !== null && summary?.averageOpenRate !== undefined
             ? `${summary.averageOpenRate.toFixed(1)}%`
-            : "N/A"
+            : "Unavailable"
         }
         icon={<Eye className="h-5 w-5 text-accent" />}
         trend={comparison?.changes.openRate}

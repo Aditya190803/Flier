@@ -1,50 +1,35 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getServerSession } from "next-auth";
-
-import { databases, config, Query, ID } from "@/lib/appwrite-server";
-import { authOptions } from "@/lib/auth";
-import {
-  PlanLimitError,
-  assertContactQuota,
-  planLimitResponse,
-} from "@/lib/billing";
+import { isAuthed, requireSession } from "@/lib/api-auth";
+import { respondWithOwnedDocument } from "@/lib/appwrite/single-document";
+import { databases, config, ID } from "@/lib/appwrite-server";
+import { PlanLimitError, assertContactQuota, planLimitResponse } from "@/lib/billing";
+import { listOwnedContacts } from "@/lib/services/contact-directory";
+import { contactSchema, validate } from "@/lib/validation";
 import { apiLogger } from "@/lib/logger";
 import type { ContactDocument } from "@/types/appwrite";
 
-// GET /api/appwrite/contacts - List contacts for the authenticated user
-export async function GET(_request: NextRequest) {
+// GET /api/appwrite/contacts[?id=] - List contacts, or fetch one by id
+export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
-    const response = await databases.listDocuments(
-      config.databaseId,
-      config.contactsCollectionId,
-      [
-        Query.equal("user_email", session.user.email),
-        Query.orderDesc("created_at"),
-        Query.limit(1000),
-      ],
-    );
+    const single = await respondWithOwnedDocument(request, config.contactsCollectionId, auth.email);
+    if (single) {
+      return single;
+    }
 
-    return NextResponse.json({
-      total: response.total,
-      documents: response.documents,
-    });
+    const documents = await listOwnedContacts(auth.email);
+    return NextResponse.json({ total: documents.length, documents });
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error fetching contacts",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error fetching contacts", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to fetch contacts",
+        error: error instanceof Error ? error.message : "Failed to fetch contacts",
       },
       { status: 500 },
     );
@@ -54,17 +39,20 @@ export async function GET(_request: NextRequest) {
 // POST /api/appwrite/contacts - Create a new contact
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
     const body = await request.json();
-    const { email, name, company, phone, tags } = body;
+    const parsed = validate(contactSchema, body);
+    if (!parsed.success || !parsed.data) {
+      return NextResponse.json({ error: parsed.message || "Invalid contact" }, { status: 400 });
+    }
+    const { email, name, company, phone, tags } = parsed.data;
 
     try {
-      await assertContactQuota(session.user.email, 1);
+      await assertContactQuota(auth.email, 1);
     } catch (error) {
       if (error instanceof PlanLimitError) {
         return planLimitResponse(error);
@@ -82,21 +70,17 @@ export async function POST(request: NextRequest) {
         company,
         phone,
         tags: tags ? JSON.stringify(tags) : null,
-        user_email: session.user.email,
+        user_email: auth.email,
         created_at: new Date().toISOString(),
       },
     );
 
     return NextResponse.json(result);
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error creating contact",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error creating contact", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to create contact",
+        error: error instanceof Error ? error.message : "Failed to create contact",
       },
       { status: 500 },
     );
@@ -106,20 +90,16 @@ export async function POST(request: NextRequest) {
 // PUT /api/appwrite/contacts - Update a contact
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
     const body = await request.json();
     const { id, email, name, company, phone, tags } = body;
 
     if (!id) {
-      return NextResponse.json(
-        { error: "Contact ID required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Contact ID required" }, { status: 400 });
     }
 
     // Verify the contact belongs to the user before updating
@@ -129,7 +109,7 @@ export async function PUT(request: NextRequest) {
       id,
     )) as ContactDocument;
 
-    if (doc.user_email !== session.user.email) {
+    if (doc.user_email !== auth.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -159,14 +139,10 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error updating contact",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error updating contact", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to update contact",
+        error: error instanceof Error ? error.message : "Failed to update contact",
       },
       { status: 500 },
     );
@@ -176,20 +152,16 @@ export async function PUT(request: NextRequest) {
 // DELETE /api/appwrite/contacts - Delete a contact
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
     const { searchParams } = new URL(request.url);
     const documentId = searchParams.get("id");
 
     if (!documentId) {
-      return NextResponse.json(
-        { error: "Document ID required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Document ID required" }, { status: 400 });
     }
 
     // Verify the contact belongs to the user before deleting
@@ -199,26 +171,18 @@ export async function DELETE(request: NextRequest) {
       documentId,
     )) as ContactDocument;
 
-    if (doc.user_email !== session.user.email) {
+    if (doc.user_email !== auth.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    await databases.deleteDocument(
-      config.databaseId,
-      config.contactsCollectionId,
-      documentId,
-    );
+    await databases.deleteDocument(config.databaseId, config.contactsCollectionId, documentId);
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error deleting contact",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error deleting contact", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to delete contact",
+        error: error instanceof Error ? error.message : "Failed to delete contact",
       },
       { status: 500 },
     );

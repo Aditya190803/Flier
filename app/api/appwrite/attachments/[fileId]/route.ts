@@ -1,10 +1,8 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getServerSession } from "next-auth";
-
+import { isAuthed, requireSession } from "@/lib/api-auth";
 import { storage, config } from "@/lib/appwrite-server";
-import { authOptions } from "@/lib/auth";
 import { apiLogger } from "@/lib/logger";
 
 // GET /api/appwrite/attachments/[fileId] - Download/view an attachment
@@ -13,10 +11,9 @@ export async function GET(
   { params }: { params: Promise<{ fileId: string }> },
 ) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
     const { fileId } = await params;
@@ -29,10 +26,7 @@ export async function GET(
     const fileInfo = await storage.getFile(config.attachmentsBucketId, fileId);
 
     // Get file content
-    const fileBuffer = await storage.getFileDownload(
-      config.attachmentsBucketId,
-      fileId,
-    );
+    const fileBuffer = await storage.getFileDownload(config.attachmentsBucketId, fileId);
 
     // Convert ArrayBuffer to Buffer
     const buffer = Buffer.from(fileBuffer);
@@ -62,20 +56,13 @@ export async function GET(
       type?: string;
       message?: string;
     };
-    apiLogger.error(
-      "Error fetching attachment",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error fetching attachment", error instanceof Error ? error : undefined);
 
-    if (
-      appwriteError.code === 404 ||
-      appwriteError.type === "storage_file_not_found"
-    ) {
+    if (appwriteError.code === 404 || appwriteError.type === "storage_file_not_found") {
       return NextResponse.json({ error: "File not found" }, { status: 404 });
     }
 
-    const errorMessage =
-      error instanceof Error ? error.message : "Failed to fetch attachment";
+    const errorMessage = error instanceof Error ? error.message : "Failed to fetch attachment";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

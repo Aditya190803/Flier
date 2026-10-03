@@ -1,10 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import {
-  periodEndFromUnix,
-  upsertSubscription,
-  verifyWebhookSignature,
-} from "@/lib/billing";
+import { periodEndFromUnix, upsertSubscription, verifyWebhookSignature } from "@/lib/billing";
 import { apiLogger } from "@/lib/logger";
 import { resolveRazorpayPlan, type PlanId } from "@/lib/plans";
 
@@ -49,9 +45,7 @@ export async function POST(request: NextRequest) {
   try {
     if (subEntity?.id) {
       const userEmail =
-        subEntity.notes?.user_email ||
-        paymentEntity?.email ||
-        paymentEntity?.notes?.user_email;
+        subEntity.notes?.user_email || paymentEntity?.email || paymentEntity?.notes?.user_email;
 
       if (!userEmail) {
         apiLogger.warn("Razorpay webhook missing user_email", {
@@ -66,8 +60,7 @@ export async function POST(request: NextRequest) {
         (subEntity.notes?.plan
           ? {
               planId: subEntity.notes.plan as PlanId,
-              interval:
-                (subEntity.notes.interval as "monthly" | "annual") || "monthly",
+              interval: (subEntity.notes.interval as "monthly" | "annual") || "monthly",
             }
           : null);
 

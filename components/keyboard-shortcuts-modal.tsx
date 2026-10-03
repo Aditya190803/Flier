@@ -103,10 +103,7 @@ export function KeyboardShortcutsModal() {
         setOpen((prev) => !prev);
       }
       // ? key to open shortcuts (when not in an input)
-      if (
-        e.key === "?" &&
-        !["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName)
-      ) {
+      if (e.key === "?" && !["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName)) {
         e.preventDefault();
         setOpen(true);
       }
@@ -119,12 +116,7 @@ export function KeyboardShortcutsModal() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          title="Keyboard Shortcuts (Ctrl+/)"
-        >
+        <Button variant="ghost" size="icon" className="h-8 w-8" title="Keyboard Shortcuts (Ctrl+/)">
           <Keyboard className="h-4 w-4" />
           <span className="sr-only">Keyboard Shortcuts</span>
         </Button>
@@ -135,9 +127,7 @@ export function KeyboardShortcutsModal() {
             <Keyboard className="h-5 w-5" />
             Keyboard Shortcuts
           </DialogTitle>
-          <DialogDescription>
-            Quick reference for all keyboard shortcuts in EchoMail
-          </DialogDescription>
+          <DialogDescription>Quick reference for all keyboard shortcuts in Flier</DialogDescription>
         </DialogHeader>
         <div className="h-[60vh] overflow-y-auto pr-4">
           <div className="space-y-6">
@@ -155,15 +145,10 @@ export function KeyboardShortcutsModal() {
                       <span className="text-sm">{shortcut.description}</span>
                       <div className="flex items-center gap-1">
                         {shortcut.keys.map((key, keyIndex) => (
-                          <span
-                            key={keyIndex}
-                            className="flex items-center gap-1"
-                          >
+                          <span key={keyIndex} className="flex items-center gap-1">
                             <KeyboardKey>{key}</KeyboardKey>
                             {keyIndex < shortcut.keys.length - 1 && (
-                              <span className="text-muted-foreground text-xs">
-                                +
-                              </span>
+                              <span className="text-muted-foreground text-xs">+</span>
                             )}
                           </span>
                         ))}
@@ -176,9 +161,8 @@ export function KeyboardShortcutsModal() {
           </div>
         </div>
         <div className="text-xs text-muted-foreground text-center pt-2 border-t">
-          Press <KeyboardKey>Esc</KeyboardKey> to close •{" "}
-          <KeyboardKey>Ctrl/⌘</KeyboardKey> + <KeyboardKey>/</KeyboardKey> to
-          toggle
+          Press <KeyboardKey>Esc</KeyboardKey> to close • <KeyboardKey>Ctrl/⌘</KeyboardKey> +{" "}
+          <KeyboardKey>/</KeyboardKey> to toggle
         </div>
       </DialogContent>
     </Dialog>

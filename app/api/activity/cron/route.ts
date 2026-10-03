@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { databases, config, Query } from "@/lib/appwrite-server";
-import { env } from "@/lib/env";
+import { authorizeCron } from "@/lib/cron-auth";
 import { apiLogger } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
@@ -11,10 +11,9 @@ export const dynamic = "force-dynamic";
  * Should be called periodically (e.g. daily)
  */
 export async function POST(request: NextRequest) {
-  // Verify secret if configured
-  const authHeader = request.headers.get("authorization");
-  if (env.CRON_SECRET && authHeader !== `Bearer ${env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const denied = authorizeCron(request);
+  if (denied) {
+    return denied;
   }
 
   try {
@@ -23,11 +22,7 @@ export async function POST(request: NextRequest) {
     const campaigns = await databases.listDocuments(
       config.databaseId,
       config.campaignsCollectionId,
-      [
-        Query.equal("status", "completed"),
-        Query.limit(50),
-        Query.orderDesc("created_at"),
-      ],
+      [Query.equal("status", "completed"), Query.limit(50), Query.orderDesc("created_at")],
     );
 
     let aggregatedCount = 0;
@@ -46,7 +41,9 @@ export async function POST(request: NextRequest) {
       const uniqueOpens = new Set(opens.map((e) => e.email)).size;
       const uniqueClicks = new Set(clicks.map((e) => e.email)).size;
 
-      const sentCount = (campaign.sent_count as number) || 0;
+      // The collection stores this as `sent` (see scripts/setup-appwrite.ts).
+      // Reading a field that doesn't exist made every rate below come out 0.
+      const sentCount = (campaign.sent as number) || 0;
 
       // Update campaign document with aggregated rates
       await databases.updateDocument(
@@ -69,10 +66,7 @@ export async function POST(request: NextRequest) {
     const oldEvents = await databases.listDocuments(
       config.databaseId,
       config.trackingEventsCollectionId,
-      [
-        Query.lessThan("created_at", ninetyDaysAgo.toISOString()),
-        Query.limit(100),
-      ],
+      [Query.lessThan("created_at", ninetyDaysAgo.toISOString()), Query.limit(100)],
     );
 
     let archivedCount = 0;

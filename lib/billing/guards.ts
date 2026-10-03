@@ -58,8 +58,7 @@ export async function assertEmailQuota(
   emailCount: number,
 ): Promise<EffectiveLimits> {
   const plan = await getUserPlan(userEmail);
-  const { today, month, dailyResetAt, monthlyResetAt } =
-    await getEmailUsage(userEmail);
+  const { today, month, dailyResetAt, monthlyResetAt } = await getEmailUsage(userEmail);
 
   if (today + emailCount > plan.emailsPerDay) {
     throw new PlanLimitError(
@@ -120,11 +119,7 @@ export async function assertContactQuota(
 
 export async function getBillingSnapshot(userEmail: string) {
   const plan = await getUserPlan(userEmail);
-  const usage = await buildUsageSnapshot(
-    userEmail,
-    plan.emailsPerDay,
-    plan.emailsPerMonth,
-  );
+  const usage = await buildUsageSnapshot(userEmail, plan.emailsPerDay, plan.emailsPerMonth);
   const contactsUsed = await countUserContacts(userEmail);
 
   return {

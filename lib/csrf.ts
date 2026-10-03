@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import type { NextResponse } from "next/server";
 
 import { CSRF_TOKEN_NAME, CSRF_HEADER_NAME } from "./constants";
+import { apiLogger } from "./logger";
 
 const TOKEN_LENGTH = 32;
 
@@ -16,9 +17,7 @@ const TOKEN_LENGTH = 32;
 function generateToken(): string {
   const array = new Uint8Array(TOKEN_LENGTH);
   crypto.getRandomValues(array);
-  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
-    "",
-  );
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 /**
@@ -78,10 +77,7 @@ export async function validateCSRFToken(request: Request): Promise<boolean> {
   let cookieToken: string | undefined;
 
   // Try to use NextRequest cookies if available
-  if (
-    "cookies" in request &&
-    typeof (request as any).cookies.get === "function"
-  ) {
+  if ("cookies" in request && typeof (request as any).cookies.get === "function") {
     cookieToken = (request as any).cookies.get(CSRF_TOKEN_NAME)?.value;
   }
 
@@ -96,18 +92,11 @@ export async function validateCSRFToken(request: Request): Promise<boolean> {
   }
 
   // Debug logging for validation failures
-  if (
-    !headerToken ||
-    !cookieToken ||
-    !timingSafeEqual(headerToken, cookieToken)
-  ) {
-    console.error("[CSRF] Validation failed:", {
+  if (!headerToken || !cookieToken || !timingSafeEqual(headerToken, cookieToken)) {
+    apiLogger.error("[CSRF] Validation failed", {
       hasHeader: !!headerToken,
       hasCookie: !!cookieToken,
-      match:
-        headerToken && cookieToken
-          ? timingSafeEqual(headerToken, cookieToken)
-          : false,
+      match: headerToken && cookieToken ? timingSafeEqual(headerToken, cookieToken) : false,
       path: (request as any).nextUrl?.pathname || "unknown",
     });
   }
@@ -140,9 +129,7 @@ function timingSafeEqual(a: string, b: string): boolean {
  * CSRF validation middleware for API routes
  * Returns error Response if invalid, null if valid
  */
-export async function csrfProtection(
-  request: Request,
-): Promise<Response | null> {
+export async function csrfProtection(request: Request): Promise<Response | null> {
   // Skip CSRF for GET, HEAD, OPTIONS (safe methods)
   const method = request.method.toUpperCase();
   if (["GET", "HEAD", "OPTIONS"].includes(method)) {

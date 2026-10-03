@@ -10,13 +10,7 @@ import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader, PageShell } from "@/components/ui/page-shell";
 import { Progress } from "@/components/ui/progress";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
@@ -51,18 +45,11 @@ function BillingSettingsInner() {
 
   const usage = data?.usage;
   const contacts = data?.contacts;
-  const dailyPct =
-    plan && usage
-      ? Math.min(100, (usage.emailsToday / plan.emailsPerDay) * 100)
-      : 0;
+  const dailyPct = plan && usage ? Math.min(100, (usage.emailsToday / plan.emailsPerDay) * 100) : 0;
   const monthPct =
-    plan && usage
-      ? Math.min(100, (usage.emailsThisMonth / plan.emailsPerMonth) * 100)
-      : 0;
+    plan && usage ? Math.min(100, (usage.emailsThisMonth / plan.emailsPerMonth) * 100) : 0;
   const contactPct =
-    contacts && contacts.max > 0
-      ? Math.min(100, (contacts.used / contacts.max) * 100)
-      : 0;
+    contacts && contacts.max > 0 ? Math.min(100, (contacts.used / contacts.max) * 100) : 0;
 
   const upgrade = async (planId: PlanId) => {
     setBusy(true);
@@ -193,10 +180,7 @@ function BillingSettingsInner() {
               {data?.catalog
                 .filter((p) => p.selfServe && p.id !== "free")
                 .map((p) => {
-                  const price =
-                    interval === "annual"
-                      ? p.priceInrAnnual
-                      : p.priceInrMonthly;
+                  const price = interval === "annual" ? p.priceInrAnnual : p.priceInrMonthly;
                   const current = plan?.planId === p.id;
                   return (
                     <div
@@ -213,8 +197,7 @@ function BillingSettingsInner() {
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {price != null ? formatInr(price) : "Custom"}/
-                        {interval === "annual" ? "yr" : "mo"} ·{" "}
-                        {p.limits.emailsPerDay}/day
+                        {interval === "annual" ? "yr" : "mo"} · {p.limits.emailsPerDay}/day
                       </div>
                       <Button
                         size="sm"
@@ -239,9 +222,7 @@ function BillingSettingsInner() {
                 disabled={busy || plan.cancelAtPeriodEnd}
                 onClick={() => void cancel()}
               >
-                {plan.cancelAtPeriodEnd
-                  ? "Cancellation scheduled"
-                  : "Cancel at period end"}
+                {plan.cancelAtPeriodEnd ? "Cancellation scheduled" : "Cancel at period end"}
               </Button>
             )}
           </CardContent>

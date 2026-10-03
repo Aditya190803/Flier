@@ -9,6 +9,19 @@ import { rateLimit, RATE_LIMITS } from "./lib/rate-limit";
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const response = NextResponse.next();
+  const isBrowserTest =
+    process.env.E2E_TEST === "true" &&
+    process.env.NODE_ENV !== "production" &&
+    ["localhost", "127.0.0.1"].includes(request.nextUrl.hostname);
+
+  // Keep browser tests deterministic without external data services.
+  if (
+    isBrowserTest &&
+    request.method === "GET" &&
+    (pathname.startsWith("/api/appwrite/") || pathname === "/api/scheduled-campaigns")
+  ) {
+    return NextResponse.json({ total: 0, documents: [] });
+  }
 
   // 1. Ensure CSRF token exists for all non-static requests
   const csrfToken = request.cookies.get(CSRF_TOKEN_NAME)?.value;
@@ -22,26 +35,26 @@ export async function proxy(request: NextRequest) {
     if (["POST", "PUT", "DELETE"].includes(request.method)) {
       // Skip CSRF for public tracking/unsubscribe endpoints if they exist
       // Also skip for NextAuth endpoints - NextAuth has its own CSRF protection
+      // Public/unauthenticated endpoints (token-signed or NextAuth-managed)
       const isPublicApi =
-        pathname.startsWith("/api/public") ||
-        pathname.startsWith("/api/tracking") ||
+        pathname.startsWith("/api/track/") ||
         pathname.startsWith("/api/unsubscribe") ||
-        pathname.startsWith("/api/appwrite/webhooks") ||
+        pathname.startsWith("/api/activity/cron") ||
+        // Cron workers authenticate with a bearer secret, not a session cookie
+        pathname.startsWith("/api/cron/") ||
         pathname.startsWith("/api/auth");
 
       if (!isPublicApi) {
         const isValidCSRF = await validateCSRFToken(request);
         if (!isValidCSRF) {
-          return NextResponse.json(
-            { error: "Invalid CSRF token" },
-            { status: 403 },
-          );
+          return NextResponse.json({ error: "Invalid CSRF token" }, { status: 403 });
         }
       }
     }
 
-    // 3. Global Rate Limiting for API
-    const rateLimitResponse = rateLimit(request, RATE_LIMITS.api);
+    // 3. Global Rate Limiting for API (sync memory in edge proxy;
+    // route handlers use rateLimitAsync → Upstash when configured)
+    const rateLimitResponse = isBrowserTest ? null : rateLimit(request, RATE_LIMITS.api);
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
@@ -67,6 +80,4 @@ export async function proxy(request: NextRequest) {
 }
 
 // Export matcher to cover all routes except static assets
-export const matcher = [
-  "/((?!_next/static|_next/image|favicon.ico|.*\\.png$).*)",
-];
+export const matcher = ["/((?!_next/static|_next/image|favicon.ico|.*\\.png$).*)"];

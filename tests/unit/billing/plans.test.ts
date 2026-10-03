@@ -1,12 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
-import {
-  formatInr,
-  getPlan,
-  planHasFeature,
-  PLANS,
-  PLAN_ORDER,
-} from "@/lib/plans";
+import { formatInr, getPlan, planHasFeature, PLANS, PLAN_ORDER } from "@/lib/plans";
 
 describe("plans catalog", () => {
   it("has four tiers in order", () => {

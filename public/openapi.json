@@ -1,12 +1,12 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "EchoMail API",
-    "description": "RESTful API for EchoMail - Professional Email Campaign Management Platform. This API provides endpoints for managing contacts, campaigns, templates, and email sending through Gmail API integration.",
+    "title": "Flier API",
+    "description": "RESTful API for Flier - Professional Email Campaign Management Platform. This API provides endpoints for managing contacts, campaigns, templates, and email sending through Gmail API integration.",
     "version": "1.0.0",
     "contact": {
-      "name": "EchoMail Support",
-      "url": "https://github.com/Aditya190803/echomail"
+      "name": "Flier Support",
+      "url": "https://github.com/Aditya190803/flier"
     },
     "license": {
       "name": "MIT",
@@ -19,7 +19,7 @@
       "description": "Development server"
     },
     {
-      "url": "https://echomail.adityamer.dev",
+      "url": "https://sendflier.tech",
       "description": "Production server"
     }
   ],

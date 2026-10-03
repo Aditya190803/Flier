@@ -1,9 +1,9 @@
-# EchoMail
+# Flier
 
-> A modern email marketing platform with Gmail API integration for personalized bulk email campaigns.
+> Professional bulk email through Gmail — personalized updates to your contact list.
 
 ## Overview
-EchoMail is a powerful email marketing platform that seamlessly integrates with Gmail API to send personalized bulk emails, manage contacts, create templates, and track campaign performance.
+Flier integrates with Gmail API to send personalized messages, manage contacts and templates, and track opens and clicks. Site: https://sendflier.tech
 
 ## Key Features
 - **Email Campaign Management** — Create, schedule, and send bulk email campaigns

@@ -109,8 +109,7 @@ export function ContactManagementDialogs({
             <DialogTitle>Add to Group</DialogTitle>
             <DialogDescription>
               Select a group to add{" "}
-              {selectedContactForGroup?.name || selectedContactForGroup?.email}{" "}
-              to
+              {selectedContactForGroup?.name || selectedContactForGroup?.email} to
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 pt-4">
@@ -138,15 +137,10 @@ export function ContactManagementDialogs({
                     onClick={() =>
                       selectedContactForGroup?.$id &&
                       group?.$id &&
-                      onAddContactToGroup(
-                        selectedContactForGroup.$id,
-                        group.$id,
-                      )
+                      onAddContactToGroup(selectedContactForGroup.$id, group.$id)
                     }
                     className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${
-                      isInGroup
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:bg-muted"
+                      isInGroup ? "opacity-50 cursor-not-allowed" : "hover:bg-muted"
                     }`}
                   >
                     <div
@@ -160,9 +154,7 @@ export function ContactManagementDialogs({
                         {group.contact_ids.length} contacts
                       </p>
                     </div>
-                    {isInGroup && (
-                      <CheckCircle className="h-5 w-5 text-primary" />
-                    )}
+                    {isInGroup && <CheckCircle className="h-5 w-5 text-primary" />}
                   </button>
                 );
               })
@@ -186,16 +178,11 @@ export function ContactManagementDialogs({
                 <Input
                   id="group-name"
                   value={editingGroup.name}
-                  onChange={(e) =>
-                    onSetEditingGroup({ ...editingGroup, name: e.target.value })
-                  }
+                  onChange={(e) => onSetEditingGroup({ ...editingGroup, name: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
-                <label
-                  htmlFor="group-description"
-                  className="text-sm font-medium"
-                >
+                <label htmlFor="group-description" className="text-sm font-medium">
                   Description
                 </label>
                 <Input
@@ -227,6 +214,7 @@ export function ContactManagementDialogs({
                           : ""
                       }`}
                       title={color.label}
+                      aria-label={color.label}
                     />
                   ))}
                 </div>
@@ -294,10 +282,7 @@ export function ContactManagementDialogs({
                 />
               </div>
               <div className="space-y-2">
-                <label
-                  htmlFor="contact-company"
-                  className="text-sm font-medium"
-                >
+                <label htmlFor="contact-company" className="text-sm font-medium">
                   Company
                 </label>
                 <Input
@@ -342,10 +327,7 @@ export function ContactManagementDialogs({
                         if (newTag.trim()) {
                           onSetEditingContact({
                             ...editingContact,
-                            tags: onAddTagToContact(
-                              editingContact.tags || [],
-                              newTag,
-                            ),
+                            tags: onAddTagToContact(editingContact.tags || [], newTag),
                           });
                           onSetNewTag("");
                         }
@@ -360,10 +342,7 @@ export function ContactManagementDialogs({
                       if (newTag.trim()) {
                         onSetEditingContact({
                           ...editingContact,
-                          tags: onAddTagToContact(
-                            editingContact.tags || [],
-                            newTag,
-                          ),
+                          tags: onAddTagToContact(editingContact.tags || [], newTag),
                         });
                         onSetNewTag("");
                       }
@@ -386,10 +365,7 @@ export function ContactManagementDialogs({
                           onClick={() =>
                             onSetEditingContact({
                               ...editingContact,
-                              tags: onRemoveTagFromContact(
-                                editingContact.tags || [],
-                                tag,
-                              ),
+                              tags: onRemoveTagFromContact(editingContact.tags || [], tag),
                             })
                           }
                           className="ml-1 hover:text-destructive"

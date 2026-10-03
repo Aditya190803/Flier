@@ -23,13 +23,7 @@ export interface EmailResult {
  */
 export interface SendStatus {
   email: string;
-  status:
-    | "pending"
-    | "success"
-    | "error"
-    | "skipped"
-    | "retrying"
-    | "cancelled";
+  status: "pending" | "success" | "error" | "skipped" | "retrying" | "cancelled";
   error?: string;
   retryCount?: number;
   index: number;

@@ -31,11 +31,7 @@ export type {
   EmojiMap,
 } from "./types";
 
-export {
-  DEFAULT_FORMATTER_OPTIONS,
-  GMAIL_WRAPPER_STYLES,
-  COLORS,
-} from "./types";
+export { DEFAULT_FORMATTER_OPTIONS, GMAIL_WRAPPER_STYLES, COLORS } from "./types";
 
 // Re-export utilities
 export { convertEmojisToUnicode, EMOJI_NAME_MAP } from "./emoji";
@@ -43,11 +39,7 @@ export { injectTracking } from "./tracking";
 export { sanitizeHTML, validateEmailContent } from "./sanitization";
 
 // Re-export inline styles
-export {
-  applyInlineStyles,
-  wrapForGmail,
-  ELEMENT_STYLES,
-} from "./inline-styles";
+export { applyInlineStyles, wrapForGmail, ELEMENT_STYLES } from "./inline-styles";
 
 // Import for internal use
 import { convertEmojisToUnicode } from "./emoji";
@@ -58,6 +50,7 @@ import {
   type EmailFormatterOptions,
   type FormattingResult,
 } from "./types";
+import { apiLogger } from "../logger";
 
 // ============================================================================
 // MAIN FORMATTING FUNCTIONS
@@ -83,10 +76,7 @@ import {
  * // Returns Gmail-compatible HTML with inline styles
  * ```
  */
-export function formatForEmail(
-  html: string,
-  options: EmailFormatterOptions = {},
-): string {
+export function formatForEmail(html: string, options: EmailFormatterOptions = {}): string {
   const opts = { ...DEFAULT_FORMATTER_OPTIONS, ...options };
 
   try {
@@ -114,7 +104,7 @@ export function formatForEmail(
 
     return result;
   } catch (error) {
-    console.error("Email formatting failed:", error);
+    apiLogger.error("Email formatting failed", error instanceof Error ? error : undefined);
     // Fallback: at minimum wrap the content
     return wrapForGmail(html);
   }
@@ -181,13 +171,11 @@ export function formatForEmailWithDetails(
       },
     };
   } catch (error) {
-    console.error("Email formatting failed:", error);
+    apiLogger.error("Email formatting failed", error instanceof Error ? error : undefined);
     return {
       html: wrapForGmail(html),
       success: false,
-      warnings: [
-        `Formatting failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-      ],
+      warnings: [`Formatting failed: ${error instanceof Error ? error.message : "Unknown error"}`],
     };
   }
 }

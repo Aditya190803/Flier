@@ -3,7 +3,7 @@
  * Tests keyboard navigation, screen reader support, and ARIA landmarks
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* oxlint-disable @typescript-eslint/no-unused-vars */
 import { test, expect } from "@playwright/test";
 
 test.describe("Accessibility Features", () => {
@@ -32,9 +32,7 @@ test.describe("Accessibility Features", () => {
       await expect(page.locator("body")).toBeVisible();
     });
 
-    test("should focus main content when skip link is activated", async ({
-      page,
-    }) => {
+    test("should focus main content when skip link is activated", async ({ page }) => {
       await page.goto("/");
 
       // The main content should have proper landmark
@@ -70,9 +68,7 @@ test.describe("Accessibility Features", () => {
       await expect(nav.first()).toBeVisible();
     });
 
-    test("should have proper heading hierarchy on dashboard", async ({
-      page,
-    }) => {
+    test("should have proper heading hierarchy on dashboard", async ({ page }) => {
       await page.goto("/dashboard");
 
       // Should have at least an h1
@@ -81,9 +77,7 @@ test.describe("Accessibility Features", () => {
       await expect(page.locator("body")).toBeVisible();
     });
 
-    test("should have proper heading hierarchy on compose", async ({
-      page,
-    }) => {
+    test("should have proper heading hierarchy on compose", async ({ page }) => {
       await page.goto("/compose");
 
       // Check for proper page structure
@@ -92,9 +86,7 @@ test.describe("Accessibility Features", () => {
   });
 
   test.describe("Keyboard Navigation", () => {
-    test("should navigate through interactive elements with Tab", async ({
-      page,
-    }) => {
+    test("should navigate through interactive elements with Tab", async ({ page }) => {
       await page.goto("/dashboard");
 
       // Tab through elements

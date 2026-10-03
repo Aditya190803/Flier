@@ -4,8 +4,6 @@
  * Handles unique ID generation for tracking campaigns, recipients, and links.
  */
 
-import { v4 as uuidv4 } from "uuid";
-
 /**
  * Generates a unique campaign ID
  * Format: camp_<uuid> - compatible with Appwrite document IDs
@@ -13,7 +11,7 @@ import { v4 as uuidv4 } from "uuid";
  */
 export function generateCampaignId(): string {
   // Use underscore instead of hyphen for Appwrite compatibility
-  return `camp_${uuidv4().replace(/-/g, "").slice(0, 20)}`;
+  return `camp_${crypto.randomUUID().replace(/-/g, "").slice(0, 20)}`;
 }
 
 /**
@@ -35,5 +33,4 @@ export function generateLinkId(): string {
 /**
  * Tracking disclosure text
  */
-export const TRACKING_DISCLOSURE =
-  "This email includes tracking to help us improve our content.";
+export const TRACKING_DISCLOSURE = "This email includes tracking to help us improve our content.";

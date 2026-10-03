@@ -19,10 +19,10 @@ export function CampaignFunnelWidget({ sent, events }: Props) {
     events.forEach((x) => {
       if (x.email) {
         if (x.event_type === "open") {
-          openedEmails.add(x.email);
+          openedEmails.add(x.email.trim().toLowerCase());
         }
         if (x.event_type === "click") {
-          clickedEmails.add(x.email);
+          clickedEmails.add(x.email.trim().toLowerCase());
         }
       }
     });
@@ -33,20 +33,16 @@ export function CampaignFunnelWidget({ sent, events }: Props) {
     };
   }, [events]);
 
-  const openRate =
-    sent > 0 ? Math.min(100, (uniqueOpens / sent) * 100).toFixed(1) : "0.0";
-  const clickThroughRate =
-    sent > 0 ? Math.min(100, (uniqueClicks / sent) * 100).toFixed(1) : "0.0";
+  const openRate = sent > 0 ? Math.min(100, (uniqueOpens / sent) * 100).toFixed(1) : "0.0";
+  const clickThroughRate = sent > 0 ? Math.min(100, (uniqueClicks / sent) * 100).toFixed(1) : "0.0";
   // Specifically: Click-to-Open Rate (CTOR)
   const clickToOpenRate =
-    uniqueOpens > 0
-      ? Math.min(100, (uniqueClicks / uniqueOpens) * 100).toFixed(1)
-      : "0.0";
+    uniqueOpens > 0 ? Math.min(100, (uniqueClicks / uniqueOpens) * 100).toFixed(1) : "0.0";
 
   return (
     <div className="border border-border/50 rounded-xl bg-card shadow-sm p-4 md:p-6 mb-6">
       <h3 className="font-semibold text-lg flex items-center gap-2 mb-4 text-foreground">
-        <Mail className="h-5 w-5 text-primary" /> Delivery Funnel
+        <Mail className="h-5 w-5 text-primary" /> Recorded Engagement Funnel
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Step 1: Sent */}
@@ -56,14 +52,10 @@ export function CampaignFunnelWidget({ sent, events }: Props) {
               <div className="h-8 w-8 rounded-lg bg-[var(--color-chart-1)]/10 flex items-center justify-center shrink-0">
                 <Mail className="h-4 w-4 text-[var(--color-chart-1)]" />
               </div>
-              Successfully Sent
+              Gmail Accepted
             </div>
-            <div className="text-3xl font-bold text-foreground">
-              {sent.toLocaleString()}
-            </div>
-            <div className="text-xs text-muted-foreground mt-2 hidden md:block opacity-0">
-              .
-            </div>
+            <div className="text-3xl font-bold text-foreground">{sent.toLocaleString()}</div>
+            <div className="text-xs text-muted-foreground mt-2 hidden md:block opacity-0">.</div>
           </div>
           {/* connector arrow line for desktop */}
           <div className="hidden md:block absolute top-[50%] -right-[15%] w-[30%] h-px bg-border/80 z-0" />
@@ -91,7 +83,7 @@ export function CampaignFunnelWidget({ sent, events }: Props) {
               </div>
             </div>
             <div className="text-xs text-muted-foreground mt-2">
-              of {sent.toLocaleString()} delivered recipients
+              of {sent.toLocaleString()} accepted sends
             </div>
           </div>
           {/* connector arrow line for desktop */}

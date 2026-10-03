@@ -1,6 +1,7 @@
 import type { EmailTemplate, TemplateVersion } from "@/types/appwrite-client";
 
 import { apiRequest } from "../api-request";
+import { pollForUpdates } from "../poll";
 import { createCrudService } from "../service-factory";
 
 // ============================================
@@ -35,24 +36,17 @@ export const templatesService = {
     });
   },
 
-  subscribeToUserTemplates(
-    _userEmail: string,
-    _callback: (response: any) => void,
-  ) {
-    return () => {};
+  /** Refresh templates periodically. See {@link pollForUpdates} — not realtime. */
+  subscribeToUserTemplates(_userEmail: string, callback: (response: unknown) => void) {
+    return pollForUpdates(() => callback(undefined));
   },
 
-  async getVersions(
-    templateId: string,
-  ): Promise<{ total: number; documents: TemplateVersion[] }> {
+  async getVersions(templateId: string): Promise<{ total: number; documents: TemplateVersion[] }> {
     const params = new URLSearchParams({ templateId });
     return apiRequest(`/api/appwrite/templates/versions?${params.toString()}`);
   },
 
-  async restoreVersion(
-    templateId: string,
-    versionId: string,
-  ): Promise<EmailTemplate> {
+  async restoreVersion(templateId: string, versionId: string): Promise<EmailTemplate> {
     return apiRequest("/api/appwrite/templates/versions", {
       method: "POST",
       body: JSON.stringify({ templateId, versionId, action: "restore" }),

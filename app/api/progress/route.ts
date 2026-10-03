@@ -1,11 +1,13 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { isAuthed, requireSession } from "@/lib/api-auth";
+import { databases, config, Query } from "@/lib/appwrite-server";
 import { apiLogger } from "@/lib/logger";
 
-// Use the same global Map as in send-single-email
+// Client-side progress is primary; this endpoint only reports if a
+// same-instance global Map was populated (legacy / single-instance).
 declare global {
-  // eslint-disable-next-line no-var
   var emailProgress: Map<
     string,
     {
@@ -15,9 +17,10 @@ declare global {
       status: "sending" | "completed" | "error" | "paused";
       startTime: number;
       lastUpdate: number;
+      userEmail?: string;
     }
   >;
-  // eslint-disable-next-line no-var
+
   var emailRateLimitState: {
     isPaused: boolean;
     pauseStartTime: number;
@@ -28,35 +31,64 @@ declare global {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const campaignId = searchParams.get("campaignId");
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
+    }
 
-    apiLogger.debug("Progress API called", {
-      campaignId,
-      availableCampaigns: Array.from(global.emailProgress?.keys() || []),
-    });
-
+    const campaignId = new URL(request.url).searchParams.get("campaignId");
     if (!campaignId) {
-      return NextResponse.json(
-        { error: "Missing campaignId" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Missing campaignId" }, { status: 400 });
     }
 
-    if (!global.emailProgress) {
-      apiLogger.debug("Global emailProgress not initialized");
-      return NextResponse.json({
-        sent: 0,
-        failed: 0,
-        total: 0,
-        status: "error",
-      });
+    // Ownership: campaign must belong to the session user when it exists in
+    // DB. Ephemeral client campaign ids (not yet in DB) are allowed and their
+    // progress-map ownership is checked below before returning data.
+    // The persisted campaign document (see lib/services/campaign-send-state)
+    // is also our primary source of chunked/resumable send progress, since
+    // the in-memory map below doesn't survive across serverless instances.
+    let persistedDoc: Record<string, unknown> | null = null;
+    if (config.databaseId && config.campaignsCollectionId) {
+      try {
+        const owned = await databases.listDocuments(
+          config.databaseId,
+          config.campaignsCollectionId,
+          [Query.equal("$id", campaignId), Query.equal("user_email", auth.email), Query.limit(1)],
+        );
+        if (owned.total > 0) {
+          persistedDoc = owned.documents[0] as unknown as Record<string, unknown>;
+        } else if (!global.emailProgress?.has(campaignId)) {
+          return NextResponse.json({ error: "Not found" }, { status: 404 });
+        }
+      } catch {
+        // Ownership lookup failed; the map ownership check below still applies.
+      }
     }
 
-    const progress = global.emailProgress.get(campaignId);
+    const progress = global.emailProgress?.get(campaignId);
 
     if (!progress) {
-      apiLogger.debug("No progress found", { campaignId });
+      if (persistedDoc) {
+        const status = String(persistedDoc.status || "sending");
+        let total = 0;
+        try {
+          const recipients =
+            typeof persistedDoc.recipients === "string"
+              ? JSON.parse(persistedDoc.recipients)
+              : persistedDoc.recipients;
+          total = Array.isArray(recipients) ? recipients.length : 0;
+        } catch {
+          total = 0;
+        }
+
+        return NextResponse.json({
+          sent: Number(persistedDoc.sent) || 0,
+          failed: Number(persistedDoc.failed) || 0,
+          total,
+          status: status === "partial" ? "sending" : status,
+        });
+      }
+
       return NextResponse.json({
         sent: 0,
         failed: 0,
@@ -65,10 +97,11 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    apiLogger.debug("Returning progress", progress);
+    if (progress.userEmail && progress.userEmail !== auth.email) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
-    // Include global pause state in response
-    const response = {
+    return NextResponse.json({
       ...progress,
       globalPause: global.emailRateLimitState
         ? {
@@ -86,17 +119,9 @@ export async function GET(request: NextRequest) {
               : 0,
           }
         : null,
-    };
-
-    return NextResponse.json(response);
+    });
   } catch (error) {
-    apiLogger.error(
-      "Error in progress API",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    apiLogger.error("Progress API error", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Failed to get progress" }, { status: 500 });
   }
 }

@@ -9,6 +9,7 @@ import {
   Users,
   PenSquare,
   FileText,
+  CalendarClock,
   Clock,
   Settings,
   BarChart3,
@@ -51,7 +52,9 @@ import {
 
 const mainNav = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Campaigns", href: "/campaigns", icon: Mail },
   { name: "Compose", href: "/compose", icon: PenSquare },
+  { name: "Scheduled", href: "/scheduled", icon: CalendarClock },
   { name: "Drafts", href: "/draft", icon: Clock },
   { name: "Templates", href: "/templates", icon: FileText },
 ];
@@ -62,7 +65,10 @@ const dataNav = [
   { name: "A/B Tests", href: "/ab-testing", icon: Beaker },
 ];
 
-const workspaceNav = [{ name: "Teams", href: "/settings/teams", icon: Users }];
+const workspaceNav = [
+  { name: "Teams", href: "/settings/teams", icon: Users },
+  { name: "Reviews", href: "/reviews", icon: FileText },
+];
 
 function NavGroup({
   label,
@@ -79,18 +85,13 @@ function NavGroup({
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => {
-            const isExactOnlyRoute =
-              item.href === "/dashboard" || item.href === "/settings";
+            const isExactOnlyRoute = item.href === "/dashboard" || item.href === "/settings";
             const isActive = isExactOnlyRoute
               ? pathname === item.href
               : pathname === item.href || pathname.startsWith(item.href + "/");
             return (
               <SidebarMenuItem key={item.name}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive}
-                  tooltip={item.name}
-                >
+                <SidebarMenuButton asChild isActive={isActive} tooltip={item.name}>
                   <Link href={item.href}>
                     <item.icon />
                     <span>{item.name}</span>
@@ -109,6 +110,14 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { setTheme } = useTheme();
+
+  const handleSignOut = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } finally {
+      await signOut({ callbackUrl: "/" });
+    }
+  };
 
   const userInitials = session?.user?.name
     ? session.user.name
@@ -131,10 +140,8 @@ export function AppSidebar() {
                   <Mail className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">EchoMail</span>
-                  <span className="truncate text-xs text-muted-foreground">
-                    Email Campaigns
-                  </span>
+                  <span className="truncate font-semibold">Flier</span>
+                  <span className="truncate text-xs text-muted-foreground">Email Campaigns</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -164,14 +171,10 @@ export function AppSidebar() {
                       src={session?.user?.image || undefined}
                       alt={session?.user?.name || "User"}
                     />
-                    <AvatarFallback className="rounded-lg text-xs">
-                      {userInitials}
-                    </AvatarFallback>
+                    <AvatarFallback className="rounded-lg text-xs">{userInitials}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">
-                      {session?.user?.name || "User"}
-                    </span>
+                    <span className="truncate font-semibold">{session?.user?.name || "User"}</span>
                     <span className="truncate text-xs text-muted-foreground">
                       {session?.user?.email || ""}
                     </span>
@@ -229,7 +232,7 @@ export function AppSidebar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="cursor-pointer text-destructive focus:text-destructive"
-                  onClick={() => signOut({ callbackUrl: "/" })}
+                  onClick={handleSignOut}
                 >
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign out

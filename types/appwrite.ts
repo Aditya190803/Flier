@@ -37,31 +37,31 @@ export interface ABTestDocument extends AppwriteDocument {
 }
 
 /**
- * Campaign document
+ * Campaign document, as actually stored in the `campaigns` collection.
+ *
+ * Field names mirror `scripts/setup-appwrite.ts` exactly. Appwrite has no
+ * JSON column type, so `recipients`, `attachments` and `send_results` are
+ * JSON-encoded strings on read — they are only arrays after parsing.
  */
 export interface CampaignDocument extends AppwriteDocument {
-  name: string;
   subject: string;
   content?: string;
-  status:
-    | "draft"
-    | "scheduled"
-    | "sending"
-    | "completed"
-    | "failed"
-    | "cancelled";
-  recipients_count: number;
-  sent_count: number;
-  failed_count: number;
+  /** JSON-encoded `string[]` of recipient addresses */
+  recipients?: string | string[];
+  /** Recipients successfully delivered to */
+  sent?: number;
+  /** Recipients that errored */
+  failed?: number;
+  status?: "draft" | "scheduled" | "sending" | "partial" | "completed" | "failed" | "paused";
+  campaign_type?: string;
+  /** JSON-encoded attachment descriptors */
+  attachments?: string | unknown[];
+  /** JSON-encoded per-recipient results */
+  send_results?: string | unknown[];
   open_rate?: number;
   click_rate?: number;
-  bounce_rate?: number;
-  template_id?: string;
-  scheduled_at?: string;
-  started_at?: string;
-  completed_at?: string;
-  created_at: string;
-  tags?: string[];
+  tracking_enabled?: boolean;
+  created_at?: string;
 }
 
 /**
@@ -187,6 +187,30 @@ export interface TeamMemberDocument extends AppwriteDocument {
 }
 
 /**
+ * Team document (teams collection)
+ */
+export interface TeamDocument extends Models.Document {
+  name: string;
+  description?: string | null;
+  owner_email: string;
+  created_at: string;
+  updated_at?: string;
+  settings?: string; // JSON-encoded TeamSettings
+}
+
+/**
+ * Team membership document (team members collection)
+ */
+export interface TeamMembershipDocument extends AppwriteDocument {
+  team_id: string;
+  role: "owner" | "admin" | "member" | "viewer";
+  permissions?: string; // JSON-encoded string[]
+  invited_by?: string;
+  joined_at?: string | null;
+  status: "pending" | "active" | "removed" | "suspended";
+}
+
+/**
  * Audit log document
  */
 export interface AuditLogDocument extends AppwriteDocument {
@@ -216,17 +240,13 @@ export interface AnalyticsDocument extends AppwriteDocument {
 /**
  * Type helper for casting Appwrite documents
  */
-export function asDocument<T extends AppwriteDocument>(
-  doc: Models.Document,
-): T {
+export function asDocument<T extends AppwriteDocument>(doc: Models.Document): T {
   return doc as T;
 }
 
 /**
  * Type helper for casting Appwrite document arrays
  */
-export function asDocuments<T extends AppwriteDocument>(
-  docs: Models.Document[],
-): T[] {
+export function asDocuments<T extends AppwriteDocument>(docs: Models.Document[]): T[] {
   return docs as T[];
 }

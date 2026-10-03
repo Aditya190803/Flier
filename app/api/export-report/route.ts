@@ -1,30 +1,36 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { getServerSession } from "next-auth";
-
+import { isAuthed, requireSession } from "@/lib/api-auth";
 import { databases, config, Query } from "@/lib/appwrite-server";
-import { authOptions } from "@/lib/auth";
-import {
-  PlanLimitError,
-  assertFeature,
-  planLimitResponse,
-} from "@/lib/billing";
+import { PlanLimitError, assertFeature, planLimitResponse } from "@/lib/billing";
 import { apiLogger } from "@/lib/logger";
+import { exportReportQuerySchema, validate } from "@/lib/validation";
+
+import type { Models } from "appwrite";
 
 /**
  * Export campaign reports as CSV
  */
 
+interface ExportCampaignDoc extends Models.Document {
+  subject?: string;
+  status?: string;
+  sent?: number;
+  failed?: number;
+  recipients?: string | unknown[];
+  campaign_type?: string;
+  created_at?: string;
+}
+
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
     try {
-      await assertFeature(session.user.email, "exportReports", "Report export");
+      await assertFeature(auth.email, "exportReports", "Report export");
     } catch (error) {
       if (error instanceof PlanLimitError) {
         return planLimitResponse(error);
@@ -33,46 +39,48 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const format = searchParams.get("format") || "csv";
-    const campaignId = searchParams.get("campaign");
+    const parsed = validate(exportReportQuerySchema, {
+      format: searchParams.get("format") || undefined,
+      campaign: searchParams.get("campaign") || undefined,
+    });
+    if (!parsed.success || !parsed.data) {
+      return NextResponse.json({ error: parsed.message || "Invalid request" }, { status: 400 });
+    }
+    const { format, campaign: campaignId } = parsed.data;
 
     // Fetch campaigns
-    let campaigns;
+    let campaigns: ExportCampaignDoc[];
     if (campaignId) {
       // Single campaign
-      const doc = await databases.getDocument(
+      const doc = (await databases.getDocument(
         config.databaseId,
         config.campaignsCollectionId,
         campaignId,
-      );
+      )) as ExportCampaignDoc;
       campaigns = [doc];
     } else {
       // All campaigns
       const response = await databases.listDocuments(
         config.databaseId,
         config.campaignsCollectionId,
-        [
-          Query.equal("user_email", session.user.email),
-          Query.orderDesc("created_at"),
-          Query.limit(1000),
-        ],
+        [Query.equal("user_email", auth.email), Query.orderDesc("created_at"), Query.limit(1000)],
       );
-      campaigns = response.documents;
+      campaigns = response.documents as ExportCampaignDoc[];
     }
 
     // Parse campaign data
     const parsedCampaigns = campaigns.map((doc) => ({
       id: doc.$id,
-      subject: (doc as any).subject || "",
-      status: (doc as any).status || "",
-      sent: (doc as any).sent || 0,
-      failed: (doc as any).failed || 0,
+      subject: doc.subject || "",
+      status: doc.status || "",
+      sent: doc.sent || 0,
+      failed: doc.failed || 0,
       recipients:
-        typeof (doc as any).recipients === "string"
-          ? JSON.parse((doc as any).recipients).length
-          : (doc as any).recipients?.length || 0,
-      campaign_type: (doc as any).campaign_type || "bulk",
-      created_at: (doc as any).created_at || doc.$createdAt,
+        typeof doc.recipients === "string"
+          ? JSON.parse(doc.recipients).length
+          : doc.recipients?.length || 0,
+      campaign_type: doc.campaign_type || "bulk",
+      created_at: doc.created_at || doc.$createdAt,
     }));
 
     if (format === "json") {
@@ -98,25 +106,17 @@ export async function GET(request: NextRequest) {
       c.recipients,
       c.sent,
       c.failed,
-      c.recipients > 0
-        ? `${((c.sent / c.recipients) * 100).toFixed(1)}%`
-        : "0%",
+      c.recipients > 0 ? `${((c.sent / c.recipients) * 100).toFixed(1)}%` : "0%",
       c.campaign_type,
       new Date(c.created_at).toISOString(),
     ]);
 
-    const csvContent = [
-      csvHeaders.join(","),
-      ...csvRows.map((row) => row.join(",")),
-    ].join("\n");
+    const csvContent = [csvHeaders.join(","), ...csvRows.map((row) => row.join(","))].join("\n");
 
     // Add summary at the end
     const totalSent = parsedCampaigns.reduce((sum, c) => sum + c.sent, 0);
     const totalFailed = parsedCampaigns.reduce((sum, c) => sum + c.failed, 0);
-    const totalRecipients = parsedCampaigns.reduce(
-      (sum, c) => sum + c.recipients,
-      0,
-    );
+    const totalRecipients = parsedCampaigns.reduce((sum, c) => sum + c.recipients, 0);
 
     const summary = `\n\nSUMMARY\nTotal Campaigns,${parsedCampaigns.length}\nTotal Recipients,${totalRecipients}\nTotal Sent,${totalSent}\nTotal Failed,${totalFailed}\nOverall Success Rate,${totalRecipients > 0 ? ((totalSent / totalRecipients) * 100).toFixed(1) : 0}%\nExport Date,${new Date().toISOString()}`;
 
@@ -125,14 +125,11 @@ export async function GET(request: NextRequest) {
     return new NextResponse(fullCsv, {
       headers: {
         "Content-Type": "text/csv",
-        "Content-Disposition": `attachment; filename="echomail-report-${new Date().toISOString().split("T")[0]}.csv"`,
+        "Content-Disposition": `attachment; filename="flier-report-${new Date().toISOString().split("T")[0]}.csv"`,
       },
     });
   } catch (error) {
     apiLogger.error("Export error", error instanceof Error ? error : undefined);
-    return NextResponse.json(
-      { error: "Failed to export report" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to export report" }, { status: 500 });
   }
 }

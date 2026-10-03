@@ -1,11 +1,6 @@
 import type { BillingInterval, PlanId } from "@/lib/plans";
 
-export type SubscriptionStatus =
-  | "active"
-  | "past_due"
-  | "cancelled"
-  | "trialing"
-  | "none";
+export type SubscriptionStatus = "active" | "past_due" | "cancelled" | "trialing" | "none";
 
 export interface SubscriptionRecord {
   $id?: string;
@@ -37,7 +32,6 @@ export interface EffectiveLimits {
     advancedAnalytics: boolean;
     exportReports: boolean;
     abTesting: boolean;
-    drip: boolean;
     webhooks: boolean;
     teams: boolean;
   };

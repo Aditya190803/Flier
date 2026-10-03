@@ -1,8 +1,12 @@
 /**
- * Rate limiting utility for API routes
- * Implements a simple in-memory rate limiter with sliding window
- * Supports both IP-based and user-based rate limiting
+ * Rate limiting for API routes.
+ * Uses Upstash Redis when UPSTASH_REDIS_REST_URL + TOKEN are set;
+ * falls back to in-memory (single instance only).
  */
+
+import { Redis } from "@upstash/redis";
+
+import { logger } from "@/lib/logger";
 
 interface RateLimitEntry {
   count: number;
@@ -10,22 +14,36 @@ interface RateLimitEntry {
 }
 
 interface RateLimitConfig {
-  windowMs: number; // Time window in milliseconds
-  maxRequests: number; // Maximum requests per window
-  keyGenerator?: (req: Request) => string; // Custom key generator
+  windowMs: number;
+  maxRequests: number;
+  keyGenerator?: (req: Request) => string;
+  maxEmailsPerDay?: number;
 }
 
-// In-memory store for rate limiting (use Redis in production for multi-instance)
 const rateLimitStore = new Map<string, RateLimitEntry>();
+const userDailyEmailCount = new Map<string, { count: number; resetTime: number }>();
 
-// Cleanup old entries periodically
 let cleanupInterval: NodeJS.Timeout | null = null;
+let redis: Redis | null | undefined;
+
+function getRedis(): Redis | null {
+  if (redis !== undefined) {
+    return redis;
+  }
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (url && token && !url.includes("your-region") && !url.includes("placeholder")) {
+    redis = new Redis({ url, token });
+  } else {
+    redis = null;
+  }
+  return redis;
+}
 
 function startCleanup() {
-  if (cleanupInterval) {
+  if (cleanupInterval || getRedis()) {
     return;
   }
-
   cleanupInterval = setInterval(() => {
     const now = Date.now();
     for (const [key, entry] of rateLimitStore.entries()) {
@@ -33,68 +51,54 @@ function startCleanup() {
         rateLimitStore.delete(key);
       }
     }
-  }, 60000); // Clean up every minute
+    for (const [key, entry] of userDailyEmailCount.entries()) {
+      if (now > entry.resetTime) {
+        userDailyEmailCount.delete(key);
+      }
+    }
+  }, 60000);
 }
 
-/**
- * Default rate limit configurations for different endpoint types
- */
 export const RATE_LIMITS = {
-  // Strict limit for email sending (per IP)
   sendEmail: {
-    windowMs: 60 * 1000, // 1 minute
+    windowMs: 60 * 1000,
     maxRequests: 10,
   },
-  // Per-user burst limit (plan daily/monthly caps live in lib/billing)
   sendEmailPerUser: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 30, // 30 emails per minute per user
+    windowMs: 60 * 1000,
+    maxRequests: 30,
+    maxEmailsPerDay: 500,
   },
-  // Moderate limit for auth endpoints
   auth: {
-    windowMs: 15 * 60 * 1000, // 15 minutes
+    windowMs: 15 * 60 * 1000,
     maxRequests: 100,
   },
-  // Standard limit for API endpoints
   api: {
-    windowMs: 60 * 1000, // 1 minute
+    windowMs: 60 * 1000,
     maxRequests: 60,
   },
-  // Relaxed limit for read operations
   read: {
-    windowMs: 60 * 1000, // 1 minute
+    windowMs: 60 * 1000,
     maxRequests: 120,
   },
-  // Strict limit for tracking/unsubscribe (public endpoints)
   public: {
-    windowMs: 60 * 1000, // 1 minute
+    windowMs: 60 * 1000,
     maxRequests: 30,
   },
 } as const;
 
-/**
- * Extract client IP from request headers
- */
 function getClientIP(request: Request): string {
-  // Check common proxy headers
   const forwardedFor = request.headers.get("x-forwarded-for");
   if (forwardedFor) {
-    // Take the first IP if there are multiple
     return forwardedFor.split(",")[0].trim();
   }
-
   const realIP = request.headers.get("x-real-ip");
   if (realIP) {
     return realIP;
   }
-
-  // Fallback to a default (in development)
   return "unknown-ip";
 }
 
-/**
- * Rate limiter result
- */
 export interface RateLimitResult {
   allowed: boolean;
   remaining: number;
@@ -102,62 +106,115 @@ export interface RateLimitResult {
   retryAfter?: number;
 }
 
-/**
- * Check if a request is within rate limits
- */
+export interface UserRateLimitResult extends RateLimitResult {
+  dailyRemaining?: number;
+  dailyResetTime?: number;
+}
+
+function memoryCheck(windowKey: string, config: RateLimitConfig, increment = 1): RateLimitResult {
+  startCleanup();
+  const now = Date.now();
+  const entry = rateLimitStore.get(windowKey);
+
+  if (!entry) {
+    const resetTime = now + config.windowMs;
+    if (increment > config.maxRequests) {
+      rateLimitStore.set(windowKey, { count: 0, resetTime });
+      return {
+        allowed: false,
+        remaining: config.maxRequests,
+        resetTime,
+        retryAfter: Math.ceil(config.windowMs / 1000),
+      };
+    }
+    rateLimitStore.set(windowKey, { count: increment, resetTime });
+    return {
+      allowed: true,
+      remaining: Math.max(0, config.maxRequests - increment),
+      resetTime,
+    };
+  }
+
+  if (entry.count + increment > config.maxRequests) {
+    return {
+      allowed: false,
+      remaining: Math.max(0, config.maxRequests - entry.count),
+      resetTime: entry.resetTime,
+      retryAfter: Math.ceil((entry.resetTime - now) / 1000),
+    };
+  }
+
+  entry.count += increment;
+  return {
+    allowed: true,
+    remaining: Math.max(0, config.maxRequests - entry.count),
+    resetTime: entry.resetTime,
+  };
+}
+
+async function redisIncr(
+  key: string,
+  windowMs: number,
+  max: number,
+  increment = 1,
+): Promise<RateLimitResult> {
+  const client = getRedis();
+  if (!client) {
+    return memoryCheck(key, { windowMs, maxRequests: max }, increment);
+  }
+
+  const fullKey = `rl:${key}`;
+  const now = Date.now();
+  const resetTime = now + windowMs;
+  const ttlSec = Math.ceil(windowMs / 1000);
+
+  try {
+    let count = 0;
+    for (let i = 0; i < increment; i++) {
+      count = await client.incr(fullKey);
+      if (count === 1) {
+        await client.expire(fullKey, ttlSec);
+      }
+    }
+
+    if (count > max) {
+      const ttl = await client.ttl(fullKey);
+      const retryAfter = ttl > 0 ? ttl : ttlSec;
+      return {
+        allowed: false,
+        remaining: 0,
+        resetTime: now + retryAfter * 1000,
+        retryAfter,
+      };
+    }
+
+    return {
+      allowed: true,
+      remaining: Math.max(0, max - count),
+      resetTime,
+    };
+  } catch (error) {
+    // Fail open to memory on Redis errors so send path still works, but this
+    // degrades to per-instance limits — log so outages are visible.
+    logger.warn("Redis rate limit unavailable, falling back to in-memory", {
+      key,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return memoryCheck(key, { windowMs, maxRequests: max }, increment);
+  }
+}
+
+/** Sync in-memory check (tests + edge proxy fallback). */
 export function checkRateLimit(
   request: Request,
   config: RateLimitConfig,
   customKey?: string,
 ): RateLimitResult {
-  startCleanup();
-
-  const now = Date.now();
-  const key =
-    customKey || config.keyGenerator?.(request) || getClientIP(request);
-  const windowKey = `${key}:${Math.floor(now / config.windowMs)}`;
-
-  const entry = rateLimitStore.get(windowKey);
-
-  if (!entry) {
-    // First request in this window
-    rateLimitStore.set(windowKey, {
-      count: 1,
-      resetTime: now + config.windowMs,
-    });
-
-    return {
-      allowed: true,
-      remaining: config.maxRequests - 1,
-      resetTime: now + config.windowMs,
-    };
-  }
-
-  if (entry.count >= config.maxRequests) {
-    // Rate limit exceeded
-    const retryAfter = Math.ceil((entry.resetTime - now) / 1000);
-
-    return {
-      allowed: false,
-      remaining: 0,
-      resetTime: entry.resetTime,
-      retryAfter,
-    };
-  }
-
-  // Increment count
-  entry.count++;
-
-  return {
-    allowed: true,
-    remaining: config.maxRequests - entry.count,
-    resetTime: entry.resetTime,
-  };
+  const key = customKey || config.keyGenerator?.(request) || getClientIP(request);
+  const windowKey = `${key}:${Math.floor(Date.now() / config.windowMs)}`;
+  return memoryCheck(windowKey, config, 1);
 }
 
-/**
- * Create a rate limit response with proper headers
- */
 export function rateLimitResponse(result: RateLimitResult): Response {
   return new Response(
     JSON.stringify({
@@ -177,34 +234,30 @@ export function rateLimitResponse(result: RateLimitResult): Response {
   );
 }
 
-/**
- * Rate limit middleware for API routes
- * Returns null if allowed, Response if rate limited
- */
+/** Sync memory-only (proxy / tests). Prefer rateLimitAsync in route handlers. */
 export function rateLimit(
   request: Request,
   config: RateLimitConfig = RATE_LIMITS.api,
 ): Response | null {
   const result = checkRateLimit(request, config);
-
-  if (!result.allowed) {
-    return rateLimitResponse(result);
-  }
-
-  return null;
+  return result.allowed ? null : rateLimitResponse(result);
 }
 
-/**
- * Add rate limit headers to a response
- */
-export function addRateLimitHeaders(
-  response: Response,
-  result: RateLimitResult,
-): Response {
+/** Async rate limit — uses Upstash when configured. */
+export async function rateLimitAsync(
+  request: Request,
+  config: RateLimitConfig = RATE_LIMITS.api,
+): Promise<Response | null> {
+  const key = config.keyGenerator?.(request) || getClientIP(request);
+  const windowKey = `${key}:${Math.floor(Date.now() / config.windowMs)}`;
+  const result = await redisIncr(windowKey, config.windowMs, config.maxRequests, 1);
+  return result.allowed ? null : rateLimitResponse(result);
+}
+
+export function addRateLimitHeaders(response: Response, result: RateLimitResult): Response {
   const headers = new Headers(response.headers);
   headers.set("X-RateLimit-Remaining", String(result.remaining));
   headers.set("X-RateLimit-Reset", String(result.resetTime));
-
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
@@ -212,81 +265,101 @@ export function addRateLimitHeaders(
   });
 }
 
-/**
- * Per-user rate limiting result (burst only; plan quotas in lib/billing)
- */
-export interface UserRateLimitResult extends RateLimitResult {}
-
-/**
- * Check per-user rate limit for email sending (per-minute burst).
- * Daily/monthly plan caps: assertEmailQuota in lib/billing.
- */
+/** Sync memory per-user email limit (tests). */
 export function checkUserEmailRateLimit(
   userEmail: string,
   emailCount: number = 1,
 ): UserRateLimitResult {
   startCleanup();
-
   const now = Date.now();
   const config = RATE_LIMITS.sendEmailPerUser;
-
-  // Check per-minute limit
   const minuteKey = `user:${userEmail}:minute:${Math.floor(now / config.windowMs)}`;
-  const minuteEntry = rateLimitStore.get(minuteKey);
+  const minuteResult = memoryCheck(minuteKey, config, emailCount);
+  if (!minuteResult.allowed) {
+    return minuteResult;
+  }
 
-  if (minuteEntry && minuteEntry.count + emailCount > config.maxRequests) {
-    const retryAfter = Math.ceil((minuteEntry.resetTime - now) / 1000);
+  const dayKey = `user:${userEmail}:daily`;
+  let dailyEntry = userDailyEmailCount.get(dayKey);
+  if (!dailyEntry) {
+    const tomorrow = new Date();
+    tomorrow.setUTCHours(24, 0, 0, 0);
+    dailyEntry = { count: 0, resetTime: tomorrow.getTime() };
+  }
+  const maxDaily = config.maxEmailsPerDay || 500;
+  if (dailyEntry.count + emailCount > maxDaily) {
     return {
       allowed: false,
-      remaining: Math.max(0, config.maxRequests - minuteEntry.count),
-      resetTime: minuteEntry.resetTime,
-      retryAfter,
+      remaining: 0,
+      resetTime: dailyEntry.resetTime,
+      retryAfter: Math.ceil((dailyEntry.resetTime - now) / 1000),
+      dailyRemaining: Math.max(0, maxDaily - dailyEntry.count),
+      dailyResetTime: dailyEntry.resetTime,
     };
   }
-
-  // Update per-minute counts only (daily/monthly: lib/billing)
-  if (minuteEntry) {
-    minuteEntry.count += emailCount;
-  } else {
-    rateLimitStore.set(minuteKey, {
-      count: emailCount,
-      resetTime: now + config.windowMs,
-    });
-  }
+  dailyEntry.count += emailCount;
+  userDailyEmailCount.set(dayKey, dailyEntry);
 
   return {
-    allowed: true,
-    remaining: config.maxRequests - (minuteEntry?.count || emailCount),
-    resetTime: now + config.windowMs,
+    ...minuteResult,
+    dailyRemaining: maxDaily - dailyEntry.count,
+    dailyResetTime: dailyEntry.resetTime,
   };
 }
 
-/**
- * Per-user rate limit middleware for email sending
- * Returns null if allowed, Response if rate limited
- */
-export function rateLimitUserEmail(
+export function rateLimitUserEmail(userEmail: string, emailCount: number = 1): Response | null {
+  const result = checkUserEmailRateLimit(userEmail, emailCount);
+  if (!result.allowed) {
+    return userEmailLimitResponse(result);
+  }
+  return null;
+}
+
+function userEmailLimitResponse(result: UserRateLimitResult): Response {
+  return new Response(
+    JSON.stringify({
+      error: "Too Many Emails",
+      message:
+        result.dailyRemaining === 0
+          ? `Daily email limit reached. You can send more emails after ${new Date(result.dailyResetTime!).toLocaleString()}.`
+          : "Email rate limit exceeded. Please slow down and try again.",
+      retryAfter: result.retryAfter,
+      dailyRemaining: result.dailyRemaining,
+    }),
+    {
+      status: 429,
+      headers: {
+        "Content-Type": "application/json",
+        "Retry-After": String(result.retryAfter || 60),
+        "X-RateLimit-Remaining": String(result.remaining),
+        "X-RateLimit-Daily-Remaining": String(result.dailyRemaining || 0),
+      },
+    },
+  );
+}
+
+/** Async per-user email limit — Upstash when configured. */
+export async function rateLimitUserEmailAsync(
   userEmail: string,
   emailCount: number = 1,
-): Response | null {
-  const result = checkUserEmailRateLimit(userEmail, emailCount);
+): Promise<Response | null> {
+  const config = RATE_LIMITS.sendEmailPerUser;
+  const now = Date.now();
+  const minuteKey = `user:${userEmail}:minute:${Math.floor(now / config.windowMs)}`;
+  const minuteResult = await redisIncr(minuteKey, config.windowMs, config.maxRequests, emailCount);
+  if (!minuteResult.allowed) {
+    return userEmailLimitResponse(minuteResult);
+  }
 
-  if (!result.allowed) {
-    return new Response(
-      JSON.stringify({
-        error: "Too Many Emails",
-        message: "Email rate limit exceeded. Please slow down and try again.",
-        retryAfter: result.retryAfter,
-      }),
-      {
-        status: 429,
-        headers: {
-          "Content-Type": "application/json",
-          "Retry-After": String(result.retryAfter || 60),
-          "X-RateLimit-Remaining": String(result.remaining),
-        },
-      },
-    );
+  const maxDaily = config.maxEmailsPerDay || 500;
+  const dayKey = `user:${userEmail}:daily:${new Date().toISOString().slice(0, 10)}`;
+  const dayResult = await redisIncr(dayKey, 24 * 60 * 60 * 1000, maxDaily, emailCount);
+  if (!dayResult.allowed) {
+    return userEmailLimitResponse({
+      ...dayResult,
+      dailyRemaining: 0,
+      dailyResetTime: dayResult.resetTime,
+    });
   }
 
   return null;

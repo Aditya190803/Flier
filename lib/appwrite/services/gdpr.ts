@@ -1,6 +1,28 @@
+import type { AuditLogDocument } from "@/types/appwrite";
+
 import { CSRF_HEADER_NAME, CSRF_TOKEN_NAME } from "../../constants";
 import { getCookie } from "../../utils";
 import { apiRequest } from "../api-request";
+
+/**
+ * Result details for a GDPR data deletion request
+ */
+export interface GDPRDeletionDetails {
+  contacts: number;
+  campaigns: number;
+  templates: number;
+  drafts: number;
+  signatures: number;
+  groups: number;
+  unsubscribes: number;
+  webhooks: number;
+  attachments: number;
+  ab_tests: number;
+  tracking_events: number;
+  audit_logs: number;
+  consent_records: number;
+  errors: string[];
+}
 
 // ============================================
 // GDPR Service (via API)
@@ -12,9 +34,7 @@ export const gdprService = {
     const csrfToken = getCookie(CSRF_TOKEN_NAME);
     const response = await fetch("/api/gdpr/export", {
       credentials: "include",
-      headers: {
-        ...(csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {}),
-      },
+      headers: csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {},
     });
     if (!response.ok) {
       let errorMessage = "Failed to export data";
@@ -34,15 +54,13 @@ export const gdprService = {
   async deleteAllData(): Promise<{
     success: boolean;
     message: string;
-    details: any;
+    details: GDPRDeletionDetails;
   }> {
     const csrfToken = getCookie(CSRF_TOKEN_NAME);
     const response = await fetch("/api/gdpr/delete", {
       method: "DELETE",
       credentials: "include",
-      headers: {
-        ...(csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {}),
-      },
+      headers: csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {},
     });
     if (!response.ok) {
       let errorMessage = "Failed to delete data";
@@ -59,12 +77,15 @@ export const gdprService = {
   },
 
   // Get consent records
-  async getConsents(): Promise<{ total: number; documents: any[] }> {
+  async getConsents(): Promise<{
+    total: number;
+    documents: Record<string, unknown>[];
+  }> {
     return apiRequest("/api/gdpr/consent");
   },
 
   // Update consent
-  async updateConsent(consentType: string, given: boolean): Promise<any> {
+  async updateConsent(consentType: string, given: boolean): Promise<Record<string, unknown>> {
     return apiRequest("/api/gdpr/consent", {
       method: "POST",
       body: JSON.stringify({ consent_type: consentType, given }),
@@ -85,7 +106,7 @@ export const auditLogsService = {
     resource_type?: string;
     start_date?: string;
     end_date?: string;
-  }): Promise<{ total: number; documents: any[] }> {
+  }): Promise<{ total: number; documents: AuditLogDocument[] }> {
     const params = new URLSearchParams();
     if (options?.limit !== undefined && options.limit >= 0) {
       params.append("limit", options.limit.toString());
@@ -114,7 +135,7 @@ export const auditLogsService = {
     action: string,
     resourceType: string,
     resourceId?: string,
-    details?: any,
+    details?: Record<string, unknown>,
   ): Promise<void> {
     await apiRequest("/api/gdpr/audit-logs", {
       method: "POST",

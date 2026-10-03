@@ -1,3 +1,4 @@
+import { clientLogger } from "@/lib/client-logger";
 import type { Webhook } from "@/types/appwrite-client";
 
 import { apiRequest } from "../api-request";
@@ -24,12 +25,8 @@ export const webhooksService = {
   },
 
   // Trigger webhooks is a server-side operation - not exposed here
-  async triggerWebhooks(
-    _userEmail: string,
-    _event: Webhook["events"][number],
-    _payload: any,
-  ) {
-    console.warn("triggerWebhooks should be called server-side");
+  async triggerWebhooks(_userEmail: string, _event: Webhook["events"][number], _payload: any) {
+    clientLogger.warn("triggerWebhooks should be called server-side");
     return [];
   },
 };

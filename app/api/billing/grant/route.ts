@@ -20,9 +20,7 @@ export async function POST(request: NextRequest) {
       .toLowerCase()
       .trim();
     const planId = body.plan as PlanId;
-    const secret = request.headers
-      .get("authorization")
-      ?.replace(/^Bearer\s+/i, "");
+    const secret = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
 
     const adminList = (process.env.BILLING_ADMIN_EMAILS || "")
       .split(",")
@@ -30,27 +28,19 @@ export async function POST(request: NextRequest) {
       .filter(Boolean);
 
     const session = await getServerSession(authOptions);
-    const isCron =
-      Boolean(process.env.CRON_SECRET) && secret === process.env.CRON_SECRET;
-    const isAdmin =
-      session?.user?.email &&
-      adminList.includes(session.user.email.toLowerCase());
+    const isCron = Boolean(process.env.CRON_SECRET) && secret === process.env.CRON_SECRET;
+    const isAdmin = session?.user?.email && adminList.includes(session.user.email.toLowerCase());
 
     if (!isCron && !isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     if (!targetEmail || !(planId in PLANS)) {
-      return NextResponse.json(
-        { error: "userEmail and valid plan required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "userEmail and valid plan required" }, { status: 400 });
     }
 
     const periodDays = body.periodDays ? Number(body.periodDays) : 365;
-    const periodEnd = new Date(
-      Date.now() + periodDays * 24 * 60 * 60 * 1000,
-    ).toISOString();
+    const periodEnd = new Date(Date.now() + periodDays * 24 * 60 * 60 * 1000).toISOString();
 
     const sub = await upsertSubscription(targetEmail, {
       plan: planId,
@@ -65,10 +55,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, subscription: sub });
   } catch (error) {
-    apiLogger.error(
-      "Billing grant error",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Billing grant error", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
         error: "Grant failed",

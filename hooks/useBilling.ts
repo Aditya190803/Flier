@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import type { EffectiveLimits, UsageSnapshot } from "@/lib/billing/types";
 import type { PlanId, PlanLimits } from "@/lib/plans";
+import { APP_NAME } from "@/lib/brand";
 
 export interface BillingCatalogItem {
   id: PlanId;
@@ -83,10 +84,7 @@ function loadRazorpayScript(): Promise<void> {
   });
 }
 
-export async function startCheckout(
-  planId: PlanId,
-  interval: "monthly" | "annual",
-): Promise<void> {
+export async function startCheckout(planId: PlanId, interval: "monthly" | "annual"): Promise<void> {
   const res = await fetch("/api/billing/checkout", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -105,7 +103,7 @@ export async function startCheckout(
   const rzp = new window.Razorpay({
     key: data.razorpayKeyId,
     subscription_id: data.subscriptionId,
-    name: "EchoMail",
+    name: APP_NAME,
     description: `${data.planName} plan`,
     prefill: data.prefill,
     theme: { color: "#4f46e5" },

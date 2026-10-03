@@ -2,47 +2,9 @@
  * Maps Gmail / send pipeline errors to short user-facing copy.
  */
 
-export function gmailProfileFailureMessage(
-  status: number,
-  rawBody?: string,
-): string {
-  if (status === 401) {
-    return "Gmail connection expired. Sign out, sign in again, then retry.";
-  }
-  if (status === 403) {
-    return "Gmail denied access. Reconnect your Google account and allow Gmail permissions.";
-  }
-  if (status === 429) {
-    return "Gmail rate limit hit. Wait a few minutes, then retry.";
-  }
-
-  let detail = "";
-  if (rawBody) {
-    try {
-      const json = JSON.parse(rawBody) as {
-        error?: { message?: string; status?: string };
-      };
-      detail = json.error?.message || "";
-    } catch {
-      detail = rawBody.slice(0, 120);
-    }
-  }
-
-  if (/insufficient.*scope|access_not_configured/i.test(detail)) {
-    return "Gmail permissions missing. Sign out and sign in again to grant send access.";
-  }
-
-  return detail
-    ? `Could not reach Gmail (${status}): ${detail}`
-    : `Could not reach Gmail (HTTP ${status}). Check your connection and try again.`;
-}
-
 export function formatEmailSendErrorForUser(error: string): string {
   const lower = error.toLowerCase();
 
-  if (lower.includes("failed to get user profile")) {
-    return "Gmail connection problem. Sign out, sign in again, then retry.";
-  }
   if (
     lower.includes("unauthorized") ||
     lower.includes("invalid_grant") ||

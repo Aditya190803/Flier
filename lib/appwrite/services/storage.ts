@@ -1,3 +1,4 @@
+import { clientLogger } from "../../client-logger";
 import { CSRF_HEADER_NAME, CSRF_TOKEN_NAME } from "../../constants";
 import { getCookie } from "../../utils";
 
@@ -53,16 +54,12 @@ export const storageService = {
     const csrfToken = getCookie(CSRF_TOKEN_NAME);
     const response = await fetch("/api/upload-attachment", {
       method: "POST",
-      headers: {
-        ...(csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {}),
-      },
+      headers: csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {},
       body: formData,
     });
 
     if (!response.ok) {
-      const error = await response
-        .json()
-        .catch(() => ({ error: "Upload failed" }));
+      const error = await response.json().catch(() => ({ error: "Upload failed" }));
       throw new Error(error.error || "Failed to upload file");
     }
 
@@ -90,9 +87,7 @@ export const storageService = {
   getFileUrl(fileId: string) {
     const endpoint = getRequiredEnv("NEXT_PUBLIC_APPWRITE_ENDPOINT");
     const projectId = getRequiredEnv("NEXT_PUBLIC_APPWRITE_PROJECT_ID");
-    const bucketId = getRequiredEnv(
-      "NEXT_PUBLIC_APPWRITE_ATTACHMENTS_BUCKET_ID",
-    );
+    const bucketId = getRequiredEnv("NEXT_PUBLIC_APPWRITE_ATTACHMENTS_BUCKET_ID");
 
     return `${endpoint}/storage/buckets/${bucketId}/files/${encodeURIComponent(
       fileId,
@@ -101,7 +96,7 @@ export const storageService = {
 
   // Delete is handled server-side, not available from client
   async deleteFile(_fileId: string) {
-    console.warn("File deletion should be done server-side");
+    clientLogger.warn("File deletion should be done server-side");
     return Promise.resolve();
   },
 };

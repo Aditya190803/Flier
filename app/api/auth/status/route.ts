@@ -18,43 +18,15 @@ export async function GET(_request: NextRequest) {
       );
     }
 
-    // Test Gmail API access
-    let gmailStatus = "unknown";
-    let gmailError = null;
-
-    if (session.accessToken) {
-      try {
-        const response = await fetch(
-          "https://gmail.googleapis.com/gmail/v1/users/me/profile",
-          {
-            headers: {
-              Authorization: `Bearer ${session.accessToken}`,
-            },
-          },
-        );
-
-        if (response.ok) {
-          gmailStatus = "working";
-        } else {
-          gmailStatus = "failed";
-          gmailError = await response.text();
-        }
-      } catch (error) {
-        gmailStatus = "error";
-        gmailError = error instanceof Error ? error.message : "Unknown error";
-      }
-    } else {
-      gmailStatus = "no_token";
-    }
-
     return NextResponse.json({
       authenticated: true,
       user: session.user,
       hasAccessToken: !!session.accessToken,
       tokenError: session.error,
       gmail: {
-        status: gmailStatus,
-        error: gmailError,
+        // No gmail.readonly — From uses session.user.email; token proves OAuth grant
+        status: session.accessToken ? "working" : "no_token",
+        error: null,
       },
     });
   } catch (error) {

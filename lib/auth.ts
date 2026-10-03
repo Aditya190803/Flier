@@ -1,4 +1,5 @@
 import { authLogger } from "./logger";
+import { persistRefreshToken } from "./services/oauth-token-store";
 import { validateToken, trackRefreshTokenUsage } from "./token-security";
 
 import type { NextAuthOptions, User } from "next-auth";
@@ -45,8 +46,8 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
     const url =
       "https://oauth2.googleapis.com/token?" +
       new URLSearchParams({
-        client_id: process.env.GOOGLE_CLIENT_ID!,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+        client_id: process.env.GOOGLE_CLIENT_ID || "",
+        client_secret: process.env.GOOGLE_CLIENT_SECRET || "",
         grant_type: "refresh_token",
         refresh_token: refreshToken,
       });
@@ -65,6 +66,19 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
     }
 
     const newRefreshToken = refreshedTokens.refresh_token ?? refreshToken;
+
+    // Keep the offline store in sync when Google rotates the refresh token,
+    // otherwise scheduled sends would keep using a grant that no longer works.
+    if (refreshedTokens.refresh_token) {
+      const email = (token.user as User)?.email;
+      if (email) {
+        await persistRefreshToken({
+          userEmail: email,
+          refreshToken: refreshedTokens.refresh_token,
+          scope: refreshedTokens.scope,
+        });
+      }
+    }
 
     return {
       ...token,
@@ -92,8 +106,8 @@ export const authOptions: NextAuthOptions = {
       id: "google",
       name: "Google",
       type: "oauth",
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
       // Use Google's stable OAuth endpoints directly so sign-in does not depend
       // on runtime OIDC discovery succeeding within openid-client's default timeout.
       wellKnown: undefined,
@@ -103,7 +117,7 @@ export const authOptions: NextAuthOptions = {
         url: "https://accounts.google.com/o/oauth2/v2/auth",
         params: {
           scope:
-            "openid email profile https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/contacts.readonly",
+            "openid email profile https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/contacts.readonly",
           access_type: "offline",
           prompt: "consent",
         },
@@ -141,6 +155,17 @@ export const authOptions: NextAuthOptions = {
 
         const now: number = Date.now();
         const expiresAt: number = now + expiresIn * 1000;
+
+        // Store the refresh token server-side so scheduled campaigns can be
+        // sent on the user's behalf after the session cookie is long gone.
+        // Best-effort: never let this block sign-in.
+        if (account.refresh_token && user.email) {
+          await persistRefreshToken({
+            userEmail: user.email,
+            refreshToken: account.refresh_token,
+            scope: typeof account.scope === "string" ? account.scope : undefined,
+          });
+        }
 
         return {
           accessToken: account.access_token,
@@ -183,4 +208,17 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: false, // Disable debug to prevent verbose logging
+  // Log the real OAuth error server-side so `OAuthCallback` in the UI can
+  // be traced in production logs (Google only sends the detail here).
+  logger: {
+    error(code, metadata) {
+      authLogger.error(`NextAuth error: ${code}`, {
+        error:
+          metadata instanceof Error ? metadata.message : JSON.stringify(metadata)?.slice(0, 2000),
+      });
+    },
+    warn(code) {
+      authLogger.warn(`NextAuth warning: ${code}`);
+    },
+  },
 };

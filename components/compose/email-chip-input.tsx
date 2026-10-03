@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type KeyboardEvent,
-  type MouseEvent,
-} from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 
 import { Copy, Pencil, Trash2, X } from "lucide-react";
 
@@ -139,12 +132,7 @@ export function EmailChipInput({
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (
-      e.key === "Enter" ||
-      e.key === "," ||
-      e.key === ";" ||
-      e.key === "Tab"
-    ) {
+    if (e.key === "Enter" || e.key === "," || e.key === ";" || e.key === "Tab") {
       if (draft.trim()) {
         e.preventDefault();
         commit(draft);
@@ -220,14 +208,10 @@ export function EmailChipInput({
               const valid = parts.filter(isValidEmail);
               const invalid = parts.filter((p) => !isValidEmail(p));
               if (valid.length) {
-                onChange(
-                  serializeEmailList([...new Set([...emails, ...valid])]),
-                );
+                onChange(serializeEmailList([...new Set([...emails, ...valid])]));
               }
               setDraft("");
-              setError(
-                invalid.length ? `Skipped invalid: ${invalid[0]}` : null,
-              );
+              setError(invalid.length ? `Skipped invalid: ${invalid[0]}` : null);
             }
           }}
           placeholder={emails.length === 0 ? placeholder : ""}
@@ -236,9 +220,7 @@ export function EmailChipInput({
           inputMode="email"
         />
       </div>
-      {error ? (
-        <p className="text-[11px] text-destructive mt-1">{error}</p>
-      ) : null}
+      {error ? <p className="text-[11px] text-destructive mt-1">{error}</p> : null}
 
       {menu ? (
         <div

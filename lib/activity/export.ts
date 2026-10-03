@@ -33,10 +33,7 @@ function formatDate(date: Date | string, format?: string): string {
 /**
  * Generate CSV content from analytics data
  */
-export function generateCSV(
-  data: AnalyticsExportData,
-  options: CSVExportOptions = {},
-): string {
+export function generateCSV(data: AnalyticsExportData, options: CSVExportOptions = {}): string {
   const {
     includeSummary = true,
     includeHeaders = true,
@@ -58,8 +55,8 @@ export function generateCSV(
       "Success Rate",
       "Opens",
       "Clicks",
-      "Open Rate",
-      "Click Rate",
+      "Recorded Open Rate (estimate)",
+      "Recorded Click Rate (estimate)",
       "Type",
       "Date",
     ];
@@ -76,14 +73,10 @@ export function generateCSV(
       campaign.sent.toString(),
       campaign.failed.toString(),
       `${campaign.successRate.toFixed(1)}%`,
-      (campaign.opens ?? 0).toString(),
-      (campaign.clicks ?? 0).toString(),
-      campaign.openRate !== undefined
-        ? `${campaign.openRate.toFixed(1)}%`
-        : "N/A",
-      campaign.clickRate !== undefined
-        ? `${campaign.clickRate.toFixed(1)}%`
-        : "N/A",
+      campaign.opens === undefined ? "N/A" : campaign.opens.toString(),
+      campaign.clicks === undefined ? "N/A" : campaign.clicks.toString(),
+      campaign.openRate !== undefined ? `${campaign.openRate.toFixed(1)}%` : "N/A",
+      campaign.clickRate !== undefined ? `${campaign.clickRate.toFixed(1)}%` : "N/A",
       campaign.campaignType,
       formatDate(campaign.createdAt, dateFormat === "iso" ? "iso" : undefined),
     ];
@@ -98,9 +91,7 @@ export function generateCSV(
     lines.push(`Total Recipients${delimiter}${data.summary.totalRecipients}`);
     lines.push(`Total Sent${delimiter}${data.summary.totalSent}`);
     lines.push(`Total Failed${delimiter}${data.summary.totalFailed}`);
-    lines.push(
-      `Overall Success Rate${delimiter}${data.summary.overallSuccessRate.toFixed(1)}%`,
-    );
+    lines.push(`Overall Success Rate${delimiter}${data.summary.overallSuccessRate.toFixed(1)}%`);
     lines.push(
       `Average Recipients/Campaign${delimiter}${data.summary.averageRecipientsPerCampaign.toFixed(1)}`,
     );
@@ -124,11 +115,7 @@ export function generateCSV(
  * Escape CSV field to handle special characters
  */
 function escapeCSVField(field: string, delimiter: string): string {
-  if (
-    field.includes(delimiter) ||
-    field.includes('"') ||
-    field.includes("\n")
-  ) {
+  if (field.includes(delimiter) || field.includes('"') || field.includes("\n")) {
     return `"${field.replace(/"/g, '""')}"`;
   }
   return field;
@@ -142,7 +129,7 @@ export async function generatePDF(
   options: PDFExportOptions = {},
 ): Promise<Uint8Array> {
   const {
-    title = "EchoMail Analytics Report",
+    title = "Flier Analytics Report",
     includeSummary = true,
     includeDetailedList = true,
     branding = {},
@@ -154,9 +141,7 @@ export async function generatePDF(
   const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-  const primaryColor = branding.primaryColor
-    ? hexToRgb(branding.primaryColor)
-    : rgb(0.2, 0.4, 0.8);
+  const primaryColor = branding.primaryColor ? hexToRgb(branding.primaryColor) : rgb(0.2, 0.4, 0.8);
 
   // Page settings
   const pageWidth = 612; // Letter width in points
@@ -228,35 +213,20 @@ export async function generatePDF(
       ["Total Sent", data.summary.totalSent.toLocaleString()],
       ["Total Failed", data.summary.totalFailed.toLocaleString()],
       ["Success Rate", `${data.summary.overallSuccessRate.toFixed(1)}%`],
-      [
-        "Avg Recipients/Campaign",
-        data.summary.averageRecipientsPerCampaign.toFixed(1),
-      ],
+      ["Avg Recipients/Campaign", data.summary.averageRecipientsPerCampaign.toFixed(1)],
     ];
 
     if (data.summary.totalOpens !== undefined) {
-      summaryItems.push([
-        "Total Opens",
-        data.summary.totalOpens.toLocaleString(),
-      ]);
+      summaryItems.push(["Total Opens", data.summary.totalOpens.toLocaleString()]);
     }
     if (data.summary.totalClicks !== undefined) {
-      summaryItems.push([
-        "Total Clicks",
-        data.summary.totalClicks.toLocaleString(),
-      ]);
+      summaryItems.push(["Total Clicks", data.summary.totalClicks.toLocaleString()]);
     }
     if (data.summary.averageOpenRate !== undefined) {
-      summaryItems.push([
-        "Avg Open Rate",
-        `${data.summary.averageOpenRate.toFixed(1)}%`,
-      ]);
+      summaryItems.push(["Avg Open Rate", `${data.summary.averageOpenRate.toFixed(1)}%`]);
     }
     if (data.summary.averageClickRate !== undefined) {
-      summaryItems.push([
-        "Avg Click Rate",
-        `${data.summary.averageClickRate.toFixed(1)}%`,
-      ]);
+      summaryItems.push(["Avg Click Rate", `${data.summary.averageClickRate.toFixed(1)}%`]);
     }
 
     // Draw summary in two columns
@@ -368,7 +338,7 @@ export async function generatePDF(
   }
 
   // Footer on last page
-  page.drawText("Generated by EchoMail", {
+  page.drawText("Generated by Flier", {
     x: margin,
     y: margin - 20,
     size: 8,
@@ -407,9 +377,7 @@ function truncateText(text: string, maxLength: number): string {
 /**
  * Calculate analytics summary from campaigns
  */
-export function calculateSummary(
-  campaigns: CampaignAnalytics[],
-): AnalyticsSummary {
+export function calculateSummary(campaigns: CampaignAnalytics[]): AnalyticsSummary {
   const totalCampaigns = campaigns.length;
   const totalRecipients = campaigns.reduce((sum, c) => sum + c.recipients, 0);
   const totalSent = campaigns.reduce((sum, c) => sum + c.sent, 0);
@@ -417,10 +385,8 @@ export function calculateSummary(
   const totalOpens = campaigns.reduce((sum, c) => sum + (c.opens ?? 0), 0);
   const totalClicks = campaigns.reduce((sum, c) => sum + (c.clicks ?? 0), 0);
 
-  const overallSuccessRate =
-    totalRecipients > 0 ? (totalSent / totalRecipients) * 100 : 0;
-  const averageRecipientsPerCampaign =
-    totalCampaigns > 0 ? totalRecipients / totalCampaigns : 0;
+  const overallSuccessRate = totalRecipients > 0 ? (totalSent / totalRecipients) * 100 : 0;
+  const averageRecipientsPerCampaign = totalCampaigns > 0 ? totalRecipients / totalCampaigns : 0;
 
   const campaignsWithOpens = campaigns.filter((c) => c.opens !== undefined);
   const campaignsWithClicks = campaigns.filter((c) => c.clicks !== undefined);
@@ -444,8 +410,8 @@ export function calculateSummary(
     totalFailed,
     overallSuccessRate,
     averageRecipientsPerCampaign,
-    totalOpens: totalOpens > 0 ? totalOpens : undefined,
-    totalClicks: totalClicks > 0 ? totalClicks : undefined,
+    totalOpens: campaignsWithOpens.length ? totalOpens : undefined,
+    totalClicks: campaignsWithClicks.length ? totalClicks : undefined,
     averageOpenRate,
     averageClickRate,
   };
@@ -473,18 +439,13 @@ export function transformCampaignToAnalytics(
       ? JSON.parse(campaign.recipients).length
       : campaign.recipients.length;
 
-  const successRate =
-    recipientCount > 0 ? (campaign.sent / recipientCount) * 100 : 0;
+  const successRate = recipientCount > 0 ? (campaign.sent / recipientCount) * 100 : 0;
 
   const openRate =
-    trackingData && campaign.sent > 0
-      ? (trackingData.opens / campaign.sent) * 100
-      : undefined;
+    trackingData && campaign.sent > 0 ? (trackingData.opens / campaign.sent) * 100 : undefined;
 
   const clickRate =
-    trackingData && campaign.sent > 0
-      ? (trackingData.clicks / campaign.sent) * 100
-      : undefined;
+    trackingData && campaign.sent > 0 ? (trackingData.clicks / campaign.sent) * 100 : undefined;
 
   return {
     id: campaign.$id,
@@ -495,8 +456,7 @@ export function transformCampaignToAnalytics(
     failed: campaign.failed,
     successRate,
     campaignType: campaign.campaign_type || "bulk",
-    createdAt:
-      campaign.created_at || campaign.$createdAt || new Date().toISOString(),
+    createdAt: campaign.created_at || campaign.$createdAt || new Date().toISOString(),
     opens: trackingData?.opens,
     clicks: trackingData?.clicks,
     openRate,
@@ -527,9 +487,7 @@ export function downloadFile(
 /**
  * Get date range from preset
  */
-export function getDateRange(
-  preset: "week" | "month" | "quarter" | "year",
-): DateRange {
+export function getDateRange(preset: "week" | "month" | "quarter" | "year"): DateRange {
   const end = new Date();
   const start = new Date();
 

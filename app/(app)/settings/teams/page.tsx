@@ -34,13 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -137,10 +131,7 @@ export default function TeamsPage() {
       const data = await response.json();
       setTeams(data.documents || []);
     } catch (error) {
-      componentLogger.error(
-        "Failed to fetch teams",
-        error instanceof Error ? error : undefined,
-      );
+      componentLogger.error("Failed to fetch teams", error instanceof Error ? error : undefined);
       setTeams([]);
     } finally {
       setIsLoading(false);
@@ -201,9 +192,7 @@ export default function TeamsPage() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(
-          error.message || error.error || "Failed to create team",
-        );
+        throw new Error(error.message || error.error || "Failed to create team");
       }
 
       const team = await response.json();
@@ -265,9 +254,7 @@ export default function TeamsPage() {
       const csrfToken = getCookie(CSRF_TOKEN_NAME);
       const response = await fetch(`/api/teams/members?id=${memberId}`, {
         method: "DELETE",
-        headers: {
-          ...(csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {}),
-        },
+        headers: csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {},
       });
 
       if (!response.ok) {
@@ -287,9 +274,7 @@ export default function TeamsPage() {
       const csrfToken = getCookie(CSRF_TOKEN_NAME);
       const response = await fetch(`/api/teams?id=${teamId}`, {
         method: "DELETE",
-        headers: {
-          ...(csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {}),
-        },
+        headers: csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {},
       });
 
       if (!response.ok) {
@@ -326,9 +311,7 @@ export default function TeamsPage() {
       }
 
       setTeamMembers((prev) =>
-        prev.map((m) =>
-          m.$id === memberId ? { ...m, role: newRole as any } : m,
-        ),
+        prev.map((m) => (m.$id === memberId ? { ...m, role: newRole as any } : m)),
       );
       toast.success("Role updated successfully");
     } catch (error: any) {
@@ -406,9 +389,7 @@ export default function TeamsPage() {
                 <Input
                   id="team-name"
                   value={newTeam.name}
-                  onChange={(e) =>
-                    setNewTeam((prev) => ({ ...prev, name: e.target.value }))
-                  }
+                  onChange={(e) => setNewTeam((prev) => ({ ...prev, name: e.target.value }))}
                   placeholder="Marketing Team"
                 />
               </div>
@@ -428,10 +409,7 @@ export default function TeamsPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setCreateDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
                 Cancel
               </Button>
               <Button onClick={handleCreateTeam} disabled={isCreating}>
@@ -457,13 +435,8 @@ export default function TeamsPage() {
               <CardContent className="py-12 text-center">
                 <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No teams yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Create a team to start collaborating
-                </p>
-                <Button
-                  onClick={() => setCreateDialogOpen(true)}
-                  className="gap-2"
-                >
+                <p className="text-muted-foreground mb-4">Create a team to start collaborating</p>
+                <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
                   <Plus className="h-4 w-4" />
                   Create Your First Team
                 </Button>
@@ -485,10 +458,7 @@ export default function TeamsPage() {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-semibold">{team.name}</h3>
-                      <Badge
-                        variant={roleColors[team.user_role] as any}
-                        className="gap-1"
-                      >
+                      <Badge variant={roleColors[team.user_role] as any} className="gap-1">
                         <RoleIcon className="h-3 w-3" />
                         {team.user_role}
                       </Badge>
@@ -521,17 +491,12 @@ export default function TeamsPage() {
                   <div>
                     <CardTitle>{selectedTeam.name}</CardTitle>
                     {selectedTeam.description && (
-                      <CardDescription>
-                        {selectedTeam.description}
-                      </CardDescription>
+                      <CardDescription>{selectedTeam.description}</CardDescription>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
                     {["owner", "admin"].includes(selectedTeam.user_role) && (
-                      <Dialog
-                        open={inviteDialogOpen}
-                        onOpenChange={setInviteDialogOpen}
-                      >
+                      <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
                         <DialogTrigger asChild>
                           <Button variant="outline" size="sm" className="gap-2">
                             <UserPlus className="h-4 w-4" />
@@ -547,9 +512,7 @@ export default function TeamsPage() {
                           </DialogHeader>
                           <div className="space-y-4 py-4">
                             <div>
-                              <Label htmlFor="invite-email">
-                                Email Address
-                              </Label>
+                              <Label htmlFor="invite-email">Email Address</Label>
                               <Input
                                 id="invite-email"
                                 type="email"
@@ -592,16 +555,10 @@ export default function TeamsPage() {
                             </div>
                           </div>
                           <DialogFooter>
-                            <Button
-                              variant="outline"
-                              onClick={() => setInviteDialogOpen(false)}
-                            >
+                            <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>
                               Cancel
                             </Button>
-                            <Button
-                              onClick={handleInviteMember}
-                              disabled={isInviting}
-                            >
+                            <Button onClick={handleInviteMember} disabled={isInviting}>
                               {isInviting ? (
                                 <>
                                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -619,11 +576,7 @@ export default function TeamsPage() {
                     {selectedTeam.user_role === "owner" && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            className="gap-2"
-                          >
+                          <Button variant="destructive" size="sm" className="gap-2">
                             <Trash2 className="h-4 w-4" />
                             Delete
                           </Button>
@@ -632,9 +585,8 @@ export default function TeamsPage() {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Delete Team</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Are you sure you want to delete "
-                              {selectedTeam.name}"? This will remove all members
-                              and cannot be undone.
+                              Are you sure you want to delete "{selectedTeam.name}"? This will
+                              remove all members and cannot be undone.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
@@ -662,18 +614,14 @@ export default function TeamsPage() {
                     ))}
                   </div>
                 ) : teamMembers.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No members found
-                  </div>
+                  <div className="text-center py-8 text-muted-foreground">No members found</div>
                 ) : (
                   <div className="space-y-3">
                     {teamMembers.map((member) => {
                       const RoleIcon = roleIcons[member.role];
-                      const isCurrentUser =
-                        member.user_email === session?.user?.email;
+                      const isCurrentUser = member.user_email === session?.user?.email;
                       const canManage =
-                        ["owner", "admin"].includes(selectedTeam.user_role) &&
-                        !isCurrentUser;
+                        ["owner", "admin"].includes(selectedTeam.user_role) && !isCurrentUser;
 
                       return (
                         <div
@@ -686,9 +634,7 @@ export default function TeamsPage() {
                             </div>
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className="font-medium">
-                                  {member.user_email}
-                                </span>
+                                <span className="font-medium">{member.user_email}</span>
                                 {isCurrentUser && (
                                   <Badge variant="outline" className="text-xs">
                                     You
@@ -696,10 +642,7 @@ export default function TeamsPage() {
                                 )}
                               </div>
                               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <Badge
-                                  variant={roleColors[member.role] as any}
-                                  className="gap-1"
-                                >
+                                <Badge variant={roleColors[member.role] as any} className="gap-1">
                                   <RoleIcon className="h-3 w-3" />
                                   {member.role}
                                 </Badge>
@@ -736,21 +679,15 @@ export default function TeamsPage() {
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
-                                    <AlertDialogTitle>
-                                      Remove Member
-                                    </AlertDialogTitle>
+                                    <AlertDialogTitle>Remove Member</AlertDialogTitle>
                                     <AlertDialogDescription>
                                       Remove {member.user_email} from the team?
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
-                                    <AlertDialogCancel>
-                                      Cancel
-                                    </AlertDialogCancel>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
                                     <AlertDialogAction
-                                      onClick={() =>
-                                        handleRemoveMember(member.$id)
-                                      }
+                                      onClick={() => handleRemoveMember(member.$id)}
                                       className="bg-destructive text-destructive-foreground"
                                     >
                                       Remove
@@ -773,8 +710,7 @@ export default function TeamsPage() {
                 <Users className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Select a team</h3>
                 <p className="text-muted-foreground">
-                  Click on a team from the list to view details and manage
-                  members
+                  Click on a team from the list to view details and manage members
                 </p>
               </CardContent>
             </Card>

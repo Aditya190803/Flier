@@ -1,6 +1,6 @@
 /**
  * Google Analytics 4 Integration
- * Provides GA4 event tracking for EchoMail
+ * Provides GA4 event tracking for Flier
  */
 
 import type { GA4Config, GA4Event } from "@/types/activity";
@@ -17,11 +17,7 @@ declare global {
  * Initialize GA4 with measurement ID
  */
 export function initGA4(config: GA4Config): void {
-  if (
-    typeof window === "undefined" ||
-    !config.enabled ||
-    !config.measurementId
-  ) {
+  if (typeof window === "undefined" || !config.enabled || !config.measurementId) {
     return;
   }
 
@@ -107,9 +103,7 @@ export function trackCampaignSent(data: {
       failed_count: data.failedCount,
       duration_seconds: Math.round(data.duration / 1000),
       success_rate:
-        data.recipientCount > 0
-          ? Math.round((data.successCount / data.recipientCount) * 100)
-          : 0,
+        data.recipientCount > 0 ? Math.round((data.successCount / data.recipientCount) * 100) : 0,
     },
   });
 }
@@ -215,9 +209,7 @@ export function trackEngagement(data: {
 /**
  * Set user properties for analytics
  */
-export function setUserProperties(
-  properties: Record<string, string | number | boolean>,
-): void {
+export function setUserProperties(properties: Record<string, string | number | boolean>): void {
   if (typeof window === "undefined" || !window.gtag) {
     return;
   }
@@ -228,11 +220,7 @@ export function setUserProperties(
 /**
  * Track timing/performance
  */
-export function trackTiming(data: {
-  name: string;
-  value: number;
-  category?: string;
-}): void {
+export function trackTiming(data: { name: string; value: number; category?: string }): void {
   trackEvent({
     name: "timing_complete",
     params: {

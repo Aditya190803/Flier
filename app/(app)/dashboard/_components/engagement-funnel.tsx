@@ -14,10 +14,7 @@ interface Props {
 export function EngagementFunnel({ campaigns }: Props) {
   const data = useMemo(() => {
     // 1. Total targeted (all recipients across all campaigns)
-    const targeted = campaigns.reduce(
-      (acc, c) => acc + getRecipientsCount(c),
-      0,
-    );
+    const targeted = campaigns.reduce((acc, c) => acc + getRecipientsCount(c), 0);
 
     // 2. Delivered (successfully sent)
     const delivered = campaigns.reduce((acc, c) => acc + (c.sent || 0), 0);
@@ -56,9 +53,7 @@ export function EngagementFunnel({ campaigns }: Props) {
       <div className="flex items-center justify-between mb-[32px]">
         <div>
           <h2 className="text-base font-semibold">Engagement Funnel</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Overall conversion rates
-          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">Overall conversion rates</p>
         </div>
       </div>
 

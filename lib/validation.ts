@@ -123,6 +123,109 @@ export const sendBulkEmailSchema = z.object({
 });
 
 /**
+ * Send-email API body (personalized batch or A/B recipients)
+ */
+export const sendEmailRequestSchema = z
+  .object({
+    campaignId: z.string().max(200).optional(),
+    trackingEnabled: z.boolean().optional(),
+    isTransactional: z.boolean().optional(),
+    abTestId: z.string().max(200).optional(),
+    subject: subjectSchema.optional(),
+    content: messageSchema.optional(),
+    recipients: emailArraySchema.optional(),
+    variants: z
+      .array(
+        z.object({
+          subject: subjectSchema.optional(),
+          content: messageSchema.optional(),
+        }),
+      )
+      .max(10)
+      .optional(),
+    // Campaign-level Cc/Bcc, applied to every message that doesn't set its own
+    cc: z.array(emailSchema).max(50).optional(),
+    bcc: z.array(emailSchema).max(50).optional(),
+    personalizedEmails: z
+      .array(
+        z.object({
+          to: emailSchema,
+          subject: subjectSchema,
+          message: messageSchema,
+          originalRowData: z.record(z.string(), z.string()).optional(),
+          attachments: z.array(attachmentSchema).optional(),
+          cc: z.array(emailSchema).max(50).optional(),
+          bcc: z.array(emailSchema).max(50).optional(),
+        }),
+      )
+      .min(1)
+      .max(1000)
+      .optional(),
+  })
+  .refine(
+    (d) =>
+      (d.personalizedEmails && d.personalizedEmails.length > 0) ||
+      (d.recipients && d.recipients.length > 0),
+    { message: "No emails provided" },
+  );
+
+/**
+ * Scheduled campaign create/update (POST|PUT /api/scheduled-campaigns)
+ *
+ * The send time is validated for *shape* here; whether it's far enough in the
+ * future is checked in the route, where "now" is unambiguous.
+ */
+export const isoDatetimeSchema = z
+  .string()
+  .max(40)
+  .datetime({ offset: true, message: "Must be a valid ISO-8601 datetime" });
+
+/** Attachment as stored on a campaign document (already uploaded to Appwrite) */
+export const storedAttachmentSchema = z
+  .object({
+    fileName: z.string().min(1).max(255),
+    fileUrl: z.string().url().max(2000).optional(),
+    fileSize: z
+      .number()
+      .nonnegative()
+      .max(25 * 1024 * 1024)
+      .optional(),
+    appwrite_file_id: z.string().max(255).optional(),
+  })
+  .refine((attachment) => attachment.appwrite_file_id || attachment.fileUrl, {
+    message: "Stored attachment requires a file reference",
+  });
+
+export const scheduledCampaignSchema = z.object({
+  team_id: z.string().min(1).max(100).optional(),
+  review_id: z.string().uuid().optional(),
+  send_now: z.boolean().optional(),
+  request_id: z.string().uuid().optional(),
+  // These limits mirror the Appwrite scheduled_campaigns attributes.
+  subject: subjectSchema.max(500, "Subject too long (max 500 characters)"),
+  content: messageSchema.max(100000, "Message too long (max 100000 characters)"),
+  recipients: emailArraySchema,
+  scheduled_at: isoDatetimeSchema,
+  timezone: z.string().max(100).optional(),
+  attachments: z.array(storedAttachmentSchema).max(25).optional(),
+  csv_data: z.array(z.record(z.string(), z.string())).max(1000).optional(),
+  cc: z.array(emailSchema).max(50).optional(),
+  bcc: z.array(emailSchema).max(50).optional(),
+  tracking_enabled: z.boolean().optional(),
+  is_marketing: z.boolean().optional(),
+  has_personalized_attachments: z.boolean().optional(),
+  personalized_attachment_column: z.string().max(255).optional(),
+});
+
+/** Reschedule or cancel a campaign that has not started sending. */
+export const updateScheduledCampaignSchema = z.object({
+  id: z.string().min(1, "Campaign ID is required"),
+  scheduled_at: isoDatetimeSchema.optional(),
+  timezone: z.string().max(100).optional(),
+  status: z.enum(["scheduled", "cancelled"]).optional(),
+});
+
+/**
  * Contact creation/update
  */
 export const contactSchema = z.object({
@@ -165,6 +268,62 @@ export const trackingEventSchema = z.object({
   url: z.string().url().optional(),
   timestamp: z.string().datetime().optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+/**
+ * Team roles (excludes "owner", which cannot be assigned directly)
+ */
+export const teamMemberRoleSchema = z.enum(["admin", "member", "viewer"]);
+
+/**
+ * Create team request (POST /api/teams)
+ */
+export const createTeamSchema = z.object({
+  name: z.string().min(1, "Team name is required").max(200).trim(),
+  description: z.string().max(2000).trim().optional(),
+});
+
+/**
+ * Update team request (PUT /api/teams)
+ */
+export const updateTeamSchema = z.object({
+  id: z.string().min(1, "Team ID is required"),
+  name: z.string().min(1).max(200).trim().optional(),
+  description: z.string().max(2000).trim().optional(),
+  settings: z
+    .object({
+      allow_member_invite: z.boolean().optional(),
+      require_approval: z.boolean().optional(),
+      shared_templates: z.boolean().optional(),
+      shared_contacts: z.boolean().optional(),
+    })
+    .optional(),
+});
+
+/**
+ * Invite team member request (POST /api/teams/members)
+ */
+export const inviteTeamMemberSchema = z.object({
+  team_id: z.string().min(1, "Team ID is required"),
+  email: emailSchema,
+  role: teamMemberRoleSchema.optional().default("member"),
+});
+
+/**
+ * Update team member request (PUT /api/teams/members)
+ */
+export const updateTeamMemberSchema = z.object({
+  member_id: z.string().min(1, "Member ID is required"),
+  role: teamMemberRoleSchema.optional(),
+  status: z.enum(["active", "suspended"]).optional(),
+});
+
+/**
+ * Export report query params (GET /api/export-report)
+ */
+export const exportReportQuerySchema = z.object({
+  format: z.enum(["csv", "json"]).optional().default("csv"),
+  campaign: z.string().min(1).optional(),
 });
 
 // ============================================
@@ -244,10 +403,7 @@ export interface ValidationResult<T> {
 /**
  * Validate data against a Zod schema
  */
-export function validate<T>(
-  schema: z.ZodType<T>,
-  data: unknown,
-): ValidationResult<T> {
+export function validate<T>(schema: z.ZodType<T>, data: unknown): ValidationResult<T> {
   const result = schema.safeParse(data);
 
   if (result.success) {
@@ -268,9 +424,7 @@ export function validate<T>(
 /**
  * Create validation error response
  */
-export function validationErrorResponse(
-  result: ValidationResult<unknown>,
-): Response {
+export function validationErrorResponse(result: ValidationResult<unknown>): Response {
   return new Response(
     JSON.stringify({
       error: "Validation Error",

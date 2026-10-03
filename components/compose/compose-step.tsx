@@ -12,7 +12,6 @@ import {
   Paperclip,
   Pen,
   RefreshCw,
-  Save,
   Settings,
   Send,
   Upload,
@@ -38,6 +37,7 @@ import type { EmailSignature, EmailTemplate } from "@/lib/appwrite";
 import { detectPdfColumn, isPdfUrl } from "@/lib/attachment-fetcher";
 import { LARGE_FILE_THRESHOLD } from "@/lib/attachments/client";
 
+import { DeliveryOptions, type DeliveryMode } from "./delivery-options";
 import { EmailChipInput } from "./email-chip-input";
 import { TemplatePickerDialog } from "./template-picker-dialog";
 
@@ -65,7 +65,9 @@ interface ComposeStepProps {
   signatures: EmailSignature[];
   selectedSignature: string | null;
   isMarketing: boolean;
-  saveAsDraft: boolean;
+  deliveryMode: DeliveryMode;
+  /** `datetime-local` value; only meaningful when `deliveryMode` is "schedule" */
+  scheduledAt: string;
   hasAbTestId: boolean;
   router: AppRouterInstance;
   setShowHtmlImport: (open: boolean) => void;
@@ -86,7 +88,8 @@ interface ComposeStepProps {
   setPdfColumn: (value: string | null) => void;
   setSelectedSignature: (value: string | null) => void;
   setIsMarketing: (value: boolean) => void;
-  setSaveAsDraft: (value: boolean) => void;
+  setDeliveryMode: (value: DeliveryMode) => void;
+  setScheduledAt: (value: string) => void;
   applyTemplate: (template: EmailTemplate) => void;
   loadTemplates: () => void | Promise<void>;
 }
@@ -104,9 +107,7 @@ function renderAttachmentWarning(attachments: ComposeAttachment[]) {
   return (
     <div
       className={`text-xs p-2 rounded ${
-        totalMB > 25
-          ? "bg-destructive/10 text-destructive"
-          : "bg-warning/10 text-warning"
+        totalMB > 25 ? "bg-destructive/10 text-destructive" : "bg-warning/10 text-warning"
       }`}
     >
       {totalMB > 25
@@ -138,7 +139,8 @@ export function ComposeStep({
   signatures,
   selectedSignature,
   isMarketing,
-  saveAsDraft,
+  deliveryMode,
+  scheduledAt,
   hasAbTestId,
   router,
   setShowHtmlImport,
@@ -159,7 +161,8 @@ export function ComposeStep({
   setPdfColumn,
   setSelectedSignature,
   setIsMarketing,
-  setSaveAsDraft,
+  setDeliveryMode,
+  setScheduledAt,
   applyTemplate,
   loadTemplates,
 }: ComposeStepProps) {
@@ -170,17 +173,11 @@ export function ComposeStep({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="text-sm text-muted-foreground">
-          Start from scratch or use a template
-        </div>
+        <div className="text-sm text-muted-foreground">Start from scratch or use a template</div>
         <div className="flex flex-wrap gap-2">
           <Dialog open={showHtmlImport} onOpenChange={setShowHtmlImport}>
             <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs sm:text-sm"
-              >
+              <Button variant="outline" size="sm" className="text-xs sm:text-sm">
                 <FileCode className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 <span className="hidden xs:inline">Import</span> HTML
               </Button>
@@ -188,9 +185,7 @@ export function ComposeStep({
             <DialogContent className="w-[95vw] max-w-2xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Import HTML Template</DialogTitle>
-                <DialogDescription>
-                  Paste your HTML code to use as email content
-                </DialogDescription>
+                <DialogDescription>Paste your HTML code to use as email content</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <textarea
@@ -214,10 +209,7 @@ export function ComposeStep({
                   >
                     Import
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowHtmlImport(false)}
-                  >
+                  <Button variant="outline" onClick={() => setShowHtmlImport(false)}>
                     Cancel
                   </Button>
                 </div>
@@ -288,12 +280,7 @@ export function ComposeStep({
             >
               Cc:
             </Label>
-            <EmailChipInput
-              id="cc"
-              value={cc}
-              onChange={setCc}
-              placeholder="Add Cc…"
-            />
+            <EmailChipInput id="cc" value={cc} onChange={setCc} placeholder="Add Cc…" />
           </div>
         )}
 
@@ -305,12 +292,7 @@ export function ComposeStep({
             >
               Bcc:
             </Label>
-            <EmailChipInput
-              id="bcc"
-              value={bcc}
-              onChange={setBcc}
-              placeholder="Add Bcc…"
-            />
+            <EmailChipInput id="bcc" value={bcc} onChange={setBcc} placeholder="Add Bcc…" />
           </div>
         )}
 
@@ -341,14 +323,11 @@ export function ComposeStep({
               key={file.tempId || index}
               variant={file.isProcessing ? "outline" : "secondary"}
               className={`flex items-center gap-2 py-2 ${
-                file.isProcessing
-                  ? "animate-pulse"
-                  : "cursor-pointer hover:bg-secondary/80"
+                file.isProcessing ? "animate-pulse" : "cursor-pointer hover:bg-secondary/80"
               }`}
               aria-disabled={file.isProcessing}
               onClick={() => {
-                const attachmentUrl =
-                  file.appwriteUrl || file.path || file.data;
+                const attachmentUrl = file.appwriteUrl || file.path || file.data;
                 if (!attachmentUrl || file.isProcessing) {
                   return;
                 }
@@ -370,9 +349,7 @@ export function ComposeStep({
               )}
               {file.isProcessing && (
                 <span className="text-xs text-muted-foreground">
-                  {file.fileSize >= LARGE_FILE_THRESHOLD
-                    ? "uploading..."
-                    : "encoding..."}
+                  {file.fileSize >= LARGE_FILE_THRESHOLD ? "uploading..." : "encoding..."}
                 </span>
               )}
               <button
@@ -400,17 +377,13 @@ export function ComposeStep({
                 // Reset to allow re-selecting the same file
                 (e.target as HTMLInputElement).value = "";
               }}
-              onChange={(e) =>
-                e.target.files && handleFileUpload(e.target.files)
-              }
+              onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
               disabled={isUploading}
             />
             <Badge
               variant="outline"
               className={`flex items-center gap-2 py-2 ${
-                isUploading
-                  ? "pointer-events-none opacity-60"
-                  : "cursor-pointer hover:bg-muted"
+                isUploading ? "pointer-events-none opacity-60" : "cursor-pointer hover:bg-muted"
               }`}
               aria-disabled={isUploading}
             >
@@ -461,9 +434,7 @@ export function ComposeStep({
               </div>
             ) : (
               <div className="space-y-2">
-                <Label htmlFor="attachment-column">
-                  Select Attachment Column
-                </Label>
+                <Label htmlFor="attachment-column">Select Attachment Column</Label>
                 <select
                   id="attachment-column"
                   value={pdfColumn || ""}
@@ -473,8 +444,7 @@ export function ComposeStep({
                   <option value="">Select a column...</option>
                   {csvHeaders.map((header) => (
                     <option key={header} value={header}>
-                      {header}{" "}
-                      {isPdfUrl(csvData[0]?.[header]) ? "(Detected Link)" : ""}
+                      {header} {isPdfUrl(csvData[0]?.[header]) ? "(Detected Link)" : ""}
                     </option>
                   ))}
                 </select>
@@ -482,8 +452,8 @@ export function ComposeStep({
                   <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
                     <CheckCircle className="h-3 w-3" />
                     <span>
-                      {csvData.filter((row) => isPdfUrl(row[pdfColumn])).length}{" "}
-                      valid links found in {csvData.length} rows
+                      {csvData.filter((row) => isPdfUrl(row[pdfColumn])).length} valid links found
+                      in {csvData.length} rows
                     </span>
                   </div>
                 )}
@@ -514,9 +484,7 @@ export function ComposeStep({
             return (
               <Button
                 key={signatureId}
-                variant={
-                  selectedSignature === signatureId ? "secondary" : "outline"
-                }
+                variant={selectedSignature === signatureId ? "secondary" : "outline"}
                 size="sm"
                 onClick={() => setSelectedSignature(signatureId)}
               >
@@ -529,11 +497,7 @@ export function ComposeStep({
               </Button>
             );
           })}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push("/settings/signatures")}
-          >
+          <Button variant="ghost" size="sm" onClick={() => router.push("/settings/signatures")}>
             Manage Signatures
           </Button>
         </div>
@@ -545,9 +509,7 @@ export function ComposeStep({
             <Settings className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <h3 className="text-sm font-semibold text-foreground">
-              Email options
-            </h3>
+            <h3 className="text-sm font-semibold text-foreground">Email options</h3>
             <p className="text-sm text-muted-foreground">
               Choose the email type and sending behaviour.
             </p>
@@ -572,16 +534,14 @@ export function ComposeStep({
                     <CheckCircle className="h-4 w-4 text-primary" />
                   </div>
                 )}
-                <div
-                  className={`p-2 rounded-lg ${!isMarketing ? "bg-primary/10" : "bg-muted"}`}
-                >
+                <div className={`p-2 rounded-lg ${!isMarketing ? "bg-primary/10" : "bg-muted"}`}>
                   <Send className="h-5 w-5" />
                 </div>
                 <div>
                   <p className="font-medium text-sm">Transactional</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Important emails like receipts or confirmations. Always
-                    delivered, even to unsubscribed users.
+                    Important emails like receipts or confirmations. Always delivered, even to
+                    unsubscribed users.
                   </p>
                 </div>
               </button>
@@ -600,16 +560,13 @@ export function ComposeStep({
                     <CheckCircle className="h-4 w-4 text-primary" />
                   </div>
                 )}
-                <div
-                  className={`p-2 rounded-lg ${isMarketing ? "bg-primary/10" : "bg-muted"}`}
-                >
+                <div className={`p-2 rounded-lg ${isMarketing ? "bg-primary/10" : "bg-muted"}`}>
                   <Mail className="h-5 w-5" />
                 </div>
                 <div>
                   <p className="font-medium text-sm">Marketing</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Promotional emails with unsubscribe link. Respects user
-                    preferences.
+                    Promotional emails with unsubscribe link. Respects user preferences.
                   </p>
                 </div>
               </button>
@@ -622,41 +579,18 @@ export function ComposeStep({
             )}
             <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
               <Eye className="h-3.5 w-3.5 flex-shrink-0" />
-              <span>
-                All emails include open and click tracking for analytics
-              </span>
+              <span>All emails include open and click tracking for analytics</span>
             </div>
           </div>
 
           <div className="border-t" />
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`p-2 rounded-lg ${saveAsDraft ? "bg-primary/10" : "bg-muted"}`}
-                >
-                  <Save className="h-4 w-4" />
-                </div>
-                <div>
-                  <Label
-                    htmlFor="draft-toggle"
-                    className="font-medium cursor-pointer"
-                  >
-                    Save as Draft
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    Save without sending — send later from Drafts
-                  </p>
-                </div>
-              </div>
-              <Switch
-                id="draft-toggle"
-                checked={saveAsDraft}
-                onCheckedChange={setSaveAsDraft}
-              />
-            </div>
-          </div>
+          <DeliveryOptions
+            deliveryMode={deliveryMode}
+            setDeliveryMode={setDeliveryMode}
+            scheduledAt={scheduledAt}
+            setScheduledAt={setScheduledAt}
+          />
         </div>
       </div>
     </div>

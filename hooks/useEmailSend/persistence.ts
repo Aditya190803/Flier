@@ -1,7 +1,12 @@
+import {
+  STORAGE_KEY_CAMPAIGN_LOCK,
+  STORAGE_KEY_CAMPAIGN_STATE,
+  STORAGE_KEY_TAB_ID,
+} from "@/lib/constants";
 import type { CampaignState } from "@/types/campaign";
 
-export const CAMPAIGN_STATE_KEY = "echomail_campaign_state";
-export const CAMPAIGN_LOCK_KEY = "echomail_campaign_lock";
+export const CAMPAIGN_STATE_KEY = STORAGE_KEY_CAMPAIGN_STATE;
+export const CAMPAIGN_LOCK_KEY = STORAGE_KEY_CAMPAIGN_LOCK;
 
 export const generateCampaignId = () => {
   return `campaign_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
@@ -12,10 +17,10 @@ export const getTabId = (): string => {
     return "server";
   }
 
-  let tabId = sessionStorage.getItem("echomail_tab_id");
+  let tabId = sessionStorage.getItem(STORAGE_KEY_TAB_ID);
   if (!tabId) {
     tabId = `tab_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-    sessionStorage.setItem("echomail_tab_id", tabId);
+    sessionStorage.setItem(STORAGE_KEY_TAB_ID, tabId);
   }
 
   return tabId;
@@ -32,10 +37,7 @@ export const acquireLock = (): boolean => {
     try {
       const lock = JSON.parse(existingLock);
       // Lock is valid if it's ours or if it hasn't expired
-      if (
-        now - lock.timestamp < LOCK_TIMEOUT_MS &&
-        lock.tabId !== currentTabId
-      ) {
+      if (now - lock.timestamp < LOCK_TIMEOUT_MS && lock.tabId !== currentTabId) {
         return false;
       }
     } catch {

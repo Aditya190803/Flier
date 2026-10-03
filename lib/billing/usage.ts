@@ -25,15 +25,11 @@ function monthKey(userEmail: string, d = new Date()): string {
 }
 
 function endOfUtcDay(d = new Date()): Date {
-  return new Date(
-    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1, 0, 0, 0),
-  );
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1, 0, 0, 0));
 }
 
 function endOfUtcMonth(d = new Date()): Date {
-  return new Date(
-    Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1, 0, 0, 0),
-  );
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1, 0, 0, 0));
 }
 
 function secondsUntil(date: Date): number {
@@ -111,10 +107,7 @@ export async function getEmailUsage(userEmail: string): Promise<{
   return { today, month, dailyResetAt, monthlyResetAt };
 }
 
-export async function incrementEmailUsage(
-  userEmail: string,
-  count: number,
-): Promise<void> {
+export async function incrementEmailUsage(userEmail: string, count: number): Promise<void> {
   if (count <= 0) {
     return;
   }
@@ -131,8 +124,7 @@ export async function buildUsageSnapshot(
   emailsPerDay: number,
   emailsPerMonth: number,
 ): Promise<UsageSnapshot> {
-  const { today, month, dailyResetAt, monthlyResetAt } =
-    await getEmailUsage(userEmail);
+  const { today, month, dailyResetAt, monthlyResetAt } = await getEmailUsage(userEmail);
   return {
     emailsToday: today,
     emailsThisMonth: month,

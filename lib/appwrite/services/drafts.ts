@@ -1,6 +1,7 @@
 import type { DraftEmail } from "@/types/appwrite-client";
 
 import { apiRequest } from "../api-request";
+import { pollForUpdates } from "../poll";
 import { createCrudService } from "../service-factory";
 
 // ============================================
@@ -16,11 +17,7 @@ const draftEmailsCrudService = createCrudService<
 export const draftEmailsService = {
   ...draftEmailsCrudService,
 
-  async updateStatus(
-    emailId: string,
-    status: DraftEmail["status"],
-    error?: string,
-  ) {
+  async updateStatus(emailId: string, status: DraftEmail["status"], error?: string) {
     return apiRequest<DraftEmail>("/api/appwrite/draft-emails", {
       method: "PUT",
       body: JSON.stringify({ id: emailId, status, error }),
@@ -31,10 +28,8 @@ export const draftEmailsService = {
     return this.updateStatus(emailId, "cancelled");
   },
 
-  subscribeToUserDraftEmails(
-    _userEmail: string,
-    _callback: (response: any) => void,
-  ) {
-    return () => {};
+  /** Refresh drafts periodically. See {@link pollForUpdates} — not realtime. */
+  subscribeToUserDraftEmails(_userEmail: string, callback: (response: unknown) => void) {
+    return pollForUpdates(() => callback(undefined));
   },
 };

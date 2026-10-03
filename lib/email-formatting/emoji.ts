@@ -147,12 +147,9 @@ const EMOJI_PATTERNS = {
   altWithDataEmoji: /<img[^>]*alt="([^"]*)"[^>]*data-emoji="[^"]*"[^>]*>/gi,
   srcEmojiWithAlt: /<img[^>]*src="[^"]*emoji[^"]*"[^>]*alt="([^"]*)"[^>]*>/gi,
   altWithSrcEmoji: /<img[^>]*alt="([^"]*)"[^>]*src="[^"]*emoji[^"]*"[^>]*>/gi,
-  unicodeInPath:
-    /<img[^>]*src="[^"]*[/\\]([0-9a-f]{4,6})\.(?:png|svg|gif)"[^>]*>/gi,
-  unicodeWithPrefix:
-    /<img[^>]*src="[^"]*\/u([0-9a-f]{4,6})\.(?:png|svg|gif)"[^>]*>/gi,
-  namedEmoji:
-    /<img[^>]*src="[^"]*emoji[^"]*[/\\]([^"\/\\]+)\.(?:png|svg|gif)"[^>]*>/gi,
+  unicodeInPath: /<img[^>]*src="[^"]*[/\\]([0-9a-f]{4,6})\.(?:png|svg|gif)"[^>]*>/gi,
+  unicodeWithPrefix: /<img[^>]*src="[^"]*\/u([0-9a-f]{4,6})\.(?:png|svg|gif)"[^>]*>/gi,
+  namedEmoji: /<img[^>]*src="[^"]*emoji[^"]*[/\\]([^"/\\]+)\.(?:png|svg|gif)"[^>]*>/gi,
   emojiClassOnly: /<img[^>]*class="[^"]*emoji[^"]*"[^>]*>/gi,
   emojiInTag: /<img[^>]*emoji[^>]*>/gi,
   emojiInSrc: /<img[^>]*src="[^"]*emoji[^"]*"[^>]*>/gi,
@@ -194,17 +191,10 @@ export function convertEmojisToUnicode(html: string): string {
       }
     });
 
-  result = result.replace(
-    EMOJI_PATTERNS.namedEmoji,
-    (_match, emojiName: string) => {
-      const normalizedName = emojiName.toLowerCase().replace(/[-_]/g, "_");
-      return (
-        EMOJI_NAME_MAP[normalizedName] ||
-        EMOJI_NAME_MAP[emojiName.toLowerCase()] ||
-        ""
-      );
-    },
-  );
+  result = result.replace(EMOJI_PATTERNS.namedEmoji, (_match, emojiName: string) => {
+    const normalizedName = emojiName.toLowerCase().replace(/[-_]/g, "_");
+    return EMOJI_NAME_MAP[normalizedName] || EMOJI_NAME_MAP[emojiName.toLowerCase()] || "";
+  });
 
   result = result
     .replace(EMOJI_PATTERNS.emojiClassOnly, "")

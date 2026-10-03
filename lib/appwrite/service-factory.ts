@@ -11,16 +11,19 @@ export function createCrudService<TEntity, TCreate, TUpdate>(endpoint: string) {
       });
     },
 
-    async listByUser(
-      _userEmail?: string,
-    ): Promise<{ total: number; documents: TEntity[] }> {
+    async listByUser(_userEmail?: string): Promise<{ total: number; documents: TEntity[] }> {
       return apiRequest<{ total: number; documents: TEntity[] }>(basePath);
     },
 
+    /**
+     * Fetch a single document.
+     *
+     * Uses `?id=` rather than a `/<id>` path segment: the collection routes
+     * are single-file handlers with no `[id]` segment, so the path form
+     * resolved to a 404 for every collection.
+     */
     async get(id: string): Promise<TEntity> {
-      const response = await apiRequest<TEntity>(
-        `${basePath}/${encodeURIComponent(id)}`,
-      );
+      const response = await apiRequest<TEntity>(`${basePath}?id=${encodeURIComponent(id)}`);
 
       if (!response || typeof response !== "object") {
         throw new Error(`Resource not found: ${id}`);

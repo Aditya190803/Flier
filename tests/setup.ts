@@ -1,12 +1,9 @@
 import "@testing-library/jest-dom";
 import { cleanup } from "@testing-library/react";
 import { JSDOM } from "jsdom";
-import { afterEach, beforeEach, vi, type VitestUtils } from "vitest";
+import { afterEach, beforeEach, vi, type VitestUtils } from "vite-plus/test";
 
-if (
-  typeof (vi as { stubEnv?: (key: string, value: string) => void }).stubEnv ===
-  "function"
-) {
+if (typeof (vi as { stubEnv?: (key: string, value: string) => void }).stubEnv === "function") {
   vi.stubEnv("NODE_ENV", "test");
 } else {
   Object.defineProperty(process.env, "NODE_ENV", {
@@ -70,10 +67,7 @@ const mockSessionStorage = createMockStorage();
 
 // Hold storage on a plain object — do NOT proxy globalThis <-> window.
 // In jsdom, globalThis === window, so get: () => window.localStorage recurses.
-const storageHolders: Record<
-  string,
-  Storage | ReturnType<typeof createMockStorage>
-> = {
+const storageHolders: Record<string, Storage | ReturnType<typeof createMockStorage>> = {
   localStorage: mockLocalStorage,
   sessionStorage: mockSessionStorage,
 };

@@ -2,16 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 
-import {
-  Upload,
-  Mail,
-  Eye,
-  Send,
-  FileSpreadsheet,
-  CheckCircle,
-  Play,
-  Pause,
-} from "lucide-react";
+import { Upload, Mail, Eye, Send, FileSpreadsheet, CheckCircle, Play, Pause } from "lucide-react";
 
 /* ─── types ───────────────────────────────────────────────────── */
 type StepId = "upload" | "compose" | "preview" | "send";
@@ -71,9 +62,7 @@ function UploadPanel({ active }: { active: boolean }) {
       setVisible(0);
       return;
     }
-    const ts = CONTACTS.map((_, i) =>
-      setTimeout(() => setVisible(i + 1), 280 + i * 340),
-    );
+    const ts = CONTACTS.map((_, i) => setTimeout(() => setVisible(i + 1), 280 + i * 340));
     return () => ts.forEach(clearTimeout);
   }, [active]);
 
@@ -90,10 +79,7 @@ function UploadPanel({ active }: { active: boolean }) {
         <thead className="bg-muted/30">
           <tr>
             {["Name", "Email", "Company"].map((h) => (
-              <th
-                key={h}
-                className="text-left px-3 py-1.5 font-medium text-muted-foreground"
-              >
+              <th key={h} className="text-left px-3 py-1.5 font-medium text-muted-foreground">
                 {h}
               </th>
             ))}
@@ -135,11 +121,7 @@ function ComposePanel({ active }: { active: boolean }) {
         <span className="font-medium">New Campaign</span>
         <div className="ml-auto flex gap-1">
           {["#f87171", "#fbbf24", "#34d399"].map((c) => (
-            <span
-              key={c}
-              className="h-2 w-2 rounded-full inline-block"
-              style={{ background: c }}
-            />
+            <span key={c} className="h-2 w-2 rounded-full inline-block" style={{ background: c }} />
           ))}
         </div>
       </div>
@@ -220,9 +202,7 @@ function PreviewPanel({ active }: { active: boolean }) {
         </div>
         <div className="flex gap-2 border-b pb-1.5">
           <span className="text-muted-foreground w-8 shrink-0">Sub:</span>
-          <span className="font-medium">
-            Hey {c.name}, explore a partnership 🤝
-          </span>
+          <span className="font-medium">Hey {c.name}, explore a partnership 🤝</span>
         </div>
         <pre className="whitespace-pre-wrap font-sans leading-relaxed text-foreground/90 pt-1">
           {`Hi ${c.name},\n\nI love what ${c.company} is building.\nWould love to connect!\n\nBest, Alex`}
@@ -259,18 +239,12 @@ function SendPanel({ active }: { active: boolean }) {
       <div className="flex items-center gap-1.5 px-3 py-2 bg-muted/50 border-b">
         <Send className="h-3.5 w-3.5 text-orange-500" />
         <span className="font-medium">Sending Campaign</span>
-        {pct === 100 && (
-          <span className="ml-auto text-emerald-600 font-medium">
-            ✓ Complete
-          </span>
-        )}
+        {pct === 100 && <span className="ml-auto text-emerald-600 font-medium">✓ Complete</span>}
       </div>
       <div className="p-3 space-y-3">
         <div className="text-center py-1">
           <span className="text-3xl font-bold tabular-nums">{done}</span>
-          <span className="text-muted-foreground ml-1">
-            / {CONTACTS.length} sent
-          </span>
+          <span className="text-muted-foreground ml-1">/ {CONTACTS.length} sent</span>
         </div>
         <div>
           <div className="h-1.5 bg-muted rounded-full overflow-hidden">
@@ -286,14 +260,9 @@ function SendPanel({ active }: { active: boolean }) {
         </div>
         <div className="space-y-1.5">
           {CONTACTS.slice(0, done).map((c, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-2 animate-in fade-in duration-300"
-            >
+            <div key={i} className="flex items-center gap-2 animate-in fade-in duration-300">
               <CheckCircle className="h-3 w-3 text-emerald-500 shrink-0" />
-              <span className="text-muted-foreground truncate flex-1">
-                {c.email}
-              </span>
+              <span className="text-muted-foreground truncate flex-1">{c.email}</span>
               <span className="text-emerald-600 font-medium">Sent</span>
             </div>
           ))}
@@ -313,10 +282,7 @@ export function ProductDemo() {
       return;
     }
     const t = setInterval(() => {
-      setActive(
-        (cur) =>
-          STEPS[(STEPS.findIndex((s) => s.id === cur) + 1) % STEPS.length].id,
-      );
+      setActive((cur) => STEPS[(STEPS.findIndex((s) => s.id === cur) + 1) % STEPS.length].id);
     }, 4000);
     return () => clearInterval(t);
   }, [playing]);
@@ -343,11 +309,7 @@ export function ProductDemo() {
             className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors"
             aria-label="Toggle autoplay"
           >
-            {playing ? (
-              <Pause className="h-3.5 w-3.5" />
-            ) : (
-              <Play className="h-3.5 w-3.5" />
-            )}
+            {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
           </button>
         </div>
 
@@ -366,10 +328,7 @@ export function ProductDemo() {
                     : "border-transparent text-muted-foreground hover:text-foreground hover:bg-background/40"
                 }`}
               >
-                <Icon
-                  className="h-4 w-4"
-                  style={isActive ? { color: s.dotColor } : {}}
-                />
+                <Icon className="h-4 w-4" style={isActive ? { color: s.dotColor } : {}} />
                 <span className="hidden sm:inline">{s.label}</span>
                 <span className="sm:hidden text-[10px]">{i + 1}</span>
               </button>
@@ -380,12 +339,8 @@ export function ProductDemo() {
         {/* panel */}
         <div className="p-4 min-h-[220px]">
           {active === "upload" && <UploadPanel active={active === "upload"} />}
-          {active === "compose" && (
-            <ComposePanel active={active === "compose"} />
-          )}
-          {active === "preview" && (
-            <PreviewPanel active={active === "preview"} />
-          )}
+          {active === "compose" && <ComposePanel active={active === "compose"} />}
+          {active === "preview" && <PreviewPanel active={active === "preview"} />}
           {active === "send" && <SendPanel active={active === "send"} />}
         </div>
 
@@ -409,9 +364,7 @@ export function ProductDemo() {
             onClick={() => go(s.id)}
             aria-label={`Go to step: ${s.label}`}
             className={`rounded-full transition-all duration-300 ${
-              s.id === active
-                ? "w-5 h-1.5"
-                : "w-1.5 h-1.5 bg-muted-foreground/30"
+              s.id === active ? "w-5 h-1.5" : "w-1.5 h-1.5 bg-muted-foreground/30"
             }`}
             style={s.id === active ? { background: s.dotColor } : {}}
           />

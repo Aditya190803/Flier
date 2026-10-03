@@ -18,9 +18,7 @@ export function parseRecipients(input: RecipientInput): string[] {
 
 export function getRecipientsCount(input: RecipientSource): number {
   const recipients =
-    typeof input === "object" && input !== null && !Array.isArray(input)
-      ? input.recipients
-      : input;
+    typeof input === "object" && input !== null && !Array.isArray(input) ? input.recipients : input;
 
   return parseRecipients(recipients).length;
 }

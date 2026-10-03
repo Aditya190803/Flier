@@ -18,10 +18,7 @@ interface ErrorBoundaryProps {
   fallback?: React.ComponentType<{ error?: Error; retry: () => void }>;
 }
 
-export class ErrorBoundary extends React.Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
@@ -37,10 +34,7 @@ export class ErrorBoundary extends React.Component<
     });
 
     // Check if it's a ChunkLoadError and try to reload
-    if (
-      error.name === "ChunkLoadError" ||
-      error.message.includes("Loading chunk")
-    ) {
+    if (error.name === "ChunkLoadError" || error.message.includes("Loading chunk")) {
       componentLogger.warn("ChunkLoadError detected, attempting to reload...");
       setTimeout(() => {
         window.location.reload();
@@ -62,16 +56,8 @@ export class ErrorBoundary extends React.Component<
   }
 }
 
-function DefaultErrorFallback({
-  error,
-  retry,
-}: {
-  error?: Error;
-  retry: () => void;
-}) {
-  const isChunkError =
-    error?.name === "ChunkLoadError" ||
-    error?.message.includes("Loading chunk");
+function DefaultErrorFallback({ error, retry }: { error?: Error; retry: () => void }) {
+  const isChunkError = error?.name === "ChunkLoadError" || error?.message.includes("Loading chunk");
 
   return (
     <div className="flex items-center justify-center min-h-[400px] p-4">
@@ -86,12 +72,11 @@ function DefaultErrorFallback({
           {isChunkError ? (
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">
-                A loading error occurred. This usually happens when the
-                application updates while you're using it.
+                A loading error occurred. This usually happens when the application updates while
+                you're using it.
               </p>
               <p className="text-sm text-muted-foreground">
-                The page will reload automatically in a moment, or you can click
-                the button below.
+                The page will reload automatically in a moment, or you can click the button below.
               </p>
             </div>
           ) : (
@@ -120,10 +105,7 @@ function DefaultErrorFallback({
               Try Again
             </Button>
             {isChunkError && (
-              <Button
-                onClick={() => window.location.reload()}
-                className="flex-1"
-              >
+              <Button onClick={() => window.location.reload()} className="flex-1">
                 Reload Page
               </Button>
             )}
@@ -138,10 +120,7 @@ function DefaultErrorFallback({
 export function useChunkErrorHandler() {
   React.useEffect(() => {
     const handleError = (event: ErrorEvent) => {
-      if (
-        event.error?.name === "ChunkLoadError" ||
-        event.message.includes("Loading chunk")
-      ) {
+      if (event.error?.name === "ChunkLoadError" || event.message.includes("Loading chunk")) {
         componentLogger.warn("ChunkLoadError detected in hook, reloading...");
         window.location.reload();
       }
@@ -152,9 +131,7 @@ export function useChunkErrorHandler() {
         event.reason?.name === "ChunkLoadError" ||
         event.reason?.message?.includes("Loading chunk")
       ) {
-        componentLogger.warn(
-          "ChunkLoadError promise rejection detected, reloading...",
-        );
+        componentLogger.warn("ChunkLoadError promise rejection detected, reloading...");
         window.location.reload();
       }
     };
@@ -164,10 +141,7 @@ export function useChunkErrorHandler() {
 
     return () => {
       window.removeEventListener("error", handleError);
-      window.removeEventListener(
-        "unhandledrejection",
-        handleUnhandledRejection,
-      );
+      window.removeEventListener("unhandledrejection", handleUnhandledRejection);
     };
   }, []);
 }

@@ -1,9 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { getServerSession } from "next-auth";
-
+import { isAuthed, requireSession } from "@/lib/api-auth";
 import { databases, config, Query } from "@/lib/appwrite-server";
-import { authOptions } from "@/lib/auth";
 import { apiLogger } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
@@ -13,10 +11,9 @@ export const dynamic = "force-dynamic";
  */
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
     const { searchParams } = new URL(request.url);
@@ -24,13 +21,10 @@ export async function DELETE(request: NextRequest) {
     const deleteAll = searchParams.get("all") === "true";
 
     if (!campaignId && !deleteAll) {
-      return NextResponse.json(
-        { error: "Campaign ID or 'all=true' is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Campaign ID or 'all=true' is required" }, { status: 400 });
     }
 
-    const queries = [Query.equal("user_email", session.user.email)];
+    const queries = [Query.equal("user_email", auth.email)];
     if (campaignId) {
       queries.push(Query.equal("campaign_id", campaignId));
     }
@@ -53,11 +47,7 @@ export async function DELETE(request: NextRequest) {
       }
 
       const deletePromises = response.documents.map((doc) =>
-        databases.deleteDocument(
-          config.databaseId,
-          config.trackingEventsCollectionId,
-          doc.$id,
-        ),
+        databases.deleteDocument(config.databaseId, config.trackingEventsCollectionId, doc.$id),
       );
 
       await Promise.all(deletePromises);
@@ -77,13 +67,7 @@ export async function DELETE(request: NextRequest) {
         : `Tracking data for campaign ${campaignId} deleted successfully`,
     });
   } catch (error) {
-    apiLogger.error(
-      "Error deleting tracking data",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Failed to delete tracking data" },
-      { status: 500 },
-    );
+    apiLogger.error("Error deleting tracking data", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Failed to delete tracking data" }, { status: 500 });
   }
 }

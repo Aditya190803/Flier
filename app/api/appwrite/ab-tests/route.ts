@@ -1,25 +1,18 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getServerSession } from "next-auth";
-
+import { isAuthed, requireSession } from "@/lib/api-auth";
 import { databases, config, Query, ID } from "@/lib/appwrite-server";
-import { authOptions } from "@/lib/auth";
-import {
-  PlanLimitError,
-  assertFeature,
-  planLimitResponse,
-} from "@/lib/billing";
+import { PlanLimitError, assertFeature, planLimitResponse } from "@/lib/billing";
 import { apiLogger } from "@/lib/logger";
 import type { ABTestDocument } from "@/types/appwrite";
 
 // GET /api/appwrite/ab-tests - List A/B tests for the authenticated user
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
     const { searchParams } = new URL(request.url);
@@ -33,7 +26,7 @@ export async function GET(request: NextRequest) {
         testId,
       )) as ABTestDocument;
 
-      if (doc.user_email !== session.user.email) {
+      if (doc.user_email !== auth.email) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
       }
 
@@ -68,57 +61,47 @@ export async function GET(request: NextRequest) {
     }
 
     // List all tests
-    const response = await databases.listDocuments(
-      config.databaseId,
-      config.abTestsCollectionId,
-      [
-        Query.equal("user_email", session.user.email),
-        Query.orderDesc("created_at"),
-        Query.limit(100),
-      ],
-    );
+    const response = await databases.listDocuments(config.databaseId, config.abTestsCollectionId, [
+      Query.equal("user_email", auth.email),
+      Query.orderDesc("created_at"),
+      Query.limit(100),
+    ]);
 
-    const documents = (response.documents as unknown as ABTestDocument[]).map(
-      (doc) => ({
-        $id: doc.$id,
-        name: doc.name || "",
-        status: doc.status || "draft",
-        test_type: doc.test_type || "subject",
-        variant_a_subject: doc.variant_a_subject,
-        variant_a_content: doc.variant_a_content,
-        variant_b_subject: doc.variant_b_subject,
-        variant_b_content: doc.variant_b_content,
-        variant_a_recipients:
-          typeof doc.variant_a_recipients === "string"
-            ? JSON.parse(doc.variant_a_recipients)
-            : doc.variant_a_recipients || [],
-        variant_b_recipients:
-          typeof doc.variant_b_recipients === "string"
-            ? JSON.parse(doc.variant_b_recipients)
-            : doc.variant_b_recipients || [],
-        variant_a_sent: doc.variant_a_sent || 0,
-        variant_b_sent: doc.variant_b_sent || 0,
-        variant_a_opens: doc.variant_a_opens || 0,
-        variant_b_opens: doc.variant_b_opens || 0,
-        variant_a_clicks: doc.variant_a_clicks || 0,
-        variant_b_clicks: doc.variant_b_clicks || 0,
-        winner: doc.winner,
-        user_email: doc.user_email || "",
-        created_at: doc.created_at || doc.$createdAt,
-        completed_at: doc.completed_at,
-      }),
-    );
+    const documents = (response.documents as unknown as ABTestDocument[]).map((doc) => ({
+      $id: doc.$id,
+      name: doc.name || "",
+      status: doc.status || "draft",
+      test_type: doc.test_type || "subject",
+      variant_a_subject: doc.variant_a_subject,
+      variant_a_content: doc.variant_a_content,
+      variant_b_subject: doc.variant_b_subject,
+      variant_b_content: doc.variant_b_content,
+      variant_a_recipients:
+        typeof doc.variant_a_recipients === "string"
+          ? JSON.parse(doc.variant_a_recipients)
+          : doc.variant_a_recipients || [],
+      variant_b_recipients:
+        typeof doc.variant_b_recipients === "string"
+          ? JSON.parse(doc.variant_b_recipients)
+          : doc.variant_b_recipients || [],
+      variant_a_sent: doc.variant_a_sent || 0,
+      variant_b_sent: doc.variant_b_sent || 0,
+      variant_a_opens: doc.variant_a_opens || 0,
+      variant_b_opens: doc.variant_b_opens || 0,
+      variant_a_clicks: doc.variant_a_clicks || 0,
+      variant_b_clicks: doc.variant_b_clicks || 0,
+      winner: doc.winner,
+      user_email: doc.user_email || "",
+      created_at: doc.created_at || doc.$createdAt,
+      completed_at: doc.completed_at,
+    }));
 
     return NextResponse.json({ total: response.total, documents });
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error fetching A/B tests",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error fetching A/B tests", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to fetch A/B tests",
+        error: error instanceof Error ? error.message : "Failed to fetch A/B tests",
       },
       { status: 500 },
     );
@@ -128,14 +111,13 @@ export async function GET(request: NextRequest) {
 // POST /api/appwrite/ab-tests - Create a new A/B test
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
     try {
-      await assertFeature(session.user.email, "abTesting", "A/B testing");
+      await assertFeature(auth.email, "abTesting", "A/B testing");
     } catch (error) {
       if (error instanceof PlanLimitError) {
         return planLimitResponse(error);
@@ -176,21 +158,17 @@ export async function POST(request: NextRequest) {
         variant_b_opens: 0,
         variant_a_clicks: 0,
         variant_b_clicks: 0,
-        user_email: session.user.email,
+        user_email: auth.email,
         created_at: new Date().toISOString(),
       },
     );
 
     return NextResponse.json(result);
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error creating A/B test",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error creating A/B test", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to create A/B test",
+        error: error instanceof Error ? error.message : "Failed to create A/B test",
       },
       { status: 500 },
     );
@@ -200,14 +178,13 @@ export async function POST(request: NextRequest) {
 // PUT /api/appwrite/ab-tests - Update an A/B test
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
     try {
-      await assertFeature(session.user.email, "abTesting", "A/B testing");
+      await assertFeature(auth.email, "abTesting", "A/B testing");
     } catch (error) {
       if (error instanceof PlanLimitError) {
         return planLimitResponse(error);
@@ -229,16 +206,14 @@ export async function PUT(request: NextRequest) {
       id,
     )) as ABTestDocument;
 
-    if (doc.user_email !== session.user.email) {
+    if (doc.user_email !== auth.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     // If completing the test, determine winner
     if (complete) {
-      const aRate =
-        doc.variant_a_sent > 0 ? doc.variant_a_opens / doc.variant_a_sent : 0;
-      const bRate =
-        doc.variant_b_sent > 0 ? doc.variant_b_opens / doc.variant_b_sent : 0;
+      const aRate = doc.variant_a_sent > 0 ? doc.variant_a_opens / doc.variant_a_sent : 0;
+      const bRate = doc.variant_b_sent > 0 ? doc.variant_b_opens / doc.variant_b_sent : 0;
 
       let winner: "A" | "B" | "tie" = "tie";
       if (Math.abs(aRate - bRate) > 0.05) {
@@ -263,14 +238,10 @@ export async function PUT(request: NextRequest) {
     const updateData: Record<string, string | number | null> = {};
 
     if (updates.variant_a_recipients) {
-      updateData.variant_a_recipients = JSON.stringify(
-        updates.variant_a_recipients,
-      );
+      updateData.variant_a_recipients = JSON.stringify(updates.variant_a_recipients);
     }
     if (updates.variant_b_recipients) {
-      updateData.variant_b_recipients = JSON.stringify(
-        updates.variant_b_recipients,
-      );
+      updateData.variant_b_recipients = JSON.stringify(updates.variant_b_recipients);
     }
 
     // Copy other simple fields
@@ -306,14 +277,10 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error updating A/B test",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error updating A/B test", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to update A/B test",
+        error: error instanceof Error ? error.message : "Failed to update A/B test",
       },
       { status: 500 },
     );
@@ -323,10 +290,9 @@ export async function PUT(request: NextRequest) {
 // DELETE /api/appwrite/ab-tests - Delete an A/B test
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
     const { searchParams } = new URL(request.url);
@@ -343,26 +309,18 @@ export async function DELETE(request: NextRequest) {
       testId,
     )) as ABTestDocument;
 
-    if (doc.user_email !== session.user.email) {
+    if (doc.user_email !== auth.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    await databases.deleteDocument(
-      config.databaseId,
-      config.abTestsCollectionId,
-      testId,
-    );
+    await databases.deleteDocument(config.databaseId, config.abTestsCollectionId, testId);
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error deleting A/B test",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error deleting A/B test", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to delete A/B test",
+        error: error instanceof Error ? error.message : "Failed to delete A/B test",
       },
       { status: 500 },
     );

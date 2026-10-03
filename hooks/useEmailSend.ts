@@ -39,10 +39,38 @@ import type {
   SavedCampaignInfo,
 } from "@/types/campaign";
 
+/**
+ * Options for {@link UseEmailSendResult.sendBulkCampaign}.
+ */
+export interface BulkCampaignOptions {
+  campaignId?: string;
+  subject?: string;
+  trackingEnabled?: boolean;
+  isTransactional?: boolean;
+  abTestId?: string;
+  /** Campaign-level Cc, applied to messages that don't set their own */
+  cc?: string[];
+  /** Campaign-level Bcc, applied to messages that don't set their own */
+  bcc?: string[];
+}
+
 interface UseEmailSendResult {
   sendEmails: (
     personalizedEmails: PersonalizedEmailData[],
     options?: SendOptions,
+  ) => Promise<EmailResult[]>;
+  /**
+   * Sends a campaign via the chunked, resumable `/api/send-email` endpoint
+   * instead of one `/api/send-single-email` call per recipient. The server
+   * processes recipients in time-budgeted chunks; this loops, calling the
+   * endpoint again with the same
+   * `campaignId` until the server reports `done: true`, updating
+   * `progress` after every chunk. Safe to call again after a page
+   * reload/network drop — already-sent recipients are skipped server-side.
+   */
+  sendBulkCampaign: (
+    personalizedEmails: PersonalizedEmailData[],
+    options?: BulkCampaignOptions,
   ) => Promise<EmailResult[]>;
   retryFailedEmails: () => Promise<EmailResult[]>;
   stopSending: () => void;
@@ -102,8 +130,7 @@ export function useEmailSend(): UseEmailSendResult {
   const [failedEmails, setFailedEmails] = useState<PersonalizedEmailData[]>([]);
   const [stoppedDueToError, setStoppedDueToError] = useState(false);
   const [hasSavedCampaign, setHasSavedCampaign] = useState(false);
-  const [savedCampaignInfo, setSavedCampaignInfo] =
-    useState<SavedCampaignInfo | null>(null);
+  const [savedCampaignInfo, setSavedCampaignInfo] = useState<SavedCampaignInfo | null>(null);
 
   // Quota tracking state (plan-aware; synced from /api/billing/plan)
   const [quotaInfo, setQuotaInfo] = useState<QuotaInfo>(() => {
@@ -218,10 +245,7 @@ export function useEmailSend(): UseEmailSendResult {
         }
       }
     } catch (e) {
-      emailSendLogger.error(
-        "Error checking saved campaign",
-        e instanceof Error ? e : undefined,
-      );
+      emailSendLogger.error("Error checking saved campaign", e instanceof Error ? e : undefined);
     }
   };
 
@@ -229,10 +253,7 @@ export function useEmailSend(): UseEmailSendResult {
     try {
       saveCampaignStateToStorage(state);
     } catch (e) {
-      emailSendLogger.error(
-        "Error saving campaign state",
-        e instanceof Error ? e : undefined,
-      );
+      emailSendLogger.error("Error saving campaign state", e instanceof Error ? e : undefined);
     }
   };
 
@@ -242,10 +263,7 @@ export function useEmailSend(): UseEmailSendResult {
       setHasSavedCampaign(false);
       setSavedCampaignInfo(null);
     } catch (e) {
-      emailSendLogger.error(
-        "Error clearing campaign state",
-        e instanceof Error ? e : undefined,
-      );
+      emailSendLogger.error("Error clearing campaign state", e instanceof Error ? e : undefined);
     }
   };
 
@@ -306,10 +324,7 @@ export function useEmailSend(): UseEmailSendResult {
       try {
         persistQuota(updated);
       } catch (e) {
-        emailSendLogger.error(
-          "Error saving quota info",
-          e instanceof Error ? e : undefined,
-        );
+        emailSendLogger.error("Error saving quota info", e instanceof Error ? e : undefined);
       }
 
       return updated;
@@ -330,10 +345,7 @@ export function useEmailSend(): UseEmailSendResult {
     try {
       clearQuota();
     } catch (e) {
-      emailSendLogger.error(
-        "Error clearing quota info",
-        e instanceof Error ? e : undefined,
-      );
+      emailSendLogger.error("Error clearing quota info", e instanceof Error ? e : undefined);
     }
   }, [quotaInfo.dailyLimit]);
 
@@ -369,10 +381,7 @@ export function useEmailSend(): UseEmailSendResult {
         minutesRemaining: data.minutesRemaining,
       };
     } catch (error) {
-      emailSendLogger.error(
-        "Token status check error",
-        error instanceof Error ? error : undefined,
-      );
+      emailSendLogger.error("Token status check error", error instanceof Error ? error : undefined);
       return { valid: false, minutesRemaining: 0, requiresReauth: true };
     }
   }, []);
@@ -385,7 +394,6 @@ export function useEmailSend(): UseEmailSendResult {
     isTransactional: boolean = false,
   ): Promise<EmailResult> => {
     let lastError = "";
-    let _lastStatusCode: number | undefined;
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       // Check if stop was requested
@@ -404,9 +412,7 @@ export function useEmailSend(): UseEmailSendResult {
           ...prev,
           status: `📴 Network offline. Waiting for connection...`,
         }));
-        const networkRestored = await waitForNetwork(
-          () => shouldStopRef.current,
-        );
+        const networkRestored = await waitForNetwork(() => shouldStopRef.current);
         if (!networkRestored) {
           return {
             email: email.to,
@@ -430,9 +436,7 @@ export function useEmailSend(): UseEmailSendResult {
           }));
           setSendStatus((prev) =>
             prev.map((s) =>
-              s.index === index
-                ? { ...s, status: "retrying" as const, retryCount: attempt }
-                : s,
+              s.index === index ? { ...s, status: "retrying" as const, retryCount: attempt } : s,
             ),
           );
 
@@ -474,8 +478,6 @@ export function useEmailSend(): UseEmailSendResult {
           body: JSON.stringify(payload),
         });
 
-        _lastStatusCode = response.status;
-
         if (response.ok) {
           emailSendLogger.info(`Email sent successfully`, { to: email.to });
           resetRateLimitBackoff(); // Reset backoff on success
@@ -488,8 +490,7 @@ export function useEmailSend(): UseEmailSendResult {
         }
 
         const errorData = await response.json();
-        lastError =
-          errorData.userMessage || errorData.error || `HTTP ${response.status}`;
+        lastError = errorData.userMessage || errorData.error || `HTTP ${response.status}`;
 
         // Handle rate limiting with exponential backoff
         if (isRateLimitError(lastError, response.status)) {
@@ -514,8 +515,7 @@ export function useEmailSend(): UseEmailSendResult {
           error: lastError,
         });
       } catch (fetchError) {
-        lastError =
-          fetchError instanceof Error ? fetchError.message : "Network error";
+        lastError = fetchError instanceof Error ? fetchError.message : "Network error";
 
         // Check if it's a network error
         if (
@@ -523,17 +523,13 @@ export function useEmailSend(): UseEmailSendResult {
           lastError.includes("NetworkError") ||
           lastError.includes("network")
         ) {
-          emailSendLogger.warn(
-            "Network error detected, waiting for reconnection...",
-          );
+          emailSendLogger.warn("Network error detected, waiting for reconnection...");
           setProgress((prev) => ({
             ...prev,
             status: `📴 Network error. Waiting for connection...`,
           }));
 
-          const networkRestored = await waitForNetwork(
-            () => shouldStopRef.current,
-          );
+          const networkRestored = await waitForNetwork(() => shouldStopRef.current);
           if (!networkRestored) {
             return {
               email: email.to,
@@ -581,7 +577,6 @@ export function useEmailSend(): UseEmailSendResult {
   const clearSavedCampaign = useCallback(() => {
     clearCampaignState();
     releaseLock();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const sendEmails = useCallback(
@@ -598,10 +593,8 @@ export function useEmailSend(): UseEmailSendResult {
       }
 
       // Set the delay from options or use default
-      const delayBetweenEmails =
-        options?.delayBetweenEmails ?? DEFAULT_BETWEEN_EMAILS_DELAY_MS;
-      const tokenCheckInterval =
-        options?.checkTokenEveryN ?? DEFAULT_TOKEN_CHECK_INTERVAL;
+      const delayBetweenEmails = options?.delayBetweenEmails ?? DEFAULT_BETWEEN_EMAILS_DELAY_MS;
+      const tokenCheckInterval = options?.checkTokenEveryN ?? DEFAULT_TOKEN_CHECK_INTERVAL;
       const campaignSubject = options?.campaignSubject;
       currentDelayRef.current = delayBetweenEmails;
       trackingEnabledRef.current = options?.trackingEnabled ?? true;
@@ -686,7 +679,6 @@ export function useEmailSend(): UseEmailSendResult {
       saveCampaignState(campaignState);
 
       const results: EmailResult[] = [];
-      let _successCount = 0;
 
       try {
         for (let i = 0; i < emails.length; i++) {
@@ -823,7 +815,6 @@ export function useEmailSend(): UseEmailSendResult {
           // Update campaign state
           if (result.status === "success") {
             campaignState.sentIndices.push(i);
-            _successCount++;
             updateQuotaUsed(1);
           } else {
             campaignState.failedIndices.push(i);
@@ -854,11 +845,9 @@ export function useEmailSend(): UseEmailSendResult {
             const isPersistent = isPersistentError(result.error || "");
 
             if (isPersistent) {
-              emailSendLogger.error(
-                `Stopping email campaign due to persistent error`,
-                undefined,
-                { error: result.error },
-              );
+              emailSendLogger.error(`Stopping email campaign due to persistent error`, undefined, {
+                error: result.error,
+              });
 
               // Mark remaining emails as skipped
               const remainingEmails = emails.slice(i + 1);
@@ -880,8 +869,7 @@ export function useEmailSend(): UseEmailSendResult {
                       ? {
                           ...s,
                           status: "skipped" as const,
-                          error:
-                            "Skipped - campaign stopped due to previous error",
+                          error: "Skipped - campaign stopped due to previous error",
                         }
                       : s,
                   ),
@@ -912,11 +900,10 @@ export function useEmailSend(): UseEmailSendResult {
             } else {
               // Non-persistent error (e.g. invalid email, unsubscribed)
               // Just log it and continue with the next email
-              emailSendLogger.warn(
-                `Email failed but continuing campaign`,
-                undefined,
-                { to: email.to, error: result.error },
-              );
+              emailSendLogger.warn(`Email failed but continuing campaign`, undefined, {
+                to: email.to,
+                error: result.error,
+              });
               continue;
             }
           }
@@ -927,16 +914,13 @@ export function useEmailSend(): UseEmailSendResult {
               ...prev,
               status: `Sent ${i + 1}/${totalEmails}. Waiting ${delayBetweenEmails / 1000}s before next...`,
             }));
-            await new Promise((resolve) =>
-              setTimeout(resolve, delayBetweenEmails),
-            );
+            await new Promise((resolve) => setTimeout(resolve, delayBetweenEmails));
           }
         }
 
         // Check if completed successfully
         const errorCount = results.filter((r) => r.status === "error").length;
-        const allProcessed =
-          !shouldStopRef.current && results.length === emails.length;
+        const allProcessed = !shouldStopRef.current && results.length === emails.length;
 
         if (allProcessed) {
           const sent = results.filter((r) => r.status === "success").length;
@@ -976,8 +960,7 @@ export function useEmailSend(): UseEmailSendResult {
 
         return results;
       } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Unknown error";
+        const errorMessage = err instanceof Error ? err.message : "Unknown error";
         setError(errorMessage);
         setProgress((prev) => ({ ...prev, status: `Error: ${errorMessage}` }));
 
@@ -993,7 +976,7 @@ export function useEmailSend(): UseEmailSendResult {
         releaseLock();
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     [quotaInfo.estimatedRemaining, updateQuotaUsed, checkTokenStatus],
   );
 
@@ -1027,14 +1010,146 @@ export function useEmailSend(): UseEmailSendResult {
         isTransactional: state.isTransactional,
       });
     } catch (e) {
-      emailSendLogger.error(
-        "Error resuming campaign",
-        e instanceof Error ? e : undefined,
-      );
+      emailSendLogger.error("Error resuming campaign", e instanceof Error ? e : undefined);
       setError("Failed to resume campaign");
       return [];
     }
   }, [sendEmails]);
+
+  const sendBulkCampaign = useCallback(
+    async (
+      personalizedEmails: PersonalizedEmailData[],
+      options?: BulkCampaignOptions,
+    ): Promise<EmailResult[]> => {
+      if (!acquireLock()) {
+        setError(
+          "Another campaign is already running in a different tab. Please wait or close the other tab.",
+        );
+        return [];
+      }
+
+      shouldStopRef.current = false;
+      setIsStopping(false);
+      setIsLoading(true);
+      setError(null);
+      setStoppedDueToError(false);
+
+      const campaignId = options?.campaignId || generateCampaignId();
+      campaignIdRef.current = campaignId;
+      trackingEnabledRef.current = options?.trackingEnabled ?? true;
+
+      const total = personalizedEmails.length;
+      let aggregatedResults: EmailResult[] = [];
+      let done = false;
+
+      setProgress({
+        currentEmail: 0,
+        totalEmails: total,
+        percentage: 0,
+        status: `Starting bulk send of ${total} emails...`,
+      });
+
+      try {
+        while (!done) {
+          if (shouldStopRef.current) {
+            setProgress((prev) => ({
+              ...prev,
+              status: `⏸️ Stopped. Call sendBulkCampaign again with the same campaignId to resume.`,
+            }));
+            break;
+          }
+
+          if (typeof window !== "undefined" && !navigator.onLine) {
+            setProgress((prev) => ({
+              ...prev,
+              status: `📴 Network offline. Waiting for connection...`,
+            }));
+            const restored = await waitForNetwork(() => shouldStopRef.current);
+            if (!restored) {
+              break;
+            }
+          }
+
+          const csrfToken = getCookie(CSRF_TOKEN_NAME);
+          let response: Response;
+          try {
+            response = await fetch("/api/send-email", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                ...(csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {}),
+              },
+              body: JSON.stringify({
+                campaignId,
+                subject: options?.subject,
+                trackingEnabled: trackingEnabledRef.current,
+                isTransactional: options?.isTransactional,
+                abTestId: options?.abTestId,
+                // Always send arrays so the API never drops campaign Cc/Bcc
+                cc: options?.cc ?? [],
+                bcc: options?.bcc ?? [],
+                personalizedEmails,
+              }),
+            });
+          } catch (fetchError) {
+            const message = fetchError instanceof Error ? fetchError.message : "Network error";
+            emailSendLogger.error("Bulk campaign chunk request failed", {
+              error: message,
+            });
+            setError(message);
+            setStoppedDueToError(true);
+            break;
+          }
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            const message = errorData.error || `HTTP ${response.status}`;
+            setError(message);
+            setStoppedDueToError(true);
+            break;
+          }
+
+          const data = await response.json();
+          const chunkResults: EmailResult[] = data.results || [];
+          aggregatedResults = [...aggregatedResults, ...chunkResults];
+          done = data.done !== false;
+
+          const sentSoFar = data.summary?.sent ?? 0;
+          const failedSoFar = data.summary?.failed ?? 0;
+          const processedSoFar = Math.min(
+            total,
+            sentSoFar + failedSoFar + (data.summary?.skipped ?? 0),
+          );
+
+          setProgress({
+            currentEmail: processedSoFar,
+            totalEmails: total,
+            percentage: total > 0 ? Math.round((processedSoFar / total) * 100) : 0,
+            status: done
+              ? `✅ Done! ${sentSoFar} emails sent${failedSoFar > 0 ? `, ${failedSoFar} failed` : ""}`
+              : `Sent ${processedSoFar}/${total} so far. Continuing...`,
+          });
+
+          if (sentSoFar > 0) {
+            updateQuotaUsed(chunkResults.filter((r) => r.status === "success").length);
+          }
+
+          if (!done) {
+            // Brief pause between chunks so we don't hammer the endpoint.
+            await new Promise((resolve) => setTimeout(resolve, 500));
+          }
+        }
+
+        return aggregatedResults;
+      } finally {
+        setIsLoading(false);
+        setIsStopping(false);
+        shouldStopRef.current = false;
+        releaseLock();
+      }
+    },
+    [updateQuotaUsed],
+  );
 
   // Function to retry failed/skipped emails
   const retryFailedEmails = useCallback(async (): Promise<EmailResult[]> => {
@@ -1059,6 +1174,7 @@ export function useEmailSend(): UseEmailSendResult {
 
   return {
     sendEmails,
+    sendBulkCampaign,
     retryFailedEmails,
     stopSending,
     resumeCampaign,

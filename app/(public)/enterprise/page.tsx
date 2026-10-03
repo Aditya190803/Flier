@@ -5,13 +5,7 @@ import Link from "next/link";
 import { Building2, Mail, Shield } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function EnterprisePage() {
   return (
@@ -22,17 +16,15 @@ export default function EnterprisePage() {
         </div>
         <h1 className="text-3xl font-bold tracking-tight mb-3">Enterprise</h1>
         <p className="text-muted-foreground max-w-xl mx-auto">
-          Custom send limits, invoice billing, SSO, SLAs, and multi-seat
-          workspaces. No public price — we scope it with you.
+          Custom send limits, invoice billing, SSO, SLAs, and multi-seat workspaces. No public price
+          — we scope it with you.
         </p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>What you get</CardTitle>
-          <CardDescription>
-            Everything in Pro, plus whatever your team needs.
-          </CardDescription>
+          <CardDescription>Everything in Pro, plus whatever your team needs.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <div className="flex gap-2">
@@ -54,7 +46,7 @@ export default function EnterprisePage() {
 
           <div className="pt-6 flex flex-col sm:flex-row gap-3">
             <Button asChild className="flex-1">
-              <a href="mailto:adityamer.work@gmail.com?subject=EchoMail%20Enterprise">
+              <a href="mailto:adityamer.work@gmail.com?subject=Flier%20Enterprise">
                 <Mail className="h-4 w-4 mr-2" />
                 Email sales
               </a>

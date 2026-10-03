@@ -3,9 +3,10 @@
  */
 
 import { renderHook, act } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vite-plus/test";
 
 import { useEmailSend } from "@/hooks/useEmailSend";
+import { STORAGE_KEY_CAMPAIGN_STATE, STORAGE_KEY_GMAIL_QUOTA } from "@/lib/constants";
 
 // Mock client-logger
 vi.mock("@/lib/client-logger", () => ({
@@ -26,14 +27,16 @@ vi.mock("next-auth/react", () => ({
   }),
 }));
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-};
-Object.defineProperty(window, "localStorage", { value: localStorageMock });
+// tests/setup.ts installs a custom localStorage object (not Storage.prototype).
+// Seed it via localStorage.setItem/getItem instead of prototype spies.
+
+vi.mock("@/lib/utils", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/utils")>();
+  return {
+    ...actual,
+    getCookie: vi.fn(() => "test-csrf-token"),
+  };
+});
 
 // Mock fetch
 const mockFetch = vi.fn();
@@ -48,11 +51,14 @@ Object.defineProperty(navigator, "onLine", {
 describe("useEmailSend Hook", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorageMock.getItem.mockReturnValue(null);
+    localStorage.clear();
+    sessionStorage.clear();
+    global.fetch = mockFetch;
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    localStorage.clear();
+    sessionStorage.clear();
   });
 
   describe("initialization", () => {
@@ -138,7 +144,7 @@ describe("useEmailSend Hook", () => {
         estimatedRemaining: 400,
         lastUpdated: new Date().toISOString(),
       };
-      localStorageMock.getItem.mockReturnValue(JSON.stringify(savedQuota));
+      localStorage.setItem(STORAGE_KEY_GMAIL_QUOTA, JSON.stringify(savedQuota));
 
       const { result } = renderHook(() => useEmailSend());
 
@@ -205,7 +211,7 @@ describe("useEmailSend Hook", () => {
         results: [],
         startedAt: Date.now(),
       };
-      localStorageMock.getItem.mockReturnValue(JSON.stringify(savedState));
+      localStorage.setItem(STORAGE_KEY_CAMPAIGN_STATE, JSON.stringify(savedState));
 
       const { result } = renderHook(() => useEmailSend());
 
@@ -214,7 +220,7 @@ describe("useEmailSend Hook", () => {
       });
 
       expect(result.current.hasSavedCampaign).toBe(false);
-      expect(localStorageMock.removeItem).toHaveBeenCalled();
+      expect(localStorage.getItem(STORAGE_KEY_CAMPAIGN_STATE)).toBeNull();
     });
   });
 

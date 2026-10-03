@@ -2,115 +2,75 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { databases, config, ID } from "@/lib/appwrite-server";
 import { apiLogger } from "@/lib/logger";
-import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitAsync, RATE_LIMITS } from "@/lib/rate-limit";
+import { verifyTrackingToken } from "@/lib/tracking-token";
 
-/**
- * Tracking pixel endpoint for email open tracking
- * Returns a 1x1 transparent GIF
- */
-
-// 1x1 transparent GIF
+/** 1x1 transparent GIF */
 const TRACKING_PIXEL = Buffer.from(
   "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
   "base64",
 );
 
+function pixelResponse(extraHeaders?: Record<string, string>) {
+  return new NextResponse(TRACKING_PIXEL, {
+    status: 200,
+    headers: {
+      "Content-Type": "image/gif",
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+      ...extraHeaders,
+    },
+  });
+}
+
 export async function GET(request: NextRequest) {
-  // Apply rate limiting to prevent abuse
-  const rateLimitResponse = rateLimit(request, RATE_LIMITS.public);
+  const rateLimitResponse = await rateLimitAsync(request, RATE_LIMITS.public);
   if (rateLimitResponse) {
-    // Return pixel anyway but don't process tracking
-    return new NextResponse(TRACKING_PIXEL, {
-      status: 200,
-      headers: {
-        "Content-Type": "image/gif",
-      },
-    });
+    return pixelResponse();
   }
 
   try {
-    const { searchParams } = new URL(request.url);
-    const campaignId = searchParams.get("c");
-    const email = searchParams.get("e");
-    const userEmail = searchParams.get("u");
-    const recipientId = searchParams.get("r");
+    const token = new URL(request.url).searchParams.get("t");
+    if (!token) {
+      return pixelResponse();
+    }
 
-    // Record the open event if we have the required parameters
-    if (campaignId && email && userEmail) {
-      apiLogger.info("Processing open tracking", {
-        campaignId,
-        email: decodeURIComponent(email),
-        userEmail: decodeURIComponent(userEmail),
-        collectionId: config.trackingEventsCollectionId,
-      });
-      try {
-        const doc = await databases.createDocument(
-          config.databaseId,
-          config.trackingEventsCollectionId,
-          ID.unique(),
-          {
-            campaign_id: campaignId,
-            recipient_id: recipientId || undefined,
-            email: decodeURIComponent(email),
-            event_type: "open",
-            user_agent: request.headers.get("user-agent") || undefined,
-            ip_address:
-              request.headers.get("x-forwarded-for")?.split(",")[0] ||
-              request.headers.get("x-real-ip") ||
-              undefined,
-            user_email: decodeURIComponent(userEmail),
-            created_at: new Date().toISOString(),
-          },
-        );
-        apiLogger.info("Email open tracked successfully", {
-          email: decodeURIComponent(email),
-          campaignId,
-          docId: doc.$id,
-        });
-      } catch (error) {
-        apiLogger.error(
-          "Error recording open event",
-          error instanceof Error ? error : undefined,
-          {
-            campaignId,
-            email: decodeURIComponent(email),
-            errorMessage:
-              error instanceof Error ? error.message : String(error),
-            collectionId: config.trackingEventsCollectionId,
-          },
-        );
-        // Don't fail the request, still return the pixel
-      }
-    } else {
-      apiLogger.warn("Open tracking missing required params", {
-        hasCampaignId: !!campaignId,
-        hasEmail: !!email,
-        hasUserEmail: !!userEmail,
+    const payload = verifyTrackingToken(token, "open");
+    if (!payload) {
+      apiLogger.warn("Open tracking rejected invalid token");
+      return pixelResponse();
+    }
+
+    try {
+      await databases.createDocument(
+        config.databaseId,
+        config.trackingEventsCollectionId,
+        ID.unique(),
+        {
+          campaign_id: payload.campaignId,
+          recipient_id: payload.recipientId || undefined,
+          email: payload.recipientEmail,
+          event_type: "open",
+          user_agent: request.headers.get("user-agent") || undefined,
+          ip_address:
+            request.headers.get("x-forwarded-for")?.split(",")[0] ||
+            request.headers.get("x-real-ip") ||
+            undefined,
+          user_email: payload.userEmail,
+          created_at: new Date().toISOString(),
+        },
+      );
+      apiLogger.info("Email open tracked", { campaignId: payload.campaignId });
+    } catch (error) {
+      apiLogger.error("Error recording open event", error instanceof Error ? error : undefined, {
+        campaignId: payload.campaignId,
       });
     }
 
-    // Return the tracking pixel
-    return new NextResponse(TRACKING_PIXEL, {
-      status: 200,
-      headers: {
-        "Content-Type": "image/gif",
-        "Cache-Control":
-          "no-store, no-cache, must-revalidate, proxy-revalidate",
-        Pragma: "no-cache",
-        Expires: "0",
-      },
-    });
+    return pixelResponse();
   } catch (error) {
-    apiLogger.error(
-      "Tracking pixel error",
-      error instanceof Error ? error : undefined,
-    );
-    // Still return the pixel even on error
-    return new NextResponse(TRACKING_PIXEL, {
-      status: 200,
-      headers: {
-        "Content-Type": "image/gif",
-      },
-    });
+    apiLogger.error("Tracking pixel error", error instanceof Error ? error : undefined);
+    return pixelResponse();
   }
 }

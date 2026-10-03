@@ -24,6 +24,21 @@ export const API_TIMEOUT_MS = 30000;
 export const EMAIL_SEND_TIMEOUT_MS = 60000;
 
 /**
+ * Chunked / resumable bulk campaign sending (see /api/send-email).
+ *
+ * Large campaigns are split into time-budgeted requests. The route persists
+ * progress before returning so the caller can resume without restarting the
+ * recipient list.
+ */
+export const SEND_EMAIL_MAX_DURATION_MS = 60_000;
+
+/** Safety margin subtracted from maxDuration so we stop before the function is killed */
+export const SEND_EMAIL_TIME_BUFFER_MS = 10_000;
+
+/** Time budget for a single chunk of a campaign send */
+export const SEND_EMAIL_CHUNK_BUDGET_MS = SEND_EMAIL_MAX_DURATION_MS - SEND_EMAIL_TIME_BUFFER_MS;
+
+/**
  * Maximum file size for attachments (10MB)
  */
 export const MAX_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024;
@@ -180,14 +195,12 @@ export const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 /**
  * Enable A/B testing features
  */
-export const FEATURE_AB_TESTING =
-  process.env.NEXT_PUBLIC_FEATURE_AB_TESTING === "true";
+export const FEATURE_AB_TESTING = process.env.NEXT_PUBLIC_FEATURE_AB_TESTING === "true";
 
 /**
  * Enable analytics tracking
  */
-export const FEATURE_ANALYTICS =
-  process.env.NEXT_PUBLIC_FEATURE_ANALYTICS === "true";
+export const FEATURE_ANALYTICS = process.env.NEXT_PUBLIC_FEATURE_ANALYTICS === "true";
 
 /**
  * Enable team collaboration features
@@ -201,7 +214,16 @@ export const FEATURE_TEAMS = process.env.NEXT_PUBLIC_FEATURE_TEAMS === "true";
 /**
  * LocalStorage key for theme preference
  */
-export const STORAGE_KEY_THEME = "echomail-theme";
+export const STORAGE_KEY_THEME = "flier-theme";
+
+/** Compose draft in localStorage */
+export const STORAGE_KEY_COMPOSE_DRAFT = "flier_draft";
+
+/** In-flight campaign persistence */
+export const STORAGE_KEY_CAMPAIGN_STATE = "flier_campaign_state";
+export const STORAGE_KEY_CAMPAIGN_LOCK = "flier_campaign_lock";
+export const STORAGE_KEY_TAB_ID = "flier_tab_id";
+export const STORAGE_KEY_GMAIL_QUOTA = "flier_gmail_quota";
 
 /**
  * SessionStorage key for selected template
@@ -220,8 +242,7 @@ export const STORAGE_KEY_DRAFT_EMAIL = "draftEmail";
 /**
  * Base API URL
  */
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+export const API_BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 /**
  * API route paths
@@ -230,6 +251,8 @@ export const API_ROUTES = {
   SEND_EMAIL: "/api/send-email",
   SEND_SINGLE_EMAIL: "/api/send-single-email",
   SEND_DRAFT: "/api/send-draft",
+  SCHEDULED_CAMPAIGNS: "/api/scheduled-campaigns",
+  CRON_SEND_SCHEDULED: "/api/cron/send-scheduled",
   FORMAT_EMAIL: "/api/format-email",
   UPLOAD_ATTACHMENT: "/api/upload-attachment",
   EXPORT_REPORT: "/api/export-report",
@@ -298,13 +321,64 @@ export const CAMPAIGN_STATUS = {
   DRAFT: "draft",
   SCHEDULED: "scheduled",
   SENDING: "sending",
+  /** A chunked send stopped partway through its time budget; resume by calling /api/send-email again with the same campaignId */
+  PARTIAL: "partial",
   COMPLETED: "completed",
   FAILED: "failed",
   PAUSED: "paused",
 } as const;
 
-export type CampaignStatus =
-  (typeof CAMPAIGN_STATUS)[keyof typeof CAMPAIGN_STATUS];
+export type CampaignStatus = (typeof CAMPAIGN_STATUS)[keyof typeof CAMPAIGN_STATUS];
+
+// ============================================
+// Scheduled Sending
+// ============================================
+
+/**
+ * Lifecycle of a row in the `scheduled_campaigns` collection.
+ *
+ * `processing` is a worker lease, not a user-visible state: a cron run claims
+ * a due row by moving it to `processing` and either finishes it or drops it
+ * back to `scheduled` to continue on the next tick.
+ */
+export const SCHEDULED_STATUS = {
+  SCHEDULED: "scheduled",
+  PROCESSING: "processing",
+  SENT: "sent",
+  PARTIAL: "partial",
+  FAILED: "failed",
+  CANCELLED: "cancelled",
+} as const;
+
+export type ScheduledStatus = (typeof SCHEDULED_STATUS)[keyof typeof SCHEDULED_STATUS];
+
+/**
+ * A campaign must be scheduled at least this far out. Guards against a time
+ * that's already past by the time the request lands, and gives the user a
+ * moment to cancel a misfire.
+ */
+export const MIN_SCHEDULE_LEAD_MS = 60_000;
+
+/** Furthest into the future a campaign may be scheduled (1 year). */
+export const MAX_SCHEDULE_HORIZON_MS = 365 * 24 * 60 * 60 * 1000;
+
+/**
+ * Time budget for one worker pass so progress is checkpointed frequently and
+ * deployments can shut the clock process down cleanly.
+ */
+export const SCHEDULED_CRON_BUDGET_MS = 45_000;
+
+/**
+ * How long a `processing` lease is honoured before another run may reclaim
+ * the row. Covers a worker that was killed without releasing its lease.
+ */
+export const SCHEDULED_LOCK_STALE_MS = 10 * 60 * 1000;
+
+/** Maximum due campaigns a single cron pass will look at. */
+export const SCHEDULED_BATCH_SIZE = 10;
+
+/** Give up on a campaign after this many failed dispatch attempts. */
+export const SCHEDULED_MAX_ATTEMPTS = 5;
 
 // ============================================
 // Error Messages

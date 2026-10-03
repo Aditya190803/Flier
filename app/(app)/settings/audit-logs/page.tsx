@@ -241,10 +241,7 @@ export default function AuditLogsPage() {
             <Select
               value={filters.resource_type || "all"}
               onValueChange={(value: string) =>
-                handleFilterChange(
-                  "resource_type",
-                  value === "all" ? "" : value,
-                )
+                handleFilterChange("resource_type", value === "all" ? "" : value)
               }
             >
               <SelectTrigger className="w-[150px]">
@@ -263,22 +260,12 @@ export default function AuditLogsPage() {
               </SelectContent>
             </Select>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearFilters}
-              className="gap-2"
-            >
+            <Button variant="outline" size="sm" onClick={clearFilters} className="gap-2">
               <Filter className="h-4 w-4" />
               Clear
             </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={fetchLogs}
-              className="gap-2"
-            >
+            <Button variant="outline" size="sm" onClick={fetchLogs} className="gap-2">
               <RefreshCw className="h-4 w-4" />
               Refresh
             </Button>
@@ -298,10 +285,7 @@ export default function AuditLogsPage() {
           {isLoading ? (
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-4 p-4 border rounded-lg"
-                >
+                <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
                   <Skeleton className="h-10 w-10 rounded-full" />
                   <div className="flex-1 space-y-2">
                     <Skeleton className="h-4 w-48" />
@@ -315,15 +299,12 @@ export default function AuditLogsPage() {
             <div className="text-center py-12">
               <Activity className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No activity yet</h3>
-              <p className="text-muted-foreground">
-                Your account activity will appear here
-              </p>
+              <p className="text-muted-foreground">Your account activity will appear here</p>
             </div>
           ) : (
             <div className="space-y-3">
               {logs.map((log) => {
-                const ResourceIcon =
-                  resourceTypeIcons[log.resource_type] || Activity;
+                const ResourceIcon = resourceTypeIcons[log.resource_type] || Activity;
                 const ActionIcon = getActionIcon(log.action);
                 const actionColor = getActionColor(log.action);
 
@@ -339,9 +320,7 @@ export default function AuditLogsPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <ActionIcon className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">
-                          {formatAction(log.action)}
-                        </span>
+                        <span className="font-medium">{formatAction(log.action)}</span>
                         <Badge variant={actionColor as any} className="text-xs">
                           {log.resource_type}
                         </Badge>
@@ -356,10 +335,7 @@ export default function AuditLogsPage() {
                       <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          {format(
-                            new Date(log.created_at),
-                            "MMM d, yyyy HH:mm",
-                          )}
+                          {format(new Date(log.created_at), "MMM d, yyyy HH:mm")}
                         </span>
                         {log.ip_address && log.ip_address !== "unknown" && (
                           <span className="flex items-center gap-1">
@@ -386,8 +362,7 @@ export default function AuditLogsPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-6 pt-4 border-t">
               <p className="text-sm text-muted-foreground">
-                Showing {page * limit + 1}-{Math.min((page + 1) * limit, total)}{" "}
-                of {total}
+                Showing {page * limit + 1}-{Math.min((page + 1) * limit, total)} of {total}
               </p>
               <div className="flex items-center gap-2">
                 <Button
@@ -405,9 +380,7 @@ export default function AuditLogsPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    setPage((p) => Math.min(totalPages - 1, p + 1))
-                  }
+                  onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                   disabled={page >= totalPages - 1}
                 >
                   Next

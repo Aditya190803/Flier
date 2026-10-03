@@ -1,18 +1,10 @@
-import {
-  encodeQuotedPrintable,
-  encodeSubject,
-  validateAndSanitizeEmail,
-} from "./email/encoding";
+import { encodeQuotedPrintable, encodeSubject, validateAndSanitizeEmail } from "./email/encoding";
 import { buildGmailMimeBody } from "./email/mime-builder";
 import { injectTracking, sanitizeHTML } from "./email-formatting";
-import { gmailProfileFailureMessage } from "./gmail-user-message";
 import { emailLogger } from "./logger";
 
 import type { AttachmentData } from "./email/attachment-manager";
-export {
-  clearAttachmentCache,
-  preResolveAttachments,
-} from "./email/attachment-manager";
+export { clearAttachmentCache, preResolveAttachments } from "./email/attachment-manager";
 export type { AttachmentData } from "./email/attachment-manager";
 export { encodeQuotedPrintable } from "./email/encoding";
 
@@ -31,33 +23,15 @@ let cachedEmailTemplate: EmailTemplate | null = null;
  * This dramatically speeds up bulk sends with large attachments.
  */
 export async function preBuildEmailTemplate(
-  accessToken: string,
+  fromEmail: string,
   subject: string,
   htmlBody: string,
   attachments?: AttachmentData[],
 ): Promise<void> {
-  emailLogger.info("Pre-building email template for bulk send");
-
-  // Get user profile
-  const userResponse = await fetch(
-    "https://gmail.googleapis.com/gmail/v1/users/me/profile",
-    {
-      method: "GET",
-      headers: { Authorization: `Bearer ${accessToken}` },
-    },
-  );
-
-  if (!userResponse.ok) {
-    const body = await userResponse.text();
-    emailLogger.error("Gmail profile fetch failed (preBuild)", {
-      status: userResponse.status,
-      body: body.slice(0, 500),
-    });
-    throw new Error(gmailProfileFailureMessage(userResponse.status, body));
+  if (!fromEmail?.trim()) {
+    throw new Error("From email is required");
   }
-
-  const userProfile = await userResponse.json();
-  const fromEmail = userProfile.emailAddress;
+  emailLogger.info("Pre-building email template for bulk send");
 
   // Build the MIME body parts (everything that stays constant)
   const sanitizedHtmlBody = sanitizeHTML(htmlBody);
@@ -132,9 +106,7 @@ export async function sendEmailWithTemplate(
   bcc?: string[],
 ): Promise<any> {
   if (!cachedEmailTemplate) {
-    throw new Error(
-      "No email template cached. Call preBuildEmailTemplate() first.",
-    );
+    throw new Error("No email template cached. Call preBuildEmailTemplate() first.");
   }
 
   const validatedTo = validateAndSanitizeEmail(to);
@@ -183,18 +155,15 @@ export async function sendEmailWithTemplate(
   const timeoutId = setTimeout(() => controller.abort(), SEND_TIMEOUT);
 
   try {
-    const response = await fetch(
-      "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ raw: encodedEmail }),
-        signal: controller.signal,
+    const response = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({ raw: encodedEmail }),
+      signal: controller.signal,
+    });
 
     clearTimeout(timeoutId);
 
@@ -219,6 +188,7 @@ export async function sendEmailWithTemplate(
 
 export async function sendEmailViaAPI(
   accessToken: string,
+  fromEmail: string,
   to: string,
   subject: string,
   htmlBody: string,
@@ -232,6 +202,10 @@ export async function sendEmailViaAPI(
   cc?: string[],
   bcc?: string[],
 ) {
+  if (!fromEmail?.trim()) {
+    throw new Error("From email is required");
+  }
+
   // Validate and sanitize the recipient email
   const validatedTo = validateAndSanitizeEmail(to);
   const validatedCc = (cc ?? []).map(validateAndSanitizeEmail);
@@ -282,10 +256,8 @@ export async function sendEmailViaAPI(
   const TIMEOUT_PER_5MB = 60000; // 1 minute per 5MB
   const MAX_TIMEOUT = 600000; // 10 minutes max
   const calculatedTimeout =
-    BASE_TIMEOUT +
-    Math.ceil(totalAttachmentSize / (5 * 1024 * 1024)) * TIMEOUT_PER_5MB;
+    BASE_TIMEOUT + Math.ceil(totalAttachmentSize / (5 * 1024 * 1024)) * TIMEOUT_PER_5MB;
   const SEND_TIMEOUT = Math.min(calculatedTimeout, MAX_TIMEOUT);
-  const PROFILE_TIMEOUT = 15000; // 15s for profile fetch
 
   emailLogger.debug(`Send timeout set`, {
     timeoutSec: SEND_TIMEOUT / 1000,
@@ -326,31 +298,6 @@ export async function sendEmailViaAPI(
     }
   };
 
-  // First, get the user's email address to use as 'From'
-  const userResponse = await fetchWithTimeout(
-    "https://gmail.googleapis.com/gmail/v1/users/me/profile",
-    {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    },
-    PROFILE_TIMEOUT,
-    false,
-  );
-
-  if (!userResponse.ok) {
-    const body = await userResponse.text();
-    emailLogger.error("Gmail profile fetch failed", {
-      status: userResponse.status,
-      body: body.slice(0, 500),
-    });
-    throw new Error(gmailProfileFailureMessage(userResponse.status, body));
-  }
-
-  const userProfile = await userResponse.json();
-  const fromEmail = userProfile.emailAddress;
-
   // Properly encode the subject line to handle UTF-8 characters
   const encodedSubject = encodeSubject(subject);
 
@@ -387,10 +334,7 @@ export async function sendEmailViaAPI(
   if (hasHtmlTag || hasBodyTag) {
     // If it's already a full document, just ensure the CSS is there
     if (processedHtmlBody.includes("</head>")) {
-      formattedHtmlBody = processedHtmlBody.replace(
-        "</head>",
-        `${zeroMarginCss}</head>`,
-      );
+      formattedHtmlBody = processedHtmlBody.replace("</head>", `${zeroMarginCss}</head>`);
     } else {
       formattedHtmlBody = `${zeroMarginCss}${processedHtmlBody}`;
     }
@@ -483,13 +427,9 @@ export async function sendEmailViaAPI(
 
       // Provide specific error messages for common issues
       if (errorDetails.includes("Invalid To header")) {
-        throw new Error(
-          `Invalid email address: ${validatedTo}. Please check the email format.`,
-        );
+        throw new Error(`Invalid email address: ${validatedTo}. Please check the email format.`);
       } else if (errorDetails.includes("rateLimitExceeded")) {
-        throw new Error(
-          `Gmail rate limit exceeded. Please wait before sending more emails.`,
-        );
+        throw new Error(`Gmail rate limit exceeded. Please wait before sending more emails.`);
       } else if (errorDetails.includes("quotaExceeded")) {
         throw new Error(`Gmail quota exceeded. Daily sending limit reached.`);
       }

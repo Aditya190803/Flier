@@ -3,7 +3,7 @@
  * Tests pagination functionality across different pages
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* oxlint-disable @typescript-eslint/no-unused-vars */
 import { test, expect } from "@playwright/test";
 
 test.describe("Pagination", () => {
@@ -33,9 +33,7 @@ test.describe("Pagination", () => {
     test("should display pagination on templates page", async ({ page }) => {
       await page.goto("/templates");
 
-      const pagination = page
-        .locator('[data-testid="pagination"]')
-        .or(page.getByText(/page/i));
+      const pagination = page.locator('[data-testid="pagination"]').or(page.getByText(/page/i));
 
       await expect(page.locator("body")).toBeVisible();
     });
@@ -90,10 +88,7 @@ test.describe("Pagination", () => {
         .getByRole("button", { name: /next/i })
         .or(page.locator('[aria-label*="next page"]'));
 
-      if (
-        (await nextButton.first().isVisible()) &&
-        (await nextButton.first().isEnabled())
-      ) {
+      if ((await nextButton.first().isVisible()) && (await nextButton.first().isEnabled())) {
         await nextButton.first().click();
 
         // Should update page indicator or content
@@ -106,20 +101,14 @@ test.describe("Pagination", () => {
 
       // First go to page 2
       const nextButton = page.getByRole("button", { name: /next/i });
-      if (
-        (await nextButton.first().isVisible()) &&
-        (await nextButton.first().isEnabled())
-      ) {
+      if ((await nextButton.first().isVisible()) && (await nextButton.first().isEnabled())) {
         await nextButton.first().click();
         await page.waitForTimeout(300);
       }
 
       // Then go back
       const prevButton = page.getByRole("button", { name: /previous/i });
-      if (
-        (await prevButton.first().isVisible()) &&
-        (await prevButton.first().isEnabled())
-      ) {
+      if ((await prevButton.first().isVisible()) && (await prevButton.first().isEnabled())) {
         await prevButton.first().click();
         await expect(page.locator("body")).toBeVisible();
       }
@@ -159,20 +148,14 @@ test.describe("Pagination", () => {
         await selector.click();
 
         // Should show options like 10, 25, 50, 100
-        const _option10 = page
-          .getByRole("option", { name: "10" })
-          .or(page.getByText("10"));
-        const option25 = page
-          .getByRole("option", { name: "25" })
-          .or(page.getByText("25"));
+        const _option10 = page.getByRole("option", { name: "10" }).or(page.getByText("10"));
+        const option25 = page.getByRole("option", { name: "25" }).or(page.getByText("25"));
 
         await expect(page.locator("body")).toBeVisible();
       }
     });
 
-    test("should update items displayed when page size changes", async ({
-      page,
-    }) => {
+    test("should update items displayed when page size changes", async ({ page }) => {
       await page.goto("/contacts");
 
       const selector = page.getByRole("combobox").first();
@@ -196,9 +179,7 @@ test.describe("Pagination", () => {
       await page.goto("/contacts");
 
       // Look for page number buttons
-      const _pageNumbers = page
-        .locator("button")
-        .filter({ hasText: /^[1-9][0-9]*$/ });
+      const _pageNumbers = page.locator("button").filter({ hasText: /^[1-9][0-9]*$/ });
 
       await expect(page.locator("body")).toBeVisible();
     });
@@ -256,10 +237,7 @@ test.describe("Pagination", () => {
 
       const nextButton = page.getByRole("button", { name: /next/i });
 
-      if (
-        (await nextButton.first().isVisible()) &&
-        (await nextButton.first().isEnabled())
-      ) {
+      if ((await nextButton.first().isVisible()) && (await nextButton.first().isEnabled())) {
         await nextButton.first().click();
 
         // Count text should update
@@ -275,9 +253,7 @@ test.describe("Pagination", () => {
       await page.goto("/contacts");
 
       // Should show simplified pagination
-      const pagination = page
-        .locator('[data-testid="pagination"]')
-        .or(page.getByText(/page.*of/i));
+      const pagination = page.locator('[data-testid="pagination"]').or(page.getByText(/page.*of/i));
 
       await expect(page.locator("body")).toBeVisible();
     });
@@ -311,9 +287,7 @@ test.describe("Pagination", () => {
   });
 
   test.describe("Accessibility", () => {
-    test("should have accessible labels on pagination buttons", async ({
-      page,
-    }) => {
+    test("should have accessible labels on pagination buttons", async ({ page }) => {
       await page.goto("/contacts");
 
       const nextButton = page.getByRole("button", { name: /next/i });

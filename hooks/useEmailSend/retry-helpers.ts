@@ -1,7 +1,4 @@
-export const isRateLimitError = (
-  errorMessage: string,
-  statusCode?: number,
-): boolean => {
+export const isRateLimitError = (errorMessage: string, statusCode?: number): boolean => {
   if (statusCode === 429) {
     return true;
   }
@@ -37,9 +34,7 @@ export const isRetryableError = (errorMessage: string): boolean => {
     "check your Gmail Sent folder",
   ];
 
-  return !nonRetryableErrors.some((e) =>
-    errorMessage.toLowerCase().includes(e.toLowerCase()),
-  );
+  return !nonRetryableErrors.some((e) => errorMessage.toLowerCase().includes(e.toLowerCase()));
 };
 
 export const isPersistentError = (errorMessage: string): boolean => {
@@ -62,7 +57,5 @@ export const isPersistentError = (errorMessage: string): boolean => {
     "Bad Request",
   ];
 
-  return persistentErrors.some((e) =>
-    errorMessage.toLowerCase().includes(e.toLowerCase()),
-  );
+  return persistentErrors.some((e) => errorMessage.toLowerCase().includes(e.toLowerCase()));
 };

@@ -42,8 +42,7 @@ export type {
 // Re-export ID for components that use it
 export const ID = {
   unique: () =>
-    Math.random().toString(36).substring(2, 15) +
-    Math.random().toString(36).substring(2, 15),
+    Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
 };
 
 // Query export for backward compatibility (not used with API routes)

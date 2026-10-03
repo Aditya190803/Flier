@@ -2,24 +2,10 @@
 
 import React, { useState } from "react";
 
-import {
-  Monitor,
-  Smartphone,
-  Tablet,
-  Mail,
-  Apple,
-  X,
-  Loader2,
-} from "lucide-react";
+import { Monitor, Smartphone, Tablet, Mail, Apple, X, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 interface EmailClientPreviewProps {
   subject: string;
@@ -30,13 +16,7 @@ interface EmailClientPreviewProps {
   onClose: () => void;
 }
 
-type EmailClient =
-  | "gmail"
-  | "outlook"
-  | "apple-mail"
-  | "yahoo"
-  | "mobile-ios"
-  | "mobile-android";
+type EmailClient = "gmail" | "outlook" | "apple-mail" | "yahoo" | "mobile-ios" | "mobile-android";
 type DeviceType = "desktop" | "tablet" | "mobile";
 
 interface ClientConfig {
@@ -127,14 +107,12 @@ const EMAIL_CLIENTS: Record<EmailClient, ClientConfig> = {
   },
 };
 
-const DEVICE_SIZES: Record<
-  DeviceType,
-  { width: string; height: string; icon: React.ElementType }
-> = {
-  desktop: { width: "max-w-4xl", height: "h-[600px]", icon: Monitor },
-  tablet: { width: "max-w-2xl", height: "h-[700px]", icon: Tablet },
-  mobile: { width: "max-w-[375px]", height: "h-[667px]", icon: Smartphone },
-};
+const DEVICE_SIZES: Record<DeviceType, { width: string; height: string; icon: React.ElementType }> =
+  {
+    desktop: { width: "max-w-4xl", height: "h-[600px]", icon: Monitor },
+    tablet: { width: "max-w-2xl", height: "h-[700px]", icon: Tablet },
+    mobile: { width: "max-w-[375px]", height: "h-[667px]", icon: Smartphone },
+  };
 
 export function EmailClientPreview({
   subject,
@@ -240,12 +218,7 @@ export function EmailClientPreview({
               See how your email will look in different email clients
             </CardDescription>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="h-8 w-8 p-0"
-          >
+          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
@@ -259,33 +232,30 @@ export function EmailClientPreview({
                 Email Client
               </label>
               <div className="flex flex-wrap gap-2">
-                {(
-                  Object.entries(EMAIL_CLIENTS) as [EmailClient, ClientConfig][]
-                ).map(([key, config]) => (
-                  <Button
-                    key={key}
-                    variant={selectedClient === key ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => {
-                      setIsLoading(true);
-                      setSelectedClient(key);
-                      // Reset device type if selecting mobile client
-                      if (key.startsWith("mobile-")) {
-                        setDeviceType("mobile");
-                      } else if (
-                        deviceType === "mobile" &&
-                        !key.startsWith("mobile-")
-                      ) {
-                        setDeviceType("desktop");
-                      }
-                      setTimeout(() => setIsLoading(false), 300);
-                    }}
-                    className="gap-1.5"
-                  >
-                    <config.icon className="h-3.5 w-3.5" />
-                    {config.name}
-                  </Button>
-                ))}
+                {(Object.entries(EMAIL_CLIENTS) as [EmailClient, ClientConfig][]).map(
+                  ([key, config]) => (
+                    <Button
+                      key={key}
+                      variant={selectedClient === key ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        setIsLoading(true);
+                        setSelectedClient(key);
+                        // Reset device type if selecting mobile client
+                        if (key.startsWith("mobile-")) {
+                          setDeviceType("mobile");
+                        } else if (deviceType === "mobile" && !key.startsWith("mobile-")) {
+                          setDeviceType("desktop");
+                        }
+                        setTimeout(() => setIsLoading(false), 300);
+                      }}
+                      className="gap-1.5"
+                    >
+                      <config.icon className="h-3.5 w-3.5" />
+                      {config.name}
+                    </Button>
+                  ),
+                )}
               </div>
             </div>
 
@@ -329,23 +299,17 @@ export function EmailClientPreview({
             {isLoading ? (
               <div className="flex flex-col items-center gap-3">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">
-                  Loading preview...
-                </p>
+                <p className="text-sm text-muted-foreground">Loading preview...</p>
               </div>
             ) : (
               <div
                 className={`${clientConfig.bgColor} ${clientConfig.borderRadius} ${clientConfig.shadowStyle} overflow-hidden w-full ${
-                  selectedClient.startsWith("mobile-")
-                    ? "max-w-[375px]"
-                    : deviceConfig.width
+                  selectedClient.startsWith("mobile-") ? "max-w-[375px]" : deviceConfig.width
                 }`}
                 style={{ maxWidth: clientConfig.maxWidth }}
               >
                 {/* Client Header */}
-                <div
-                  className={`${clientConfig.headerBg} ${clientConfig.headerText} p-4`}
-                >
+                <div className={`${clientConfig.headerBg} ${clientConfig.headerText} p-4`}>
                   <div className="flex items-center gap-3">
                     <clientConfig.icon className="h-5 w-5" />
                     <span className="font-semibold">{clientConfig.name}</span>
@@ -356,29 +320,20 @@ export function EmailClientPreview({
                 <div className={`border-b p-4 ${clientConfig.bgColor}`}>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <h2
-                        className={`font-semibold text-lg ${clientConfig.headerText}`}
-                      >
+                      <h2 className={`font-semibold text-lg ${clientConfig.headerText}`}>
                         {subject || "(No Subject)"}
                       </h2>
                     </div>
                     <div className="text-sm text-muted-foreground">
                       <span className="font-medium">{senderName}</span>
-                      <span className="ml-2 text-xs">
-                        &lt;{senderEmail}&gt;
-                      </span>
+                      <span className="ml-2 text-xs">&lt;{senderEmail}&gt;</span>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      To: recipient@example.com
-                    </div>
+                    <div className="text-xs text-muted-foreground">To: recipient@example.com</div>
                   </div>
                 </div>
 
                 {/* Email Body */}
-                <div
-                  className="bg-white overflow-auto"
-                  style={{ maxHeight: "400px" }}
-                >
+                <div className="bg-white overflow-auto" style={{ maxHeight: "400px" }}>
                   <iframe
                     srcDoc={generateClientPreviewHTML()}
                     className="w-full h-[400px] border-0"
@@ -403,10 +358,9 @@ export function EmailClientPreview({
           {/* Info Box */}
           <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
             <p className="text-xs text-blue-800 dark:text-blue-200">
-              <strong>Note:</strong> This is a simulation of how your email
-              might appear in {clientConfig.name}. Actual rendering may vary
-              slightly due to email client updates and user settings. For the
-              most accurate preview, send a test email to yourself.
+              <strong>Note:</strong> This is a simulation of how your email might appear in{" "}
+              {clientConfig.name}. Actual rendering may vary slightly due to email client updates
+              and user settings. For the most accurate preview, send a test email to yourself.
             </p>
           </div>
         </CardContent>

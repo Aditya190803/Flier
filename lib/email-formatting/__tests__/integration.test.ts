@@ -1,10 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vite-plus/test";
 
-import {
-  formatForEmail,
-  formatForEmailWithDetails,
-  formatForPreview,
-} from "../index";
+import { formatForEmail, formatForEmailWithDetails, formatForPreview } from "../index";
 
 describe("formatForEmail", () => {
   it("should format basic HTML content", () => {
@@ -126,8 +122,7 @@ describe("formatForEmailWithDetails", () => {
   });
 
   it("should count emoji conversions", () => {
-    const input =
-      '<p><img class="emoji" alt="😊"><img class="emoji" alt="🎉"></p>';
+    const input = '<p><img class="emoji" alt="😊"><img class="emoji" alt="🎉"></p>';
     const result = formatForEmailWithDetails(input);
 
     expect(result.debug?.emojisConverted).toBe(2);

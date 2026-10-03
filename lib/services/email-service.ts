@@ -62,6 +62,7 @@ export interface EmailContent {
  * Email sending options
  */
 export interface SendOptions {
+  beforeDelivery?: (email: string) => Promise<boolean>;
   /** Array of file attachments */
   attachments?: AttachmentData[];
   /** Delay between emails in milliseconds (default: 1000) */
@@ -82,6 +83,14 @@ export interface SendOptions {
   onProgress?: (sent: number, total: number, currentEmail: string) => void;
   /** Callback for individual email results */
   onEmailResult?: (email: string, success: boolean, error?: string) => void;
+  /**
+   * Absolute timestamp (`Date.now()`-based) after which no further email
+   * should be *started*. Used for time-budgeted chunked sending so a caller
+   * (e.g. a serverless function with a maxDuration limit) can stop before
+   * being killed and resume in a later call. When omitted, the whole list
+   * is processed with no time limit (existing behavior).
+   */
+  deadline?: number;
 }
 
 /**
@@ -103,6 +112,14 @@ export interface CampaignSummary {
   failed: number;
   skipped: number;
   results: EmailResult[];
+  /**
+   * False when a `deadline` (see {@link SendOptions.deadline}) cut the run
+   * short before every recipient was processed. Omitted/true means the
+   * whole list passed in was processed. Callers doing chunked sends should
+   * treat `done === false` as "call again to continue", filtering out
+   * recipients already present in `results` on the retry.
+   */
+  done?: boolean;
 }
 
 /**
@@ -134,7 +151,7 @@ export interface PersonalizedEmail {
  *
  * @example
  * ```typescript
- * const emailService = new EmailService(accessToken);
+ * const emailService = new EmailService(accessToken, session.user.email);
  *
  * // Send a single email
  * await emailService.sendSingle({
@@ -153,17 +170,23 @@ export interface PersonalizedEmail {
  */
 export class EmailService {
   private accessToken: string;
+  private fromEmail: string;
   private defaultDelayMs: number = 1000;
 
   /**
    * Create a new EmailService instance
    * @param accessToken - Gmail API OAuth access token
+   * @param fromEmail - Sender address (session.user.email)
    */
-  constructor(accessToken: string) {
+  constructor(accessToken: string, fromEmail: string) {
     if (!accessToken) {
       throw new Error("Access token is required for EmailService");
     }
+    if (!fromEmail?.trim()) {
+      throw new Error("From email is required for EmailService");
+    }
     this.accessToken = accessToken;
+    this.fromEmail = fromEmail;
   }
 
   /**
@@ -232,14 +255,8 @@ export class EmailService {
       };
 
       // Apply personalization to subject and body
-      const personalizedSubject = replacePlaceholders(
-        content.subject,
-        personalizationData,
-      );
-      let personalizedBody = replacePlaceholders(
-        content.body,
-        personalizationData,
-      );
+      const personalizedSubject = replacePlaceholders(content.subject, personalizationData);
+      let personalizedBody = replacePlaceholders(content.body, personalizationData);
 
       // Append signature if provided
       if (content.signature) {
@@ -247,16 +264,12 @@ export class EmailService {
       }
 
       // Pre-resolve attachments if needed
-      const resolvedAttachments = attachments
-        ? await preResolveAttachments(attachments)
-        : [];
+      const resolvedAttachments = attachments ? await preResolveAttachments(attachments) : [];
 
       // Handle personalized attachment if present
       if (recipient.personalizedAttachment) {
         try {
-          const fileData = await fetchFileFromUrl(
-            recipient.personalizedAttachment.url,
-          );
+          const fileData = await fetchFileFromUrl(recipient.personalizedAttachment.url);
           resolvedAttachments.push({
             name: recipient.personalizedAttachment.fileName || "attachment",
             data: fileData.base64,
@@ -267,13 +280,16 @@ export class EmailService {
             url: recipient.personalizedAttachment.url,
             error: error instanceof Error ? error.message : String(error),
           });
-          // Continue sending without the personalized attachment
+          throw new Error(
+            "Required personalized attachment could not be fetched. Nothing was sent.",
+          );
         }
       }
 
       // Send the email
       const result = await sendEmailViaAPI(
         this.accessToken,
+        this.fromEmail,
         recipient.email,
         personalizedSubject,
         personalizedBody,
@@ -298,8 +314,7 @@ export class EmailService {
         messageId: result.id,
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
 
       // Record "failed" event
       await this.recordEvent("failed", recipient.email, tracking, errorMessage);
@@ -361,11 +376,7 @@ export class EmailService {
           status: "skipped",
           error: `Verification failed: ${item.reason}`,
         });
-        onEmailResult?.(
-          item.recipient.email,
-          false,
-          `Verification failed: ${item.reason}`,
-        );
+        onEmailResult?.(item.recipient.email, false, `Verification failed: ${item.reason}`);
       }
 
       emailLogger.info("Verification completed", {
@@ -392,14 +403,10 @@ export class EmailService {
       // (all emails have same subject/body with no placeholders)
       // ALSO if tracking is enabled, we can't use bulk optimization because each email needs a unique pixel/links
       // AND if we need to check unsubscribes per-recipient, we can't use bulk optimization
-      const hasPlaceholders =
-        content.subject.includes("{{") || content.body.includes("{{");
+      const hasPlaceholders = content.subject.includes("{{") || content.body.includes("{{");
 
       const canUseBulkOptimization =
-        useBulkOptimization &&
-        !hasPlaceholders &&
-        !tracking?.enabled &&
-        !checkUnsubscribe;
+        useBulkOptimization && !hasPlaceholders && !tracking?.enabled && !checkUnsubscribe;
 
       if (canUseBulkOptimization) {
         // Use template-based bulk sending for maximum efficiency
@@ -469,10 +476,12 @@ export class EmailService {
       verifyBeforeSending = false,
       onProgress,
       onEmailResult,
+      deadline,
     } = options;
 
     let activeEmails = [...emails];
     const results: EmailResult[] = [];
+    let timedOut = false;
 
     // Verify recipients if requested
     if (verifyBeforeSending) {
@@ -489,11 +498,7 @@ export class EmailService {
           status: "skipped",
           error: `Verification failed: ${item.reason}`,
         });
-        onEmailResult?.(
-          item.recipient.email,
-          false,
-          `Verification failed: ${item.reason}`,
-        );
+        onEmailResult?.(item.recipient.email, false, `Verification failed: ${item.reason}`);
       }
 
       emailLogger.info("Verification completed", {
@@ -511,6 +516,18 @@ export class EmailService {
 
     try {
       for (let i = 0; i < activeEmails.length; i++) {
+        // Stop starting new sends once the time budget is used up. The
+        // caller (e.g. a time-boxed serverless function) is expected to
+        // invoke this again with the remaining recipients.
+        if (deadline !== undefined && Date.now() >= deadline) {
+          timedOut = true;
+          emailLogger.info("Personalized batch time budget exceeded", {
+            processed: i,
+            remaining: activeEmails.length - i,
+          });
+          break;
+        }
+
         const email = activeEmails[i];
 
         // Check for unsubscribe if callback provided
@@ -536,9 +553,7 @@ export class EmailService {
         // Handle personalized attachment if present
         if (email.personalizedAttachment) {
           try {
-            const fileData = await fetchFileFromUrl(
-              email.personalizedAttachment.url,
-            );
+            const fileData = await fetchFileFromUrl(email.personalizedAttachment.url);
             resolvedAttachments.push({
               name: email.personalizedAttachment.fileName || "attachment",
               data: fileData.base64,
@@ -549,17 +564,34 @@ export class EmailService {
               url: email.personalizedAttachment.url,
               error: error instanceof Error ? error.message : String(error),
             });
-            // Continue sending without the personalized attachment
+            throw new Error(
+              "Required personalized attachment could not be fetched. Nothing was sent.",
+            );
           }
+        }
+
+        // Personalize. `sendSingle` does this via `customFields`; this batch
+        // path used to skip it entirely, so every recipient on the chunked
+        // `/api/send-email` route received literal `{{name}}` text.
+        const personalizationData: Record<string, string> = {
+          email: email.to,
+          ...email.originalRowData,
+        };
+        const personalizedSubject = replacePlaceholders(email.subject, personalizationData);
+        const personalizedMessage = replacePlaceholders(email.message, personalizationData);
+
+        if (options.beforeDelivery && !(await options.beforeDelivery(email.to))) {
+          continue;
         }
 
         // Send the email
         try {
           const result = await sendEmailViaAPI(
             this.accessToken,
+            this.fromEmail,
             email.to,
-            email.subject,
-            email.message,
+            personalizedSubject,
+            personalizedMessage,
             resolvedAttachments,
             tracking?.enabled
               ? {
@@ -589,8 +621,7 @@ export class EmailService {
 
           onEmailResult?.(email.to, true);
         } catch (error) {
-          const errorMessage =
-            error instanceof Error ? error.message : "Unknown error";
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
 
           results.push({
             email: email.to,
@@ -630,6 +661,7 @@ export class EmailService {
       failed: results.filter((r) => r.status === "error").length,
       skipped: results.filter((r) => r.status === "skipped").length,
       results,
+      done: !timedOut,
     };
   }
 
@@ -657,12 +689,7 @@ export class EmailService {
     }
 
     // Pre-build template once
-    await preBuildEmailTemplate(
-      this.accessToken,
-      content.subject,
-      body,
-      attachments,
-    );
+    await preBuildEmailTemplate(this.fromEmail, content.subject, body, attachments);
 
     // Send to each recipient
     for (let i = 0; i < recipients.length; i++) {
@@ -692,8 +719,7 @@ export class EmailService {
 
         onEmailResult?.(recipient.email, true);
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown error";
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
         results.push({
           email: recipient.email,
           status: "error",
@@ -774,11 +800,7 @@ export class EmailService {
       );
       results.push(result);
 
-      onEmailResult?.(
-        recipient.email,
-        result.status === "success",
-        result.error,
-      );
+      onEmailResult?.(recipient.email, result.status === "success", result.error);
       onProgress?.(i + 1, recipients.length, recipient.email);
 
       // Delay between emails (except last)
@@ -865,8 +887,8 @@ export class EmailService {
  * Create an EmailService instance with the given access token
  * Factory function for convenience
  */
-export function createEmailService(accessToken: string): EmailService {
-  return new EmailService(accessToken);
+export function createEmailService(accessToken: string, fromEmail: string): EmailService {
+  return new EmailService(accessToken, fromEmail);
 }
 
 export default EmailService;

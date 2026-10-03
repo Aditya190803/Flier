@@ -131,11 +131,7 @@ export async function preResolveAttachments(
   const resolvedAttachments: AttachmentData[] = [];
 
   for (const attachment of attachments) {
-    if (
-      attachment.data &&
-      attachment.data !== "appwrite" &&
-      !attachment.data.startsWith("http")
-    ) {
+    if (attachment.data && attachment.data !== "appwrite" && !attachment.data.startsWith("http")) {
       resolvedAttachments.push(attachment);
       continue;
     }
@@ -168,10 +164,7 @@ export async function preResolveAttachments(
       continue;
     }
 
-    emailLogger.debug(
-      `Downloading attachment from Appwrite: ${attachment.name}`,
-      { fileId },
-    );
+    emailLogger.debug(`Downloading attachment from Appwrite: ${attachment.name}`, { fileId });
     try {
       const buffer = await serverStorageService.getFileBuffer(fileId);
       const base64Data = buffer.toString("base64");

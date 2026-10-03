@@ -65,16 +65,12 @@ export function PreviewStep({
   const preview = getPersonalizedContent(previewRecipientIndex);
   const hasPlaceholders = (subject + content).match(/\{\{?\w+\}?\}/);
   const csvRow = csvData.find((row) => row.email === preview.email);
-  const manualEntry = manualEntries.find(
-    (entry) => entry.email === preview.email,
-  );
+  const manualEntry = manualEntries.find((entry) => entry.email === preview.email);
   const personalizationEntries = Object.entries(preview.data || {})
     .filter(([key, value]) => value && key !== "email")
     .slice(0, 10);
   const showPersonalization =
-    !!hasPlaceholders &&
-    (csvRow || manualEntry) &&
-    personalizationEntries.length > 0;
+    !!hasPlaceholders && (csvRow || manualEntry) && personalizationEntries.length > 0;
 
   return (
     <div className="space-y-4">
@@ -127,9 +123,7 @@ export function PreviewStep({
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground truncate">To</p>
               <p className="text-sm font-medium truncate">
-                {recipients.length > 0
-                  ? preview.email
-                  : "recipient@example.com"}
+                {recipients.length > 0 ? preview.email : "recipient@example.com"}
               </p>
             </div>
             <div className="text-right min-w-0">
@@ -149,9 +143,7 @@ export function PreviewStep({
               ) : null}
               {bcc.trim() ? (
                 <p className="truncate">
-                  <span className="text-xs text-muted-foreground mr-2">
-                    Bcc
-                  </span>
+                  <span className="text-xs text-muted-foreground mr-2">Bcc</span>
                   {bcc.trim()}
                 </p>
               ) : null}
@@ -165,11 +157,7 @@ export function PreviewStep({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                onClick={() =>
-                  setPreviewRecipientIndex(
-                    Math.max(0, previewRecipientIndex - 1),
-                  )
-                }
+                onClick={() => setPreviewRecipientIndex(Math.max(0, previewRecipientIndex - 1))}
                 disabled={previewRecipientIndex === 0}
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -198,16 +186,10 @@ export function PreviewStep({
 
         {showPersonalization && (
           <div className="border-b bg-primary/[0.035] px-4 py-3">
-            <p className="text-xs font-medium text-primary mb-2">
-              Personalization
-            </p>
+            <p className="text-xs font-medium text-primary mb-2">Personalization</p>
             <div className="flex flex-wrap gap-2">
               {personalizationEntries.map(([key, value]) => (
-                <Badge
-                  key={key}
-                  variant="outline"
-                  className="text-xs bg-background/60"
-                >
+                <Badge key={key} variant="outline" className="text-xs bg-background/60">
                   {key}: {String(value)}
                 </Badge>
               ))}
@@ -227,9 +209,7 @@ export function PreviewStep({
           ) : isLoadingPreview ? (
             <div className="flex flex-col items-center justify-center py-16">
               <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
-              <p className="text-sm text-muted-foreground">
-                Formatting preview…
-              </p>
+              <p className="text-sm text-muted-foreground">Formatting preview…</p>
             </div>
           ) : (
             <iframe
@@ -248,8 +228,7 @@ export function PreviewStep({
           )}
         </div>
 
-        {(attachments.length > 0 ||
-          (pdfColumn && preview.data?.[pdfColumn])) && (
+        {(attachments.length > 0 || (pdfColumn && preview.data?.[pdfColumn])) && (
           <div className="border-t px-4 py-3 bg-muted/20">
             <p className="text-sm font-medium mb-2">Attachments</p>
             <div className="flex flex-wrap gap-2">
@@ -260,11 +239,7 @@ export function PreviewStep({
                 </Badge>
               ))}
               {pdfColumn && preview.data?.[pdfColumn] && (
-                <Badge
-                  key="personalized-pdf"
-                  variant="secondary"
-                  className="bg-primary/10"
-                >
+                <Badge key="personalized-pdf" variant="secondary" className="bg-primary/10">
                   <Paperclip className="h-3 w-3 mr-1" />
                   Personalized PDF ({preview.data[pdfColumn]})
                 </Badge>

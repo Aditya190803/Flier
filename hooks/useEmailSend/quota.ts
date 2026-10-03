@@ -1,10 +1,11 @@
+import { STORAGE_KEY_GMAIL_QUOTA } from "@/lib/constants";
 import type { QuotaInfo } from "@/types/campaign";
 
 /** Gmail free-account ceiling — Pro plan max, not Free default */
 export const GMAIL_DAILY_LIMIT = 500;
 /** Free-tier default until /api/billing/plan loads */
 export const DEFAULT_PLAN_DAILY_LIMIT = 100;
-export const QUOTA_STORAGE_KEY = "echomail_gmail_quota";
+export const QUOTA_STORAGE_KEY = STORAGE_KEY_GMAIL_QUOTA;
 
 export const loadInitialQuota = (): QuotaInfo => {
   if (typeof window === "undefined") {

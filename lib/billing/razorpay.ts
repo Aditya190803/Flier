@@ -1,10 +1,6 @@
 import crypto from "crypto";
 
-import {
-  getRazorpayPlanId,
-  type BillingInterval,
-  type PlanId,
-} from "@/lib/plans";
+import { getRazorpayPlanId, type BillingInterval, type PlanId } from "@/lib/plans";
 
 function keyId(): string {
   return process.env.RAZORPAY_KEY_ID || "";
@@ -32,7 +28,7 @@ async function razorpayFetch<T>(path: string, init?: RequestInit): Promise<T> {
     headers: {
       Authorization: authHeader(),
       "Content-Type": "application/json",
-      ...(init?.headers || {}),
+      ...init?.headers,
     },
   });
 
@@ -64,9 +60,7 @@ export async function createRazorpaySubscription(opts: {
 }): Promise<RazorpaySubscription> {
   const razorpayPlanId = getRazorpayPlanId(opts.planId, opts.interval);
   if (!razorpayPlanId) {
-    throw new Error(
-      `No Razorpay plan configured for ${opts.planId} ${opts.interval}`,
-    );
+    throw new Error(`No Razorpay plan configured for ${opts.planId} ${opts.interval}`);
   }
 
   return razorpayFetch<RazorpaySubscription>("/subscriptions", {
@@ -89,34 +83,22 @@ export async function cancelRazorpaySubscription(
   subscriptionId: string,
   cancelAtCycleEnd = true,
 ): Promise<RazorpaySubscription> {
-  return razorpayFetch<RazorpaySubscription>(
-    `/subscriptions/${subscriptionId}/cancel`,
-    {
-      method: "POST",
-      body: JSON.stringify({ cancel_at_cycle_end: cancelAtCycleEnd }),
-    },
-  );
+  return razorpayFetch<RazorpaySubscription>(`/subscriptions/${subscriptionId}/cancel`, {
+    method: "POST",
+    body: JSON.stringify({ cancel_at_cycle_end: cancelAtCycleEnd }),
+  });
 }
 
-export function verifyWebhookSignature(
-  rawBody: string,
-  signature: string | null,
-): boolean {
+export function verifyWebhookSignature(rawBody: string, signature: string | null): boolean {
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
   if (!secret || !signature) {
     return false;
   }
 
-  const expected = crypto
-    .createHmac("sha256", secret)
-    .update(rawBody)
-    .digest("hex");
+  const expected = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
 
   try {
-    return crypto.timingSafeEqual(
-      Buffer.from(expected),
-      Buffer.from(signature),
-    );
+    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
   } catch {
     return false;
   }

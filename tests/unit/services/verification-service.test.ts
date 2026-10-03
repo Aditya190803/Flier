@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vite-plus/test";
 
 import { VerificationService } from "@/lib/services/verification-service";
 
@@ -18,9 +18,7 @@ describe("VerificationService", () => {
     });
 
     it("should identify disposable email domains", async () => {
-      const result = await VerificationService.verifyEmail(
-        "test@mailinator.com",
-      );
+      const result = await VerificationService.verifyEmail("test@mailinator.com");
       expect(result.isDisposable).toBe(true);
       expect(result.score).toBeLessThan(100);
     });
@@ -34,11 +32,7 @@ describe("VerificationService", () => {
 
   describe("verifyBatch", () => {
     it("should verify a batch of emails", async () => {
-      const emails = [
-        "test@example.com",
-        "invalid-email",
-        "admin@mailinator.com",
-      ];
+      const emails = ["test@example.com", "invalid-email", "admin@mailinator.com"];
       const results = await VerificationService.verifyBatch(emails);
 
       expect(results.size).toBe(3);

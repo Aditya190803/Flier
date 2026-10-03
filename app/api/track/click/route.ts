@@ -2,104 +2,67 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { databases, config, ID } from "@/lib/appwrite-server";
 import { apiLogger } from "@/lib/logger";
-import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitAsync, RATE_LIMITS } from "@/lib/rate-limit";
+import { verifyTrackingToken } from "@/lib/tracking-token";
 
-/**
- * Link click tracking endpoint
- * Records the click and redirects to the target URL
- */
+function safeRedirect(url: string | undefined, request: NextRequest) {
+  if (url && /^https?:\/\//i.test(url)) {
+    return NextResponse.redirect(url);
+  }
+  return NextResponse.redirect(new URL("/", request.url));
+}
 
 export async function GET(request: NextRequest) {
-  // Apply rate limiting to prevent abuse
-  const rateLimitResponse = rateLimit(request, RATE_LIMITS.public);
+  const rateLimitResponse = await rateLimitAsync(request, RATE_LIMITS.public);
+  const token = new URL(request.url).searchParams.get("t");
+
   if (rateLimitResponse) {
-    // Still redirect even if rate limited, just don't track
-    const { searchParams } = new URL(request.url);
-    const targetUrl = searchParams.get("url");
-    if (targetUrl) {
-      return NextResponse.redirect(decodeURIComponent(targetUrl));
-    }
-    return NextResponse.redirect(new URL("/", request.url));
+    const payload = token ? verifyTrackingToken(token, "click") : null;
+    return safeRedirect(payload?.targetUrl, request);
   }
 
   try {
-    const { searchParams } = new URL(request.url);
-    const campaignId = searchParams.get("c");
-    const email = searchParams.get("e");
-    const userEmail = searchParams.get("u");
-    const targetUrl = searchParams.get("url");
-    const recipientId = searchParams.get("r");
-    const linkId = searchParams.get("l");
-
-    if (!targetUrl) {
+    if (!token) {
       return NextResponse.redirect(new URL("/", request.url));
     }
 
-    // Record the click event if we have the required parameters
-    if (campaignId && email && userEmail) {
-      apiLogger.info("Processing click tracking", {
-        campaignId,
-        email: decodeURIComponent(email),
-        targetUrl: decodeURIComponent(targetUrl),
-        collectionId: config.trackingEventsCollectionId,
-      });
-      try {
-        const doc = await databases.createDocument(
-          config.databaseId,
-          config.trackingEventsCollectionId,
-          ID.unique(),
-          {
-            campaign_id: campaignId,
-            recipient_id: recipientId || undefined,
-            link_id: linkId || undefined,
-            email: decodeURIComponent(email),
-            event_type: "click",
-            link_url: decodeURIComponent(targetUrl),
-            user_agent: request.headers.get("user-agent") || undefined,
-            ip_address:
-              request.headers.get("x-forwarded-for")?.split(",")[0] ||
-              request.headers.get("x-real-ip") ||
-              undefined,
-            user_email: decodeURIComponent(userEmail),
-            created_at: new Date().toISOString(),
-          },
-        );
-        apiLogger.info("Link click tracked successfully", {
-          email: decodeURIComponent(email),
-          targetUrl: decodeURIComponent(targetUrl),
-          campaignId,
-          docId: doc.$id,
-        });
-      } catch (error) {
-        apiLogger.error(
-          "Error recording click event",
-          error instanceof Error ? error : undefined,
-          {
-            campaignId,
-            email: decodeURIComponent(email),
-            errorMessage:
-              error instanceof Error ? error.message : String(error),
-            collectionId: config.trackingEventsCollectionId,
-          },
-        );
-        // Don't fail the redirect
-      }
-    } else {
-      apiLogger.warn("Click tracking missing required params", {
-        hasCampaignId: !!campaignId,
-        hasEmail: !!email,
-        hasUserEmail: !!userEmail,
+    const payload = verifyTrackingToken(token, "click");
+    if (!payload?.targetUrl) {
+      apiLogger.warn("Click tracking rejected invalid token");
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+
+    try {
+      await databases.createDocument(
+        config.databaseId,
+        config.trackingEventsCollectionId,
+        ID.unique(),
+        {
+          campaign_id: payload.campaignId,
+          recipient_id: payload.recipientId || undefined,
+          link_id: payload.linkId || undefined,
+          email: payload.recipientEmail,
+          event_type: "click",
+          link_url: payload.targetUrl,
+          user_agent: request.headers.get("user-agent") || undefined,
+          ip_address:
+            request.headers.get("x-forwarded-for")?.split(",")[0] ||
+            request.headers.get("x-real-ip") ||
+            undefined,
+          user_email: payload.userEmail,
+          created_at: new Date().toISOString(),
+        },
+      );
+      apiLogger.info("Link click tracked", { campaignId: payload.campaignId });
+    } catch (error) {
+      apiLogger.error("Error recording click event", error instanceof Error ? error : undefined, {
+        campaignId: payload.campaignId,
       });
     }
 
-    // Redirect to the target URL
-    return NextResponse.redirect(decodeURIComponent(targetUrl));
+    return safeRedirect(payload.targetUrl, request);
   } catch (error) {
-    apiLogger.error(
-      "Link tracking error",
-      error instanceof Error ? error : undefined,
-    );
-    // Redirect to home on error
+    apiLogger.error("Link tracking error", error instanceof Error ? error : undefined);
     return NextResponse.redirect(new URL("/", request.url));
   }
 }

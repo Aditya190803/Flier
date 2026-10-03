@@ -1,22 +1,24 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getServerSession } from "next-auth";
-
+import { isAuthed, requireSession } from "@/lib/api-auth";
 import { databases, config, Query } from "@/lib/appwrite-server";
-import { authOptions } from "@/lib/auth";
 import { apiLogger } from "@/lib/logger";
+import { deleteScheduledDataForUser } from "@/lib/services/scheduled-campaign-store";
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unknown error";
+}
 
 // DELETE /api/gdpr/delete - Delete all user data (GDPR Right to be Forgotten)
-export async function DELETE(_request: NextRequest) {
+export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
-    const userEmail = session.user.email;
+    const userEmail = auth.email;
     const deletionResults = {
       contacts: 0,
       campaigns: 0,
@@ -31,14 +33,16 @@ export async function DELETE(_request: NextRequest) {
       tracking_events: 0,
       audit_logs: 0,
       consent_records: 0,
+      scheduled_campaigns: 0,
+      oauth_tokens: 0,
+      saved_audiences: 0,
+      campaign_reviews: 0,
+      review_comments: 0,
       errors: [] as string[],
     };
 
     // Helper to delete all documents in a collection
-    async function deleteUserDocuments(
-      collectionId: string,
-      key: keyof typeof deletionResults,
-    ) {
+    async function deleteUserDocuments(collectionId: string, key: keyof typeof deletionResults) {
       if (!collectionId) {
         return;
       }
@@ -46,11 +50,10 @@ export async function DELETE(_request: NextRequest) {
       try {
         let hasMore = true;
         while (hasMore) {
-          const docs = await databases.listDocuments(
-            config.databaseId,
-            collectionId,
-            [Query.equal("user_email", userEmail), Query.limit(100)],
-          );
+          const docs = await databases.listDocuments(config.databaseId, collectionId, [
+            Query.equal("user_email", userEmail),
+            Query.limit(100),
+          ]);
 
           if (docs.documents.length === 0) {
             hasMore = false;
@@ -59,24 +62,19 @@ export async function DELETE(_request: NextRequest) {
 
           for (const doc of docs.documents) {
             try {
-              await databases.deleteDocument(
-                config.databaseId,
-                collectionId,
-                doc.$id,
-              );
+              await databases.deleteDocument(config.databaseId, collectionId, doc.$id);
               if (typeof deletionResults[key] === "number") {
                 (deletionResults[key] as number)++;
               }
-            } catch (e: any) {
-              deletionResults.errors.push(
-                `Failed to delete ${key} ${doc.$id}: ${e.message}`,
-              );
+            } catch (e) {
+              deletionResults.errors.push(`Failed to delete ${key} ${doc.$id}: ${errorMessage(e)}`);
             }
           }
         }
-      } catch (e: any) {
-        if (!e.message?.includes("Collection not found")) {
-          deletionResults.errors.push(`Failed to delete ${key}: ${e.message}`);
+      } catch (e) {
+        const message = errorMessage(e);
+        if (!message.includes("Collection not found")) {
+          deletionResults.errors.push(`Failed to delete ${key}: ${message}`);
         }
       }
     }
@@ -100,6 +98,18 @@ export async function DELETE(_request: NextRequest) {
       deleteUserDocuments(config.trackingEventsCollectionId, "tracking_events"),
     ]);
 
+    // Scheduled sends and offline Google authorization live in Postgres.
+    try {
+      const scheduled = await deleteScheduledDataForUser(userEmail);
+      deletionResults.scheduled_campaigns = scheduled.scheduledCampaigns;
+      deletionResults.oauth_tokens = scheduled.oauthTokens;
+      deletionResults.saved_audiences = scheduled.savedAudiences;
+      deletionResults.campaign_reviews = scheduled.campaignReviews;
+      deletionResults.review_comments = scheduled.reviewComments;
+    } catch (e) {
+      deletionResults.errors.push(`Failed to delete scheduled sending data: ${errorMessage(e)}`);
+    }
+
     // Third group - GDPR/compliance collections (optional)
     await Promise.all([
       config.auditLogsCollectionId &&
@@ -114,16 +124,14 @@ export async function DELETE(_request: NextRequest) {
         // Note: Appwrite doesn't have a direct way to list files by user
         // In a production system, you'd want to track file ownership in a collection
         // For now, we'll skip attachment deletion or implement a workaround
-        apiLogger.debug(
-          "Attachment deletion would require file ownership tracking",
-        );
+        apiLogger.debug("Attachment deletion would require file ownership tracking");
       }
-    } catch (e: any) {
-      deletionResults.errors.push(`Failed to delete attachments: ${e.message}`);
+    } catch (e) {
+      deletionResults.errors.push(`Failed to delete attachments: ${errorMessage(e)}`);
     }
 
     // Log the deletion (to a separate permanent audit log if needed)
-    apiLogger.info("GDPR Deletion completed", { userEmail, deletionResults });
+    apiLogger.info("GDPR Deletion completed", { deletionResults });
 
     const totalDeleted =
       deletionResults.contacts +
@@ -134,42 +142,42 @@ export async function DELETE(_request: NextRequest) {
       deletionResults.groups +
       deletionResults.unsubscribes +
       deletionResults.webhooks +
-      deletionResults.ab_tests;
+      deletionResults.ab_tests +
+      deletionResults.scheduled_campaigns +
+      deletionResults.oauth_tokens;
 
     return NextResponse.json({
       success: true,
       message: `Successfully deleted ${totalDeleted} records`,
       details: deletionResults,
     });
-  } catch (error: any) {
-    apiLogger.error("Error deleting user data", error);
+  } catch (error) {
+    apiLogger.error("Error deleting user data", error instanceof Error ? error : undefined);
     return NextResponse.json(
-      { error: error.message || "Failed to delete user data" },
+      { error: errorMessage(error) || "Failed to delete user data" },
       { status: 500 },
     );
   }
 }
 
 // GET /api/gdpr/delete - Get deletion request status (placeholder for async deletion)
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
     // In a production system, you might have a queue for deletion requests
     // This endpoint would check the status of a pending deletion
     return NextResponse.json({
       message: "Use DELETE method to initiate data deletion",
-      warning:
-        "This action is irreversible. All your data will be permanently deleted.",
+      warning: "This action is irreversible. All your data will be permanently deleted.",
     });
-  } catch (error: any) {
-    apiLogger.error("Error checking deletion status", error);
+  } catch (error) {
+    apiLogger.error("Error checking deletion status", error instanceof Error ? error : undefined);
     return NextResponse.json(
-      { error: error.message || "Failed to check deletion status" },
+      { error: errorMessage(error) || "Failed to check deletion status" },
       { status: 500 },
     );
   }

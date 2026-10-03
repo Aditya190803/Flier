@@ -120,16 +120,9 @@ export function StatsCardWidget({
     <Card className={cn("bg-card border-border/80", className)}>
       <CardContent className={cn("p-5", size === "large" && "p-6")}>
         <div className="flex items-center justify-between mb-3">
-          {icon && (
-            <div className="p-2 bg-background/50 rounded-lg backdrop-blur-sm">
-              {icon}
-            </div>
-          )}
+          {icon && <div className="p-2 bg-background/50 rounded-lg backdrop-blur-sm">{icon}</div>}
           {trend && (
-            <Badge
-              variant={getTrendVariant()}
-              className="flex items-center gap-1"
-            >
+            <Badge variant={getTrendVariant()} className="flex items-center gap-1">
               {getTrendIcon()}
               {trend.direction !== "same"
                 ? `${trend.direction === "up" ? "+" : "-"}${trend.percentage.toFixed(1)}%`
@@ -137,15 +130,11 @@ export function StatsCardWidget({
             </Badge>
           )}
         </div>
-        <div
-          className={cn("text-2xl font-bold", size === "large" && "text-3xl")}
-        >
+        <div className={cn("text-2xl font-bold", size === "large" && "text-3xl")}>
           {typeof value === "number" ? value.toLocaleString() : value}
         </div>
         <p className="text-sm text-muted-foreground">{title}</p>
-        {subtitle && (
-          <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
-        )}
+        {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
       </CardContent>
     </Card>
   );
@@ -204,12 +193,7 @@ export function LineChartWidget({
         <ResponsiveContainer width="100%" height={height}>
           <LineChart data={data}>
             {showGrid && <CartesianGrid strokeDasharray="3 3" opacity={0.3} />}
-            <XAxis
-              dataKey="name"
-              tick={{ fontSize: 12 }}
-              tickLine={false}
-              axisLine={false}
-            />
+            <XAxis dataKey="name" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
             <YAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
             <Tooltip
               contentStyle={{
@@ -289,12 +273,7 @@ export function BarChartWidget({
             {horizontal ? (
               <>
                 <XAxis type="number" tick={{ fontSize: 12 }} />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  tick={{ fontSize: 12 }}
-                  width={100}
-                />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} width={100} />
               </>
             ) : (
               <>
@@ -366,7 +345,7 @@ export function PieChartWidget({
     );
   }
 
-  const hasData = data && data.length > 0 && data.some((d) => d.value > 0);
+  const hasData = data?.some((d) => d.value > 0);
 
   return (
     <Card className={cn("flex flex-col", className)}>
@@ -394,8 +373,7 @@ export function PieChartWidget({
                 dataKey="value"
                 label={
                   showLabels
-                    ? ({ name, percent }) =>
-                        `${name}: ${((percent || 0) * 100).toFixed(0)}%`
+                    ? ({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`
                     : undefined
                 }
                 labelLine={showLabels}
@@ -403,10 +381,7 @@ export function PieChartWidget({
                 {data.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={
-                      entry.color ||
-                      DEFAULT_COLORS[index % DEFAULT_COLORS.length]
-                    }
+                    fill={entry.color || DEFAULT_COLORS[index % DEFAULT_COLORS.length]}
                   />
                 ))}
               </Pie>
@@ -518,15 +493,10 @@ export function ComparisonWidget({
       <CardContent className="flex flex-col flex-1 pt-4">
         <div className="space-y-5 flex-1">
           {metrics.map((metric) => (
-            <div
-              key={metric.label}
-              className="flex items-center justify-between"
-            >
+            <div key={metric.label} className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-muted rounded-md">{metric.icon}</div>
-                <span className="text-sm font-medium text-muted-foreground">
-                  {metric.label}
-                </span>
+                <span className="text-sm font-medium text-muted-foreground">{metric.label}</span>
               </div>
               <div className="flex flex-col items-end gap-1">
                 <span className="text-base font-bold">
@@ -545,9 +515,7 @@ export function ComparisonWidget({
                     }
                     className="text-[10px] px-1.5 py-0 h-5"
                   >
-                    {metric.change.direction === "up" && (
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                    )}
+                    {metric.change.direction === "up" && <TrendingUp className="h-3 w-3 mr-1" />}
                     {metric.change.direction === "down" && (
                       <TrendingDown className="h-3 w-3 mr-1" />
                     )}
@@ -637,9 +605,7 @@ export function HeatmapWidget({
       </CardHeader>
       <CardContent>
         {links.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">
-            No click data available
-          </p>
+          <p className="text-sm text-muted-foreground text-center py-4">No click data available</p>
         ) : (
           <>
             <div className="space-y-2">
@@ -653,18 +619,12 @@ export function HeatmapWidget({
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {link.displayText || link.url}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {link.url}
-                      </p>
+                      <p className="text-sm font-medium truncate">{link.displayText || link.url}</p>
+                      <p className="text-xs text-muted-foreground truncate">{link.url}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-bold">{link.clicks}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {link.percentage.toFixed(1)}%
-                      </p>
+                      <p className="text-xs text-muted-foreground">{link.percentage.toFixed(1)}%</p>
                     </div>
                   </div>
                 </div>
@@ -679,10 +639,7 @@ export function HeatmapWidget({
               >
                 {expanded ? "Show less" : `Show ${links.length - 5} more`}
                 <ChevronDown
-                  className={cn(
-                    "h-4 w-4 ml-1 transition-transform",
-                    expanded && "rotate-180",
-                  )}
+                  className={cn("h-4 w-4 ml-1 transition-transform", expanded && "rotate-180")}
                 />
               </Button>
             )}
@@ -717,10 +674,7 @@ export function RecentCampaignsWidget({
   const displayCampaigns = useMemo(
     () =>
       [...campaigns]
-        .sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-        )
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, limit),
     [campaigns, limit],
   );
@@ -765,9 +719,7 @@ export function RecentCampaignsWidget({
       </CardHeader>
       <CardContent>
         {displayCampaigns.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">
-            No campaigns yet
-          </p>
+          <p className="text-sm text-muted-foreground text-center py-4">No campaigns yet</p>
         ) : (
           <div className="space-y-3">
             {displayCampaigns.map((campaign) => (
@@ -795,9 +747,7 @@ export function RecentCampaignsWidget({
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {campaign.subject}
-                  </p>
+                  <p className="text-sm font-medium truncate">{campaign.subject}</p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <span>{formatDate(campaign.createdAt)}</span>
                     <span>•</span>

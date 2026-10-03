@@ -7,11 +7,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
@@ -33,10 +29,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (
-      status === "unauthenticated" ||
-      (status === "authenticated" && session?.error)
-    ) {
+    if (status === "unauthenticated" || (status === "authenticated" && session?.error)) {
       if (typeof window !== "undefined") {
         router.push(
           `/auth/signin?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`,
@@ -67,9 +60,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <AppSidebar />
       <SidebarInset className="flex h-svh flex-col">
         <SidebarTrigger className="absolute left-3 top-3 z-20 h-9 w-9 rounded-full border border-border/70 bg-background/90 shadow-md backdrop-blur transition-shadow hover:shadow-lg md:top-[55%] md:-translate-y-1/2" />
-        <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
-          {children}
-        </div>
+        <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

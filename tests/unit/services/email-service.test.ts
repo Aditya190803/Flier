@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vite-plus/test";
 
 import * as gmail from "@/lib/gmail";
+import { fetchFileFromUrl } from "@/lib/attachment-fetcher";
 import { EmailService } from "@/lib/services/email-service";
 import { VerificationService } from "@/lib/services/verification-service";
 
@@ -74,9 +75,8 @@ const { verifyEmailLikeReal } = vi.hoisted(() => {
 // Mock dependencies
 vi.mock("@/lib/gmail", () => ({
   sendEmailViaAPI: vi.fn(),
-  replacePlaceholders: vi.fn(
-    (text: string, data: Record<string, string> = {}) =>
-      text.replace(/{{(.*?)}}/g, (match, key) => data[key.trim()] ?? match),
+  replacePlaceholders: vi.fn((text: string, data: Record<string, string> = {}) =>
+    text.replace(/{{(.*?)}}/g, (match, key) => data[key.trim()] ?? match),
   ),
   preResolveAttachments: vi.fn(async (attachments) => attachments),
   clearAttachmentCache: vi.fn(),
@@ -88,18 +88,27 @@ vi.mock("@/lib/attachment-fetcher", () => ({
   fetchFileFromUrl: vi.fn(),
 }));
 
-vi.mock("@/lib/services/verification-service", () => ({
-  VerificationService: {
-    verifyEmail: vi.fn(verifyEmailLikeReal),
-    verifyBatch: vi.fn(async (emails: string[]) => {
-      const results = new Map();
-      for (const email of emails) {
-        results.set(email, await verifyEmailLikeReal(email));
-      }
-      return results;
-    }),
-  },
-}));
+vi.mock("@/lib/services/verification-service", () => {
+  const verifyEmail = vi.fn(async (email: string) => {
+    const trimmed = email.trim().toLowerCase();
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(trimmed)) {
+      return { isValid: false, reason: "Invalid syntax", score: 0 };
+    }
+    return { isValid: true, score: 100 };
+  });
+  return {
+    VerificationService: {
+      verifyEmail,
+      verifyBatch: vi.fn(async (emails: string[]) => {
+        const results = new Map();
+        for (const e of emails) {
+          results.set(e, await verifyEmail(e));
+        }
+        return results;
+      }),
+    },
+  };
+});
 
 describe("EmailService", () => {
   let emailService: EmailService;
@@ -111,19 +120,29 @@ describe("EmailService", () => {
       (text: string, data: Record<string, string> = {}) =>
         text.replace(/{{(.*?)}}/g, (match, key) => data[key.trim()] ?? match),
     );
-    (VerificationService.verifyEmail as any).mockImplementation(
-      verifyEmailLikeReal,
-    );
-    (VerificationService.verifyBatch as any).mockImplementation(
-      async (emails: string[]) => {
-        const results = new Map();
-        for (const email of emails) {
-          results.set(email, await verifyEmailLikeReal(email));
-        }
-        return results;
+    (VerificationService.verifyEmail as any).mockImplementation(verifyEmailLikeReal);
+    (VerificationService.verifyBatch as any).mockImplementation(async (emails: string[]) => {
+      const results = new Map();
+      for (const email of emails) {
+        results.set(email, await verifyEmailLikeReal(email));
+      }
+      return results;
+    });
+    emailService = new EmailService(mockAccessToken, "sender@example.com");
+  });
+
+  it("does not send a message when its required personalized attachment fails", async () => {
+    vi.mocked(fetchFileFromUrl).mockRejectedValueOnce(new Error("File unavailable"));
+    const result = await emailService.sendSingle(
+      {
+        email: "reader@example.com",
+        personalizedAttachment: { url: "https://example.com/report.pdf" },
       },
+      { subject: "Report", body: "Your report is attached" },
     );
-    emailService = new EmailService(mockAccessToken);
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("Nothing was sent");
+    expect(gmail.sendEmailViaAPI).not.toHaveBeenCalled();
   });
 
   describe("sendCampaign", () => {
@@ -149,10 +168,7 @@ describe("EmailService", () => {
     });
 
     it("should skip invalid emails if verifyBeforeSending is true", async () => {
-      const recipients = [
-        { email: "valid@example.com" },
-        { email: "invalid@example.com" },
-      ];
+      const recipients = [{ email: "valid@example.com" }, { email: "invalid@example.com" }];
       const content = { subject: "Hello {{name}}", body: "World" };
 
       (VerificationService.verifyBatch as any).mockResolvedValue(
@@ -208,6 +224,161 @@ describe("EmailService", () => {
       expect(summary.sent).toBe(0);
       expect(summary.failed).toBe(1);
       expect(summary.results[0].status).toBe("error");
+    });
+  });
+
+  describe("sendPersonalizedBatch — chunked/time-budgeted sending", () => {
+    const makeEmails = (n: number) =>
+      Array.from({ length: n }, (_, i) => ({
+        to: `recipient${i}@example.com`,
+        subject: "Subject",
+        message: "Message",
+        originalRowData: {},
+      }));
+
+    it("processes the whole list and reports done: true when there is no deadline", async () => {
+      (gmail.sendEmailViaAPI as any).mockResolvedValue({
+        success: true,
+        messageId: "msg-1",
+      });
+
+      const emails = makeEmails(3);
+      const summary = await emailService.sendPersonalizedBatch(emails, {
+        delayBetweenEmails: 0,
+      });
+
+      expect(summary.done).toBe(true);
+      expect(summary.results).toHaveLength(3);
+      expect(summary.sent).toBe(3);
+    });
+
+    it("stops early and reports done: false once the deadline has passed", async () => {
+      (gmail.sendEmailViaAPI as any).mockResolvedValue({
+        success: true,
+        messageId: "msg-1",
+      });
+
+      const emails = makeEmails(5);
+      // Deadline already in the past — nothing should be processed after
+      // the very first iteration's check.
+      const summary = await emailService.sendPersonalizedBatch(emails, {
+        delayBetweenEmails: 0,
+        deadline: Date.now() - 1,
+      });
+
+      expect(summary.done).toBe(false);
+      expect(summary.results).toHaveLength(0);
+      expect(gmail.sendEmailViaAPI).not.toHaveBeenCalled();
+    });
+
+    it("processes a partial chunk before the deadline cuts it off", async () => {
+      (gmail.sendEmailViaAPI as any).mockResolvedValue({
+        success: true,
+        messageId: "msg-1",
+      });
+
+      const emails = makeEmails(5);
+      // Real-timer based: the inter-email delay (20ms) is longer than the
+      // remaining budget (15ms), so the deadline check before the second
+      // iteration should trip, leaving 4 recipients unprocessed.
+      const summary = await emailService.sendPersonalizedBatch(emails, {
+        delayBetweenEmails: 20,
+        deadline: Date.now() + 15,
+      });
+
+      expect(summary.done).toBe(false);
+      expect(summary.results.length).toBeGreaterThan(0);
+      expect(summary.results.length).toBeLessThan(5);
+    });
+
+    it("substitutes placeholders from originalRowData", async () => {
+      (gmail.sendEmailViaAPI as any).mockResolvedValue({
+        success: true,
+        messageId: "msg-1",
+      });
+
+      await emailService.sendPersonalizedBatch(
+        [
+          {
+            to: "ada@example.com",
+            subject: "Hello {{name}}",
+            message: "<p>You work at {{company}}, {{name}}.</p>",
+            originalRowData: { name: "Ada", company: "Analytical Engines" },
+          },
+        ],
+        { delayBetweenEmails: 0 },
+      );
+
+      const call = (gmail.sendEmailViaAPI as any).mock.calls[0];
+      expect(call[3]).toBe("Hello Ada");
+      expect(call[4]).toBe("<p>You work at Analytical Engines, Ada.</p>");
+    });
+
+    it("exposes the recipient address as an {{email}} placeholder", async () => {
+      (gmail.sendEmailViaAPI as any).mockResolvedValue({
+        success: true,
+        messageId: "msg-1",
+      });
+
+      await emailService.sendPersonalizedBatch(
+        [
+          {
+            to: "ada@example.com",
+            subject: "Receipt",
+            message: "Sent to {{email}}",
+            originalRowData: {},
+          },
+        ],
+        { delayBetweenEmails: 0 },
+      );
+
+      expect((gmail.sendEmailViaAPI as any).mock.calls[0][4]).toBe("Sent to ada@example.com");
+    });
+
+    it("leaves unmatched placeholders untouched rather than blanking them", async () => {
+      (gmail.sendEmailViaAPI as any).mockResolvedValue({
+        success: true,
+        messageId: "msg-1",
+      });
+
+      await emailService.sendPersonalizedBatch(
+        [
+          {
+            to: "ada@example.com",
+            subject: "Hi {{nickname}}",
+            message: "Body",
+            originalRowData: { name: "Ada" },
+          },
+        ],
+        { delayBetweenEmails: 0 },
+      );
+
+      expect((gmail.sendEmailViaAPI as any).mock.calls[0][3]).toBe("Hi {{nickname}}");
+    });
+
+    it("forwards per-message cc and bcc to the sender", async () => {
+      (gmail.sendEmailViaAPI as any).mockResolvedValue({
+        success: true,
+        messageId: "msg-1",
+      });
+
+      await emailService.sendPersonalizedBatch(
+        [
+          {
+            to: "ada@example.com",
+            subject: "Subject",
+            message: "Message",
+            originalRowData: {},
+            cc: ["cc@example.com"],
+            bcc: ["bcc@example.com"],
+          },
+        ],
+        { delayBetweenEmails: 0 },
+      );
+
+      const call = (gmail.sendEmailViaAPI as any).mock.calls[0];
+      expect(call[8]).toEqual(["cc@example.com"]);
+      expect(call[9]).toEqual(["bcc@example.com"]);
     });
   });
 });

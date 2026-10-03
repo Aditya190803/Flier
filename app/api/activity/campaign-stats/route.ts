@@ -1,15 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { getServerSession } from "next-auth";
-
 import { aggregateDeviceData } from "@/lib/activity/devices";
+import { isAuthed, requireSession } from "@/lib/api-auth";
 import { databases, config, Query } from "@/lib/appwrite-server";
-import { authOptions } from "@/lib/auth";
-import {
-  PlanLimitError,
-  assertFeature,
-  planLimitResponse,
-} from "@/lib/billing";
+import { PlanLimitError, assertFeature, planLimitResponse } from "@/lib/billing";
 import { apiLogger } from "@/lib/logger";
 import type { TrackingEvent } from "@/types/activity";
 import type { CampaignDocument } from "@/types/appwrite";
@@ -21,10 +15,9 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
     const { searchParams } = new URL(request.url);
@@ -32,19 +25,12 @@ export async function GET(request: NextRequest) {
     const advanced = searchParams.get("advanced") === "true";
 
     if (!campaignId) {
-      return NextResponse.json(
-        { error: "Campaign ID is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Campaign ID is required" }, { status: 400 });
     }
 
     if (advanced) {
       try {
-        await assertFeature(
-          session.user.email,
-          "advancedAnalytics",
-          "Advanced analytics",
-        );
+        await assertFeature(auth.email, "advancedAnalytics", "Advanced analytics");
       } catch (error) {
         if (error instanceof PlanLimitError) {
           return planLimitResponse(error);
@@ -60,7 +46,7 @@ export async function GET(request: NextRequest) {
       campaignId,
     )) as CampaignDocument;
 
-    if (campaign.user_email !== session.user.email) {
+    if (campaign.user_email !== auth.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -76,10 +62,8 @@ export async function GET(request: NextRequest) {
     const opens = events.filter((e) => e.event_type === "open");
     const clicks = events.filter((e) => e.event_type === "click");
 
-    const uniqueOpens = new Set(opens.map((e) => e.recipient_id || e.email))
-      .size;
-    const uniqueClicks = new Set(clicks.map((e) => e.recipient_id || e.email))
-      .size;
+    const uniqueOpens = new Set(opens.map((e) => e.recipient_id || e.email)).size;
+    const uniqueClicks = new Set(clicks.map((e) => e.recipient_id || e.email)).size;
 
     const baseStats = {
       opens: opens.length,
@@ -93,10 +77,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Advanced stats: Time series (grouped by day)
-    const timeSeriesMap = new Map<
-      string,
-      { date: string; opens: number; clicks: number }
-    >();
+    const timeSeriesMap = new Map<string, { date: string; opens: number; clicks: number }>();
 
     events.forEach((event) => {
       const date = new Date(event.created_at).toISOString().split("T")[0];
@@ -131,10 +112,7 @@ export async function GET(request: NextRequest) {
         ua.includes("Office")
       ) {
         client = "Outlook";
-      } else if (
-        ua.includes("AppleWebKit") &&
-        (ua.includes("iPhone") || ua.includes("iPad"))
-      ) {
+      } else if (ua.includes("AppleWebKit") && (ua.includes("iPhone") || ua.includes("iPad"))) {
         client = "Apple Mail (iOS)";
       } else if (ua.includes("Macintosh") && ua.includes("AppleWebKit")) {
         client = "Apple Mail (macOS)";
@@ -144,30 +122,24 @@ export async function GET(request: NextRequest) {
 
       clientMap.set(client, (clientMap.get(client) || 0) + 1);
     });
-    const emailClients = Array.from(clientMap.entries()).map(
-      ([name, value]) => ({ name, value }),
-    );
+    const emailClients = Array.from(clientMap.entries()).map(([name, value]) => ({ name, value }));
 
-    // Advanced stats: Timing
-    const sentAt = new Date(campaign.created_at).getTime();
+    // Advanced stats: Timing.
+    // `created_at` is an optional attribute; fall back to Appwrite's own
+    // creation timestamp so a missing value can't turn every derived
+    // duration below into NaN.
+    const sentAt = new Date(campaign.created_at || campaign.$createdAt).getTime();
     const firstOpen =
-      opens.length > 0
-        ? Math.min(...opens.map((e) => new Date(e.created_at).getTime()))
-        : null;
+      opens.length > 0 ? Math.min(...opens.map((e) => new Date(e.created_at).getTime())) : null;
     const firstClick =
-      clicks.length > 0
-        ? Math.min(...clicks.map((e) => new Date(e.created_at).getTime()))
-        : null;
+      clicks.length > 0 ? Math.min(...clicks.map((e) => new Date(e.created_at).getTime())) : null;
 
     const timing = {
       timeToFirstOpen: firstOpen ? (firstOpen - sentAt) / 1000 : null, // seconds
       timeToFirstClick: firstClick ? (firstClick - sentAt) / 1000 : null, // seconds
       averageTimeToOpen:
         opens.length > 0
-          ? opens.reduce(
-              (acc, e) => acc + (new Date(e.created_at).getTime() - sentAt),
-              0,
-            ) /
+          ? opens.reduce((acc, e) => acc + (new Date(e.created_at).getTime() - sentAt), 0) /
             opens.length /
             1000
           : null,
@@ -208,9 +180,7 @@ export async function GET(request: NextRequest) {
     // Calculate unique clicks per link
     linkMap.forEach((data, linkId) => {
       const uniqueForLink = new Set(
-        clicks
-          .filter((e) => e.link_id === linkId)
-          .map((e) => e.recipient_id || e.email),
+        clicks.filter((e) => e.link_id === linkId).map((e) => e.recipient_id || e.email),
       ).size;
       data.uniqueClicks = uniqueForLink;
     });
@@ -227,13 +197,7 @@ export async function GET(request: NextRequest) {
       linkStats,
     });
   } catch (error) {
-    apiLogger.error(
-      "Error fetching campaign stats",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Failed to fetch campaign stats" },
-      { status: 500 },
-    );
+    apiLogger.error("Error fetching campaign stats", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Failed to fetch campaign stats" }, { status: 500 });
   }
 }

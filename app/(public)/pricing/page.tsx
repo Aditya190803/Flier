@@ -35,22 +35,17 @@ const LIMIT_ROWS: Array<{
 }> = [
   {
     label: "Emails / day",
-    value: (id) =>
-      id === "enterprise" ? "Custom" : String(PLANS[id].limits.emailsPerDay),
+    value: (id) => (id === "enterprise" ? "Custom" : String(PLANS[id].limits.emailsPerDay)),
   },
   {
     label: "Emails / month",
     value: (id) =>
-      id === "enterprise"
-        ? "Custom"
-        : PLANS[id].limits.emailsPerMonth.toLocaleString("en-IN"),
+      id === "enterprise" ? "Custom" : PLANS[id].limits.emailsPerMonth.toLocaleString("en-IN"),
   },
   {
     label: "Contacts",
     value: (id) =>
-      id === "enterprise"
-        ? "Custom"
-        : PLANS[id].limits.contacts.toLocaleString("en-IN"),
+      id === "enterprise" ? "Custom" : PLANS[id].limits.contacts.toLocaleString("en-IN"),
   },
 ];
 
@@ -59,24 +54,16 @@ const FEATURE_ROWS: Array<{ label: string; key: PlanFeature }> = [
   { label: "Advanced analytics", key: "advancedAnalytics" },
   { label: "Report export", key: "exportReports" },
   { label: "A/B testing", key: "abTesting" },
-  { label: "Drip campaigns", key: "drip" },
   { label: "Webhooks", key: "webhooks" },
   { label: "Teams", key: "teams" },
 ];
 
 function CellYes() {
-  return (
-    <Check className="mx-auto h-4 w-4 text-emerald-500" aria-label="Included" />
-  );
+  return <Check className="mx-auto h-4 w-4 text-emerald-500" aria-label="Included" />;
 }
 
 function CellNo() {
-  return (
-    <Minus
-      className="mx-auto h-4 w-4 text-muted-foreground/40"
-      aria-label="Not included"
-    />
-  );
+  return <Minus className="mx-auto h-4 w-4 text-muted-foreground/40" aria-label="Not included" />;
 }
 
 export default function PricingPage() {
@@ -133,9 +120,8 @@ export default function PricingPage() {
             Simple plans for every sender
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto text-base sm:text-lg">
-            Free forever to start. Unlock analytics on Insights. Full product on
-            Pro — 500 emails/day, Gmail&apos;s free-account ceiling. Enterprise
-            is custom.
+            Free forever to start. Unlock analytics on Insights. Full product on Pro — 500
+            emails/day, Gmail&apos;s free-account ceiling. Enterprise is custom.
           </p>
 
           <div
@@ -172,14 +158,9 @@ export default function PricingPage() {
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4 items-stretch">
           {PLAN_ORDER.map((id) => {
             const plan = PLANS[id];
-            const price =
-              interval === "annual"
-                ? plan.priceInrAnnual
-                : plan.priceInrMonthly;
+            const price = interval === "annual" ? plan.priceInrAnnual : plan.priceInrMonthly;
             const monthlyEquiv =
-              interval === "annual" &&
-              plan.priceInrAnnual != null &&
-              plan.priceInrAnnual > 0
+              interval === "annual" && plan.priceInrAnnual != null && plan.priceInrAnnual > 0
                 ? Math.round(plan.priceInrAnnual / 12)
                 : null;
             const isPopular = Boolean(plan.popular);
@@ -203,22 +184,14 @@ export default function PricingPage() {
                 <CardHeader className={isPopular ? "pt-8" : undefined}>
                   <CardTitle className="flex items-center gap-2 text-lg">
                     {plan.name}
-                    {id === "pro" && (
-                      <Zap className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                    )}
+                    {id === "pro" && <Zap className="h-4 w-4 text-yellow-500 fill-yellow-500" />}
                   </CardTitle>
-                  <CardDescription className="min-h-[2.5rem]">
-                    {plan.description}
-                  </CardDescription>
+                  <CardDescription className="min-h-[2.5rem]">{plan.description}</CardDescription>
                   <div className="pt-4">
                     {price === null ? (
-                      <div className="text-3xl font-bold tracking-tight">
-                        Custom
-                      </div>
+                      <div className="text-3xl font-bold tracking-tight">Custom</div>
                     ) : price === 0 ? (
-                      <div className="text-3xl font-bold tracking-tight">
-                        Free
-                      </div>
+                      <div className="text-3xl font-bold tracking-tight">Free</div>
                     ) : (
                       <div>
                         <span className="text-3xl font-bold tracking-tight tabular-nums">
@@ -258,9 +231,7 @@ export default function PricingPage() {
                     Basic analytics
                   </div>
                   {FEATURE_ROWS.filter(
-                    (r) =>
-                      r.label !== "Basic analytics" &&
-                      plan.limits.features[r.key],
+                    (r) => r.label !== "Basic analytics" && plan.limits.features[r.key],
                   ).map((r) => (
                     <div key={r.label} className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-emerald-500 shrink-0" />
@@ -298,9 +269,7 @@ export default function PricingPage() {
         {/* Comparison table */}
         <div className="mt-16 overflow-hidden rounded-2xl border bg-card">
           <div className="border-b px-6 py-4">
-            <h2 className="text-lg font-semibold tracking-tight">
-              Full comparison
-            </h2>
+            <h2 className="text-lg font-semibold tracking-tight">Full comparison</h2>
             <p className="text-sm text-muted-foreground">
               Server-enforced limits. UI gates are UX only.
             </p>
@@ -309,9 +278,7 @@ export default function PricingPage() {
             <table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="border-b bg-muted/30">
-                  <th className="px-6 py-3 text-left font-medium text-muted-foreground">
-                    Feature
-                  </th>
+                  <th className="px-6 py-3 text-left font-medium text-muted-foreground">Feature</th>
                   {PLAN_ORDER.map((id) => (
                     <th
                       key={id}
@@ -327,14 +294,9 @@ export default function PricingPage() {
               <tbody>
                 {LIMIT_ROWS.map((row) => (
                   <tr key={row.label} className="border-b last:border-0">
-                    <td className="px-6 py-3 text-muted-foreground">
-                      {row.label}
-                    </td>
+                    <td className="px-6 py-3 text-muted-foreground">{row.label}</td>
                     {PLAN_ORDER.map((id) => (
-                      <td
-                        key={id}
-                        className="px-4 py-3 text-center tabular-nums font-medium"
-                      >
+                      <td key={id} className="px-4 py-3 text-center tabular-nums font-medium">
                         {row.value(id)}
                       </td>
                     ))}
@@ -342,16 +304,10 @@ export default function PricingPage() {
                 ))}
                 {FEATURE_ROWS.map((row) => (
                   <tr key={row.label} className="border-b last:border-0">
-                    <td className="px-6 py-3 text-muted-foreground">
-                      {row.label}
-                    </td>
+                    <td className="px-6 py-3 text-muted-foreground">{row.label}</td>
                     {PLAN_ORDER.map((id) => (
                       <td key={id} className="px-4 py-3 text-center">
-                        {featureIncluded(id, row.key, row.label) ? (
-                          <CellYes />
-                        ) : (
-                          <CellNo />
-                        )}
+                        {featureIncluded(id, row.key, row.label) ? <CellYes /> : <CellNo />}
                       </td>
                     ))}
                   </tr>
@@ -363,8 +319,8 @@ export default function PricingPage() {
 
         <div className="mt-10 text-center space-y-3">
           <p className="text-xs text-muted-foreground">
-            Payments via Razorpay (UPI, cards, netbanking). Annual ≈ 2 months
-            free. Cancel anytime — paid until period end, then Free.
+            Payments via Razorpay (UPI, cards, netbanking). Annual ≈ 2 months free. Cancel anytime —
+            paid until period end, then Free.
           </p>
           <p className="text-sm text-muted-foreground">
             Need SSO, invoices, or custom caps?{" "}

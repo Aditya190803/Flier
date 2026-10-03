@@ -2,12 +2,9 @@
  * Unit tests for Refresh Token API route
  */
 import { getServerSession } from "next-auth";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vite-plus/test";
 
-import {
-  createMockLoggerModule,
-  createSpyLogger,
-} from "@/tests/helpers/mockLoggerModule";
+import { createMockLoggerModule, createSpyLogger } from "@/tests/helpers/mockLoggerModule";
 
 // Mock next-auth
 vi.mock("next-auth", () => ({
@@ -38,8 +35,7 @@ describe("Refresh Token API", () => {
       } as any);
 
       const session = await getServerSession();
-      const isExpired =
-        Date.now() >= ((session as any)?.accessTokenExpires || 0);
+      const isExpired = Date.now() >= ((session as any)?.accessTokenExpires || 0);
 
       expect(isExpired).toBe(false);
     });
@@ -54,8 +50,7 @@ describe("Refresh Token API", () => {
       } as any);
 
       const session = await getServerSession();
-      const isExpired =
-        Date.now() >= ((session as any)?.accessTokenExpires || 0);
+      const isExpired = Date.now() >= ((session as any)?.accessTokenExpires || 0);
 
       expect(isExpired).toBe(true);
     });
@@ -144,9 +139,7 @@ describe("Refresh Token API", () => {
 
   describe("Error Recovery", () => {
     it("should handle network errors during refresh", async () => {
-      vi.mocked(getServerSession).mockRejectedValueOnce(
-        new Error("Network error"),
-      );
+      vi.mocked(getServerSession).mockRejectedValueOnce(new Error("Network error"));
 
       await expect(getServerSession()).rejects.toThrow("Network error");
     });

@@ -16,9 +16,7 @@ export interface Base64AttachmentUploadInput {
   type: string;
 }
 
-export async function uploadAttachmentFile(
-  file: File,
-): Promise<UploadedAttachment> {
+export async function uploadAttachmentFile(file: File): Promise<UploadedAttachment> {
   return storageService.uploadFile(file, "");
 }
 
@@ -39,13 +37,13 @@ function decodeBase64ToBytes(data: string): Uint8Array {
 
   try {
     const byteCharacters = atob(normalized);
-    const byteNumbers = new Array(byteCharacters.length);
+    const byteNumbers = new Uint8Array(byteCharacters.length);
 
     for (let index = 0; index < byteCharacters.length; index++) {
       byteNumbers[index] = byteCharacters.charCodeAt(index);
     }
 
-    return new Uint8Array(byteNumbers);
+    return byteNumbers;
   } catch {
     throw new Error("Invalid base64 attachment data");
   }

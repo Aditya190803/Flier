@@ -96,7 +96,7 @@ const settingsCategories = [
     items: [
       {
         name: "Integrations",
-        description: "Connect EchoMail with external tools and services",
+        description: "Connect Flier with external tools and services",
         icon: Plug,
         color: "text-info",
         bgColor: "bg-info/10",
@@ -168,7 +168,7 @@ export default function SettingsPage() {
             Settings
           </div>
         }
-        description="Manage your EchoMail account, sending setup, and workspace controls"
+        description="Manage your Flier account, sending setup, and workspace controls"
       />
 
       {/* Settings Categories */}
@@ -178,10 +178,7 @@ export default function SettingsPage() {
             <h2 className="text-lg font-semibold mb-4">{category.title}</h2>
             <div className="grid gap-4">
               {category.items.map((item) => (
-                <Card
-                  key={item.name}
-                  className="transition-all duration-200 hover:shadow-md"
-                >
+                <Card key={item.name} className="transition-all duration-200 hover:shadow-md">
                   {item.href ? (
                     <Link href={item.href}>
                       <CardContent className="p-5">
@@ -191,9 +188,7 @@ export default function SettingsPage() {
                           </div>
                           <div className="flex-1">
                             <h3 className="font-semibold">{item.name}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {item.description}
-                            </p>
+                            <p className="text-sm text-muted-foreground">{item.description}</p>
                           </div>
                           <ChevronRight className="h-5 w-5 text-muted-foreground" />
                         </div>
@@ -214,9 +209,7 @@ export default function SettingsPage() {
                               </span>
                             ) : null}
                           </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {item.description}
-                          </p>
+                          <p className="text-sm text-muted-foreground">{item.description}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -244,9 +237,7 @@ export default function SettingsPage() {
             </div>
             <div className="flex items-center justify-between py-2 border-b">
               <span className="text-muted-foreground">Name</span>
-              <span className="font-medium">
-                {session?.user?.name || "Not set"}
-              </span>
+              <span className="font-medium">{session?.user?.name || "Not set"}</span>
             </div>
             <div className="flex items-center justify-between py-2">
               <span className="text-muted-foreground">Authentication</span>

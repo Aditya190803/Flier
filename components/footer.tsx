@@ -17,19 +17,17 @@ export function Footer() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
                 <Mail className="h-4 w-4" />
               </div>
-              <span className="text-xl font-bold tracking-tight">EchoMail</span>
+              <span className="text-xl font-bold tracking-tight">Flier</span>
             </div>
             <p className="text-sm text-muted-foreground max-w-md">
-              Send personalized emails at scale with EchoMail's powerful Gmail
-              API integration. Privacy-first, secure, and GDPR compliant.
+              Send personalized emails at scale with Flier's powerful Gmail API integration.
+              Privacy-first, secure, and GDPR compliant.
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4 text-sm">
-              Product
-            </h3>
+            <h3 className="font-semibold text-foreground mb-4 text-sm">Product</h3>
             <ul className="space-y-3">
               <li>
                 <Link
@@ -76,9 +74,7 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4 text-sm">
-              Legal
-            </h3>
+            <h3 className="font-semibold text-foreground mb-4 text-sm">Legal</h3>
             <ul className="space-y-3">
               <li>
                 <Link
@@ -103,7 +99,7 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="mt-12 pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            © {currentYear} EchoMail. All rights reserved.
+            © {currentYear} Flier. All rights reserved.
           </p>
         </div>
       </div>

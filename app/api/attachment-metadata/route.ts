@@ -1,26 +1,21 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getServerSession } from "next-auth";
-
+import { isAuthed, requireSession } from "@/lib/api-auth";
 import {
   extractAttachmentFileName,
   getAttachmentFileType,
   personalizeAttachmentFileName,
 } from "@/lib/attachments/metadata";
-import {
-  getAttachmentSource,
-  getDirectDownloadUrl,
-} from "@/lib/attachments/url";
-import { authOptions } from "@/lib/auth";
+import { getAttachmentSource, getDirectDownloadUrl } from "@/lib/attachments/url";
 import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
     const body = await request.json();
@@ -45,7 +40,7 @@ export async function POST(request: NextRequest) {
         method: "HEAD",
         redirect: "follow",
         headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; EchoMail/1.0)",
+          "User-Agent": "Mozilla/5.0 (compatible; Flier/1.0)",
         },
       });
 
@@ -55,7 +50,7 @@ export async function POST(request: NextRequest) {
           method: "GET",
           redirect: "follow",
           headers: {
-            "User-Agent": "Mozilla/5.0 (compatible; EchoMail/1.0)",
+            "User-Agent": "Mozilla/5.0 (compatible; Flier/1.0)",
             Range: "bytes=0-0", // Only fetch first byte to get headers
           },
         });
@@ -68,12 +63,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            "Failed to access the file. Please check the URL is accessible.",
+          error: "Failed to access the file. Please check the URL is accessible.",
           metadata: {
-            fileName: recipientName
-              ? `${recipientName}_attachment.pdf`
-              : "attachment.pdf",
+            fileName: recipientName ? `${recipientName}_attachment.pdf` : "attachment.pdf",
             fileSize: null,
             fileType: "other" as const,
             source,
@@ -84,23 +76,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const contentType =
-      response.headers.get("content-type") || "application/octet-stream";
+    const contentType = response.headers.get("content-type") || "application/octet-stream";
     const contentDisposition = response.headers.get("content-disposition");
     const contentLength = response.headers.get("content-length");
 
-    const fileName = extractAttachmentFileName(
-      url,
-      contentDisposition,
-      undefined,
-      contentType,
-    );
+    const fileName = extractAttachmentFileName(url, contentDisposition, undefined, contentType);
     const fileType = getAttachmentFileType(url, contentType);
     const fileSize = contentLength ? parseInt(contentLength, 10) : null;
-    const personalizedFileName = personalizeAttachmentFileName(
-      fileName,
-      recipientName,
-    );
+    const personalizedFileName = personalizeAttachmentFileName(fileName, recipientName);
 
     logger.debug(`Attachment metadata fetched`, {
       fileName: personalizedFileName,
@@ -122,13 +105,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    logger.error(
-      "Error in attachment-metadata API",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    logger.error("Error in attachment-metadata API", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

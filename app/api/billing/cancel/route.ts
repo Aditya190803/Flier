@@ -3,11 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
-import {
-  cancelRazorpaySubscription,
-  getSubscription,
-  upsertSubscription,
-} from "@/lib/billing";
+import { cancelRazorpaySubscription, getSubscription, upsertSubscription } from "@/lib/billing";
 import { apiLogger } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
@@ -22,10 +18,7 @@ export async function POST() {
 
     const sub = await getSubscription(session.user.email);
     if (!sub?.razorpay_subscription_id) {
-      return NextResponse.json(
-        { error: "No active subscription" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "No active subscription" }, { status: 400 });
     }
 
     try {
@@ -44,18 +37,11 @@ export async function POST() {
 
     return NextResponse.json({
       success: true,
-      message:
-        "Subscription will cancel at the end of the current billing period.",
+      message: "Subscription will cancel at the end of the current billing period.",
       currentPeriodEnd: sub.current_period_end,
     });
   } catch (error) {
-    apiLogger.error(
-      "Billing cancel error",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Failed to cancel subscription" },
-      { status: 500 },
-    );
+    apiLogger.error("Billing cancel error", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Failed to cancel subscription" }, { status: 500 });
   }
 }

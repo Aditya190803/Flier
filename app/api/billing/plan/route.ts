@@ -36,13 +36,7 @@ export async function GET() {
       }),
     });
   } catch (error) {
-    apiLogger.error(
-      "Billing plan GET error",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Failed to load billing plan" },
-      { status: 500 },
-    );
+    apiLogger.error("Billing plan GET error", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Failed to load billing plan" }, { status: 500 });
   }
 }

@@ -116,8 +116,7 @@ const steps = [
     step: "01",
     icon: Lock,
     title: "Connect Gmail",
-    description:
-      "Sign in with Google — your account connects securely via OAuth in seconds.",
+    description: "Sign in with Google — your account connects securely via OAuth in seconds.",
   },
   {
     step: "02",
@@ -130,8 +129,7 @@ const steps = [
     step: "03",
     icon: Send,
     title: "Send & Track",
-    description:
-      "Compose, preview every email, then send. Watch delivery happen in real-time.",
+    description: "Compose, preview every email, then send. Watch delivery happen in real-time.",
   },
 ];
 
@@ -156,10 +154,7 @@ function Reveal({
     const obs = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) {
-          timeoutRef.current = setTimeout(
-            () => el.classList.add("is-visible"),
-            delay,
-          );
+          timeoutRef.current = setTimeout(() => el.classList.add("is-visible"), delay);
           obs.disconnect();
         }
       },
@@ -212,19 +207,16 @@ export default function HomePage() {
         {/* ══ HERO — split layout ══════════════════════════ */}
         <section className="relative overflow-hidden">
           {/* mesh glow */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 -z-10 bg-primary/5"
-          />
+          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-primary/5" />
 
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
             <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
               {/* left: text */}
               <div className="space-y-7">
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.08] text-balance">
-                  Send <span className="text-primary">personalised</span> emails{" "}
+                  Send your <span className="text-primary">Flier</span>{" "}
                   <br className="hidden sm:block" />
-                  at scale
+                  to the whole list
                 </h1>
 
                 <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-md">
@@ -286,8 +278,7 @@ export default function HomePage() {
                 Everything you need to succeed
               </h2>
               <p className="text-muted-foreground max-w-xl mx-auto">
-                Powerful tools designed to make your email campaigns more
-                effective and efficient.
+                Powerful tools designed to make your email campaigns more effective and efficient.
               </p>
             </Reveal>
 
@@ -297,14 +288,10 @@ export default function HomePage() {
                 return (
                   <Reveal key={i} delay={i * 60}>
                     <div className="h-full rounded-xl border bg-card p-6 hover:border-primary/40 hover:shadow-md transition-all duration-200">
-                      <div
-                        className={`inline-flex p-2.5 rounded-lg ${f.bg} mb-4`}
-                      >
+                      <div className={`inline-flex p-2.5 rounded-lg ${f.bg} mb-4`}>
                         <Icon className={`h-5 w-5 ${f.accent}`} />
                       </div>
-                      <h3 className="text-base font-semibold mb-2">
-                        {f.title}
-                      </h3>
+                      <h3 className="text-base font-semibold mb-2">{f.title}</h3>
                       <p className="text-muted-foreground text-sm leading-relaxed">
                         {f.description}
                       </p>
@@ -327,8 +314,8 @@ export default function HomePage() {
                 Start free. Scale when you need to.
               </h2>
               <p className="text-muted-foreground max-w-xl mx-auto">
-                Hard server-side limits. Unlock analytics on Insights, full
-                product on Pro. Annual saves two months.
+                Hard server-side limits. Unlock analytics on Insights, full product on Pro. Annual
+                saves two months.
               </p>
             </Reveal>
 
@@ -344,21 +331,15 @@ export default function HomePage() {
                   >
                     <div className="flex items-center justify-between mb-3">
                       <span className="font-semibold">{p.name}</span>
-                      {p.highlight && (
-                        <Badge className="text-[10px]">Popular</Badge>
-                      )}
+                      {p.highlight && <Badge className="text-[10px]">Popular</Badge>}
                     </div>
                     <div className="text-2xl font-bold tracking-tight mb-1 tabular-nums">
                       {p.price}
                       {p.price.startsWith("₹") && p.price !== "₹0" && (
-                        <span className="text-sm font-normal text-muted-foreground">
-                          /mo
-                        </span>
+                        <span className="text-sm font-normal text-muted-foreground">/mo</span>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground flex-1 mb-5">
-                      {p.blurb}
-                    </p>
+                    <p className="text-sm text-muted-foreground flex-1 mb-5">{p.blurb}</p>
                     <Button
                       asChild
                       size="sm"
@@ -389,9 +370,7 @@ export default function HomePage() {
               <Badge variant="outline" className="mb-4">
                 How It Works
               </Badge>
-              <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-                Start sending in minutes
-              </h2>
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4">Start sending in minutes</h2>
               <p className="text-muted-foreground max-w-xl mx-auto">
                 Three simple steps — no technical knowledge required.
               </p>
@@ -415,9 +394,7 @@ export default function HomePage() {
                         </span>
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold mb-1.5">
-                          {item.title}
-                        </h3>
+                        <h3 className="text-lg font-semibold mb-1.5">{item.title}</h3>
                         <p className="text-muted-foreground text-sm leading-relaxed">
                           {item.description}
                         </p>
@@ -447,8 +424,8 @@ export default function HomePage() {
                   Ready to reach your audience?
                 </h2>
                 <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
-                  Sign in with Google and send your first personalised campaign
-                  in under five minutes.
+                  Sign in with Google and send your first personalised campaign in under five
+                  minutes.
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:[&>*]:flex-1">
@@ -464,11 +441,7 @@ export default function HomePage() {
                 </div>
 
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-5 text-sm text-muted-foreground">
-                  {[
-                    "No credit card",
-                    "Free forever tier",
-                    "Plans from ₹299",
-                  ].map((t) => (
+                  {["No credit card", "Free forever tier", "Plans from ₹299"].map((t) => (
                     <div key={t} className="flex items-center gap-1.5">
                       <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
                       {t}

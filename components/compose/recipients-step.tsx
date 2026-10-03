@@ -1,12 +1,4 @@
-import {
-  Mail,
-  FileSpreadsheet,
-  Tag,
-  Trash2,
-  Users,
-  X,
-  CheckCircle,
-} from "lucide-react";
+import { Mail, FileSpreadsheet, Tag, Trash2, Users, X, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { LazyCSVUpload } from "@/components/lazy-components";
@@ -16,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { CSVRow } from "@/types/email";
 
+import { SavedAudiences } from "./saved-audiences";
 import type { Contact, ContactGroup } from "./compose-types";
 
 interface ManualEntry {
@@ -85,15 +78,14 @@ export function RecipientsStep({
 }: RecipientsStepProps) {
   return (
     <div className="divide-y divide-border/70 -mx-4 md:-mx-6 lg:-mx-8">
+      <SavedAudiences groups={groups} onApply={handleCsvData} />
       <section className="px-4 md:px-6 lg:px-8 py-6">
         <div className="flex items-start gap-3 mb-4">
           <div className="h-9 w-9 rounded-xl border bg-muted/20 flex items-center justify-center text-muted-foreground">
             <Mail className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <h3 className="text-sm font-semibold text-foreground">
-              Add recipients manually
-            </h3>
+            <h3 className="text-sm font-semibold text-foreground">Add recipients manually</h3>
             <p className="text-sm text-muted-foreground">
               Add recipients one by one. Names can be used for personalisation.
             </p>
@@ -137,20 +129,14 @@ export function RecipientsStep({
               }}
             />
           </div>
-          <Button
-            type="button"
-            onClick={addManualEntry}
-            disabled={!manualEmail.trim()}
-          >
+          <Button type="button" onClick={addManualEntry} disabled={!manualEmail.trim()}>
             Add
           </Button>
         </div>
 
         {manualEntries.length > 0 && (
           <div className="space-y-2 mt-4">
-            <Label className="text-xs text-muted-foreground">
-              Added manually:
-            </Label>
+            <Label className="text-xs text-muted-foreground">Added manually:</Label>
             <div className="flex flex-wrap gap-2">
               {manualEntries.map((entry, index) => (
                 <Badge
@@ -182,16 +168,13 @@ export function RecipientsStep({
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-sm font-semibold text-foreground">
-                  Import from CSV
-                </h3>
+                <h3 className="text-sm font-semibold text-foreground">Import from CSV</h3>
                 <Badge variant="secondary">Best for bulk</Badge>
               </div>
               <p className="text-sm text-muted-foreground">
                 Use a CSV to unlock full personalisation with fields like{" "}
                 <span className="font-mono text-[13px]">{"{name}"}</span>,{" "}
-                <span className="font-mono text-[13px]">{"{company}"}</span>,
-                and more.
+                <span className="font-mono text-[13px]">{"{company}"}</span>, and more.
               </p>
             </div>
           </div>
@@ -211,9 +194,7 @@ export function RecipientsStep({
               <Tag className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <h3 className="text-sm font-semibold text-foreground">
-                Contact groups
-              </h3>
+              <h3 className="text-sm font-semibold text-foreground">Contact groups</h3>
               <p className="text-sm text-muted-foreground">
                 Add everyone from a group in one click.
               </p>
@@ -231,22 +212,16 @@ export function RecipientsStep({
                   onClick={() => toggleGroup(groupId)}
                   aria-pressed={selectedGroups.has(groupId)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
-                    selectedGroups.has(groupId)
-                      ? "bg-primary/10 border-primary"
-                      : "hover:bg-muted"
+                    selectedGroups.has(groupId) ? "bg-primary/10 border-primary" : "hover:bg-muted"
                   }`}
                   type="button"
                 >
-                  <span
-                    className={`w-2 h-2 rounded-full ${getGroupColorClass(group.color)}`}
-                  />
+                  <span className={`w-2 h-2 rounded-full ${getGroupColorClass(group.color)}`} />
                   <span className="font-medium">{group.name}</span>
                   <Badge variant="secondary" className="text-xs">
                     {group.contact_ids?.length ?? 0}
                   </Badge>
-                  {selectedGroups.has(groupId) && (
-                    <CheckCircle className="h-4 w-4 text-primary" />
-                  )}
+                  {selectedGroups.has(groupId) && <CheckCircle className="h-4 w-4 text-primary" />}
                 </button>
               );
             })}
@@ -288,12 +263,8 @@ export function RecipientsStep({
                   className="sr-only"
                 />
                 <div className="flex-1 min-w-0">
-                  {contact.name && (
-                    <p className="font-medium truncate">{contact.name}</p>
-                  )}
-                  <p className="text-sm text-muted-foreground truncate">
-                    {contact.email}
-                  </p>
+                  {contact.name && <p className="font-medium truncate">{contact.name}</p>}
+                  <p className="text-sm text-muted-foreground truncate">{contact.email}</p>
                 </div>
                 {selectedContacts.has(contact.$id) && (
                   <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />

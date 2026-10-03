@@ -48,7 +48,7 @@ export default function SignIn() {
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
                 <Mail className="h-5 w-5" />
               </div>
-              <span className="text-xl font-bold text-primary">EchoMail</span>
+              <span className="text-xl font-bold text-primary">Flier</span>
             </Link>
             <ThemeToggle />
           </div>
@@ -62,12 +62,8 @@ export default function SignIn() {
             <div className="mx-auto mb-4 p-3 bg-primary/10 text-primary rounded-2xl w-fit border border-primary/20">
               <Mail className="h-8 w-8" />
             </div>
-            <CardTitle className="text-2xl font-bold">
-              Welcome to EchoMail
-            </CardTitle>
-            <p className="text-muted-foreground mt-2">
-              Sign in to access your email dashboard
-            </p>
+            <CardTitle className="text-2xl font-bold">Welcome to Flier</CardTitle>
+            <p className="text-muted-foreground mt-2">Sign in to access your email dashboard</p>
           </CardHeader>
           <CardContent className="pt-6">
             {error && (
@@ -78,8 +74,7 @@ export default function SignIn() {
 
             <div className="text-center space-y-4">
               <p className="text-sm text-muted-foreground">
-                Sign in with your Google account to access Gmail API and start
-                sending emails.
+                Sign in with your Google account to access Gmail API and start sending emails.
               </p>
               <Button
                 onClick={handleGoogleSignIn}
@@ -102,9 +97,8 @@ export default function SignIn() {
               </Button>
               <div className="bg-info/10 p-4 rounded-lg border border-info/20">
                 <p className="text-xs text-info">
-                  <strong>Secure:</strong> EchoMail uses OAuth 2.0 for secure
-                  authentication. Your credentials are never stored on our
-                  servers.
+                  <strong>Secure:</strong> Flier uses OAuth 2.0 for secure authentication. Your
+                  credentials are never stored on our servers.
                 </p>
               </div>
             </div>

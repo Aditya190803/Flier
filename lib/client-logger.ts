@@ -21,7 +21,7 @@ class ClientLogger {
   private config: LoggerConfig;
   private prefix: string;
 
-  constructor(prefix: string = "EchoMail", config: Partial<LoggerConfig> = {}) {
+  constructor(prefix: string = "Flier", config: Partial<LoggerConfig> = {}) {
     this.config = { ...defaultConfig, ...config };
     this.prefix = prefix;
   }
@@ -35,9 +35,7 @@ class ClientLogger {
     ) {
       return level === "error"; // Always log errors
     }
-    return (
-      LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[this.config.minLevel]
-    );
+    return LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[this.config.minLevel];
   }
 
   private formatMessage(level: LogLevel, message: string): string {

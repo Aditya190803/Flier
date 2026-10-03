@@ -2,7 +2,15 @@
  * Unit tests for Token Security Module
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vite-plus/test";
+
+vi.mock("@/lib/logger", async () => {
+  const { createMockLoggerModule, createSpyLogger } =
+    await import("@/tests/helpers/mockLoggerModule");
+  return createMockLoggerModule({
+    authLogger: createSpyLogger(),
+  });
+});
 
 import {
   validateToken,
@@ -12,24 +20,6 @@ import {
   sanitizeTokenForLogging,
   type TokenInfo,
 } from "@/lib/token-security";
-
-// vi.mock factories are hoisted — keep factory self-contained (no outer imports)
-vi.mock("@/lib/logger", () => {
-  const makeLogger = () => ({
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    child: vi.fn(() => makeLogger()),
-  });
-  return {
-    authLogger: makeLogger(),
-    apiLogger: makeLogger(),
-    emailLogger: makeLogger(),
-    dbLogger: makeLogger(),
-    logger: makeLogger(),
-  };
-});
 
 // Mock fetch
 const mockFetch = vi.fn();
@@ -164,11 +154,7 @@ describe("Token Security", () => {
         }),
       });
 
-      const result = await refreshAccessToken(
-        "refresh-token",
-        "client-id",
-        "client-secret",
-      );
+      const result = await refreshAccessToken("refresh-token", "client-id", "client-secret");
 
       expect(result.success).toBe(true);
       expect(result.accessToken).toBe("new-token");
@@ -185,11 +171,7 @@ describe("Token Security", () => {
         }),
       });
 
-      const result = await refreshAccessToken(
-        "refresh-token",
-        "client-id",
-        "client-secret",
-      );
+      const result = await refreshAccessToken("refresh-token", "client-id", "client-secret");
 
       expect(result.success).toBe(false);
       expect(result.error).toContain("Token has been expired or revoked");
@@ -198,11 +180,7 @@ describe("Token Security", () => {
     it("should handle network errors", async () => {
       mockFetch.mockRejectedValueOnce(new Error("Network error"));
 
-      const result = await refreshAccessToken(
-        "refresh-token",
-        "client-id",
-        "client-secret",
-      );
+      const result = await refreshAccessToken("refresh-token", "client-id", "client-secret");
 
       expect(result.success).toBe(false);
       expect(result.error).toBe("Network error");
@@ -212,9 +190,7 @@ describe("Token Security", () => {
       const result = await refreshAccessToken("", "client-id", "client-secret");
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe(
-        "Missing required credentials for token refresh",
-      );
+      expect(result.error).toBe("Missing required credentials for token refresh");
     });
   });
 

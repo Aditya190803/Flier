@@ -1,91 +1,90 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getServerSession } from "next-auth";
-
+import { isAuthed, requireSession } from "@/lib/api-auth";
 import { databases, config, Query, ID } from "@/lib/appwrite-server";
-import { authOptions } from "@/lib/auth";
 import { apiLogger } from "@/lib/logger";
 import type { CampaignDocument } from "@/types/appwrite";
 
-// GET /api/appwrite/campaigns - List campaigns for the authenticated user
-export async function GET(_request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
+/** Appwrite stores arrays as JSON strings; normalize both shapes to an array. */
+function parseJsonArray(value: unknown): unknown[] {
+  if (!value) {
+    return [];
+  }
+  if (Array.isArray(value)) {
+    return value;
+  }
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
 
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+function mapCampaignDocument(doc: CampaignDocument) {
+  return {
+    $id: doc.$id,
+    subject: doc.subject || "",
+    content: doc.content || "",
+    recipients: parseJsonArray(doc.recipients),
+    sent: doc.sent || 0,
+    failed: doc.failed || 0,
+    status: doc.status || "completed",
+    user_email: doc.user_email || "",
+    created_at: doc.created_at || doc.$createdAt,
+    campaign_type: doc.campaign_type,
+    attachments: parseJsonArray(doc.attachments),
+    send_results: parseJsonArray(doc.send_results),
+    open_rate: doc.open_rate ?? 0,
+    click_rate: doc.click_rate ?? 0,
+  };
+}
+
+// GET /api/appwrite/campaigns[?id=] - List campaigns, or fetch one by id
+export async function GET(request: NextRequest) {
+  try {
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (id) {
+      const doc = (await databases.getDocument(
+        config.databaseId,
+        config.campaignsCollectionId,
+        id,
+      )) as unknown as CampaignDocument;
+
+      if (doc.user_email !== auth.email) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      }
+
+      return NextResponse.json(mapCampaignDocument(doc));
     }
 
     const response = await databases.listDocuments(
       config.databaseId,
       config.campaignsCollectionId,
-      [
-        Query.equal("user_email", session.user.email),
-        Query.orderDesc("created_at"),
-        Query.limit(1000),
-      ],
+      [Query.equal("user_email", auth.email), Query.orderDesc("created_at"), Query.limit(1000)],
     );
 
-    // Parse stringified JSON fields
     const documents = (response.documents as unknown as CampaignDocument[]).map(
-      (doc) => ({
-        $id: doc.$id,
-        subject: doc.subject || "",
-        content: doc.content || "",
-        recipients:
-          typeof (doc as CampaignDocument & { recipients?: string | string[] })
-            .recipients === "string"
-            ? JSON.parse(
-                (doc as CampaignDocument & { recipients?: string })
-                  .recipients as string,
-              )
-            : (doc as CampaignDocument & { recipients?: string[] })
-                .recipients || [],
-        sent: (doc as CampaignDocument & { sent?: number }).sent || 0,
-        failed: (doc as CampaignDocument & { failed?: number }).failed || 0,
-        status: doc.status || "completed",
-        user_email: doc.user_email || "",
-        created_at: doc.created_at || doc.$createdAt,
-        campaign_type: (doc as CampaignDocument & { campaign_type?: string })
-          .campaign_type,
-        attachments: (
-          doc as CampaignDocument & { attachments?: string | unknown[] }
-        ).attachments
-          ? typeof (doc as CampaignDocument & { attachments?: string })
-              .attachments === "string"
-            ? JSON.parse(
-                (doc as CampaignDocument & { attachments?: string })
-                  .attachments as string,
-              )
-            : (doc as CampaignDocument & { attachments?: unknown[] })
-                .attachments
-          : [],
-        send_results: (
-          doc as CampaignDocument & { send_results?: string | unknown[] }
-        ).send_results
-          ? typeof (doc as CampaignDocument & { send_results?: string })
-              .send_results === "string"
-            ? JSON.parse(
-                (doc as CampaignDocument & { send_results?: string })
-                  .send_results as string,
-              )
-            : (doc as CampaignDocument & { send_results?: unknown[] })
-                .send_results
-          : [],
-      }),
+      mapCampaignDocument,
     );
 
     return NextResponse.json({ total: response.total, documents });
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error fetching campaigns",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error fetching campaigns", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to fetch campaigns",
+        error: error instanceof Error ? error.message : "Failed to fetch campaigns",
       },
       { status: 500 },
     );
@@ -95,10 +94,9 @@ export async function GET(_request: NextRequest) {
 // POST /api/appwrite/campaigns - Create a new campaign
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSession(request);
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
     const body = await request.json();
@@ -126,7 +124,7 @@ export async function POST(request: NextRequest) {
         sent: sent || 0,
         failed: failed || 0,
         status: status || "completed",
-        user_email: session.user.email,
+        user_email: auth.email,
         campaign_type,
         attachments: attachments ? JSON.stringify(attachments) : null,
         send_results: send_results ? JSON.stringify(send_results) : null,
@@ -136,14 +134,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error: unknown) {
-    apiLogger.error(
-      "Error creating campaign",
-      error instanceof Error ? error : undefined,
-    );
+    apiLogger.error("Error creating campaign", error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to create campaign",
+        error: error instanceof Error ? error.message : "Failed to create campaign",
       },
       { status: 500 },
     );

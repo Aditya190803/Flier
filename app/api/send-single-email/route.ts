@@ -1,9 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getServerSession } from "next-auth";
-
-import { authOptions } from "@/lib/auth";
+import { isAuthed, requireSession } from "@/lib/api-auth";
 import {
   PlanLimitError,
   assertEmailQuota,
@@ -12,7 +10,7 @@ import {
 } from "@/lib/billing";
 import { formatEmailSendErrorForUser } from "@/lib/gmail-user-message";
 import { apiLogger } from "@/lib/logger";
-import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitAsync, RATE_LIMITS } from "@/lib/rate-limit";
 import { EmailService } from "@/lib/services/email-service";
 import { sendSingleEmailSchema, validate } from "@/lib/validation";
 
@@ -23,24 +21,26 @@ export const maxDuration = 60;
 export async function POST(request: NextRequest) {
   try {
     // Apply rate limiting
-    const rateLimitResponse = rateLimit(request, RATE_LIMITS.sendEmail);
+    const rateLimitResponse = await rateLimitAsync(request, RATE_LIMITS.sendEmail);
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
-    const session = await getServerSession(authOptions);
-
-    if (!session?.accessToken || !session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSession(request, { accessToken: true });
+    if (!isAuthed(auth)) {
+      return auth;
     }
 
     const data = await request.json();
-    const parsed = validate(sendSingleEmailSchema, data);
-    if (!parsed.success || !parsed.data) {
+    if (data.team_id || data.review_id) {
       return NextResponse.json(
-        { error: parsed.message || "Invalid request" },
+        { error: "Team campaigns must use background delivery and its approval checks" },
         { status: 400 },
       );
+    }
+    const parsed = validate(sendSingleEmailSchema, data);
+    if (!parsed.success || !parsed.data) {
+      return NextResponse.json({ error: parsed.message || "Invalid request" }, { status: 400 });
     }
 
     const {
@@ -53,8 +53,7 @@ export async function POST(request: NextRequest) {
       cc,
       bcc,
     } = parsed.data;
-    const campaignId =
-      typeof data.campaignId === "string" ? data.campaignId : undefined;
+    const campaignId = typeof data.campaignId === "string" ? data.campaignId : undefined;
     const trackingEnabled = data.trackingEnabled !== false;
     const isTransactional = data.isTransactional === true;
 
@@ -69,16 +68,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    try {
-      await assertEmailQuota(session.user.email, 1);
-    } catch (error) {
-      if (error instanceof PlanLimitError) {
-        return planLimitResponse(error);
-      }
-      throw error;
-    }
+    await assertEmailQuota(auth.email, 1);
 
-    const emailService = new EmailService(session.accessToken);
+    const emailService = new EmailService(auth.accessToken, auth.email!);
 
     const result = await emailService.sendSingle(
       {
@@ -96,7 +88,7 @@ export async function POST(request: NextRequest) {
       trackingEnabled
         ? {
             campaignId: campaignId || "single-send-" + Date.now(),
-            userEmail: session.user.email,
+            userEmail: auth.email,
           }
         : undefined,
       isTransactional,
@@ -113,7 +105,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await incrementEmailUsage(session.user.email, 1);
+    await incrementEmailUsage(auth.email, 1);
 
     return NextResponse.json({
       success: true,
@@ -123,13 +115,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof PlanLimitError) {
       return planLimitResponse(error);
     }
-    apiLogger.error(
-      "Send single email API error",
-      error instanceof Error ? error : undefined,
-    );
-    return NextResponse.json(
-      { error: "Failed to process email request" },
-      { status: 500 },
-    );
+    apiLogger.error("Send single email API error", error instanceof Error ? error : undefined);
+    return NextResponse.json({ error: "Failed to process email request" }, { status: 500 });
   }
 }

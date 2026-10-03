@@ -1,5 +1,6 @@
 "use client";
 
+import { clientLogger } from "@/lib/client-logger";
 import { CSRF_HEADER_NAME, CSRF_TOKEN_NAME } from "@/lib/constants";
 import { getCookie } from "@/lib/utils";
 
@@ -65,7 +66,7 @@ export async function getEmailPreview(html: string): Promise<string> {
       throw new Error(result.error || "Failed to format email");
     }
   } catch (error) {
-    console.error("Failed to fetch email preview:", error);
+    clientLogger.error("Failed to fetch email preview", error instanceof Error ? error : undefined);
     // Return basic fallback preview
     return getInstantPreview(html);
   }

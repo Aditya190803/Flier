@@ -1,15 +1,14 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("Full Email Workflow", () => {
+// Requires a Gmail sandbox; never send mail from the generic CI account.
+test.describe.skip("Full Email Workflow", () => {
   test.beforeEach(async ({ page }) => {
     // In a real scenario, we would handle authentication here
     // For this test, we assume the user is already authenticated or mocked
     await page.goto("/compose");
   });
 
-  test("should complete the full compose to send workflow", async ({
-    page,
-  }) => {
+  test("should complete the full compose to send workflow", async ({ page }) => {
     // 1. Fill in the subject
     const subjectInput = page.getByPlaceholder(/subject/i);
     await subjectInput.fill("Test Campaign Subject");

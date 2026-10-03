@@ -1,10 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vite-plus/test";
 
-import {
-  applyInlineStyles,
-  wrapForGmail,
-  ELEMENT_STYLES,
-} from "../inline-styles";
+import { applyInlineStyles, wrapForGmail, ELEMENT_STYLES } from "../inline-styles";
 
 describe("applyInlineStyles", () => {
   it("should return empty string for empty input", () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useRef, useMemo } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 
 import { useRouter } from "next/navigation";
 
@@ -29,7 +29,6 @@ interface KeyboardShortcut {
  */
 export function useKeyboardShortcuts(customShortcuts?: KeyboardShortcut[]) {
   const router = useRouter();
-  const _activeElementRef = useRef<Element | null>(null);
 
   const defaultShortcuts: KeyboardShortcut[] = [
     {
@@ -89,7 +88,7 @@ export function useKeyboardShortcuts(customShortcuts?: KeyboardShortcut[]) {
 
   const allShortcuts = useMemo(
     () => [...defaultShortcuts, ...(customShortcuts || [])],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     [customShortcuts],
   );
 
@@ -220,11 +219,7 @@ export function useComposeShortcuts(options: {
 /**
  * Provider component that enables keyboard shortcuts globally
  */
-export function KeyboardShortcutsProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function KeyboardShortcutsProvider({ children }: { children: React.ReactNode }) {
   useKeyboardShortcuts();
   return children;
 }

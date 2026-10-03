@@ -1,17 +1,21 @@
+import type { TeamDocument, TeamMembershipDocument } from "@/types/appwrite";
+
 import { apiRequest } from "../api-request";
 
 // ============================================
 // Teams Service (via API)
 // ============================================
 
+type TeamWithRole = TeamDocument & { user_role?: string };
+
 export const teamsService = {
   // List teams
-  async list(): Promise<{ total: number; documents: any[] }> {
+  async list(): Promise<{ total: number; documents: TeamWithRole[] }> {
     return apiRequest("/api/teams");
   },
 
   // Create team
-  async create(name: string, description?: string): Promise<any> {
+  async create(name: string, description?: string): Promise<TeamWithRole> {
     return apiRequest("/api/teams", {
       method: "POST",
       body: JSON.stringify({ name, description }),
@@ -21,8 +25,12 @@ export const teamsService = {
   // Update team
   async update(
     teamId: string,
-    data: { name?: string; description?: string; settings?: any },
-  ): Promise<any> {
+    data: {
+      name?: string;
+      description?: string;
+      settings?: Record<string, boolean>;
+    },
+  ): Promise<TeamDocument> {
     return apiRequest("/api/teams", {
       method: "PUT",
       body: JSON.stringify({ id: teamId, ...data }),
@@ -43,12 +51,12 @@ export const teamsService = {
 
 export const teamMembersService = {
   // List members
-  async list(
-    teamId: string,
-  ): Promise<{ total: number; documents: any[]; current_user_role?: string }> {
-    return apiRequest(
-      `/api/teams/members?team_id=${encodeURIComponent(teamId)}`,
-    );
+  async list(teamId: string): Promise<{
+    total: number;
+    documents: TeamMembershipDocument[];
+    current_user_role?: string;
+  }> {
+    return apiRequest(`/api/teams/members?team_id=${encodeURIComponent(teamId)}`);
   },
 
   // Invite member
@@ -56,7 +64,7 @@ export const teamMembersService = {
     teamId: string,
     email: string,
     role: "admin" | "member" | "viewer",
-  ): Promise<any> {
+  ): Promise<TeamMembershipDocument> {
     return apiRequest("/api/teams/members", {
       method: "POST",
       body: JSON.stringify({ team_id: teamId, email, role }),
@@ -67,7 +75,7 @@ export const teamMembersService = {
   async updateRole(
     memberId: string,
     role: "admin" | "member" | "viewer",
-  ): Promise<any> {
+  ): Promise<TeamMembershipDocument> {
     return apiRequest("/api/teams/members", {
       method: "PUT",
       body: JSON.stringify({ member_id: memberId, role }),

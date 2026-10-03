@@ -3,6 +3,8 @@
  * Provides consistent error types, formatting, and responses across the application
  */
 
+import { apiLogger } from "./logger";
+
 // ============================================
 // Error Types
 // ============================================
@@ -39,10 +41,7 @@ export class AppError extends Error {
  * Authentication error
  */
 export class AuthError extends AppError {
-  constructor(
-    message: string = "Authentication required",
-    details?: Record<string, unknown>,
-  ) {
+  constructor(message: string = "Authentication required", details?: Record<string, unknown>) {
     super(message, "AUTH_ERROR", 401, true, details);
     this.name = "AuthError";
   }
@@ -52,10 +51,7 @@ export class AuthError extends AppError {
  * Authorization error (authenticated but not permitted)
  */
 export class ForbiddenError extends AppError {
-  constructor(
-    message: string = "Access denied",
-    details?: Record<string, unknown>,
-  ) {
+  constructor(message: string = "Access denied", details?: Record<string, unknown>) {
     super(message, "FORBIDDEN", 403, true, details);
     this.name = "ForbiddenError";
   }
@@ -65,10 +61,7 @@ export class ForbiddenError extends AppError {
  * Resource not found error
  */
 export class NotFoundError extends AppError {
-  constructor(
-    resource: string = "Resource",
-    details?: Record<string, unknown>,
-  ) {
+  constructor(resource: string = "Resource", details?: Record<string, unknown>) {
     super(`${resource} not found`, "NOT_FOUND", 404, true, details);
     this.name = "NotFoundError";
   }
@@ -91,13 +84,7 @@ export class RateLimitError extends AppError {
   public readonly retryAfter: number;
 
   constructor(retryAfter: number = 60, details?: Record<string, unknown>) {
-    super(
-      "Too many requests. Please try again later.",
-      "RATE_LIMIT",
-      429,
-      true,
-      details,
-    );
+    super("Too many requests. Please try again later.", "RATE_LIMIT", 429, true, details);
     this.name = "RateLimitError";
     this.retryAfter = retryAfter;
   }
@@ -109,18 +96,8 @@ export class RateLimitError extends AppError {
 export class ExternalServiceError extends AppError {
   public readonly service: string;
 
-  constructor(
-    service: string,
-    message: string,
-    details?: Record<string, unknown>,
-  ) {
-    super(
-      `${service} error: ${message}`,
-      "EXTERNAL_SERVICE_ERROR",
-      502,
-      true,
-      details,
-    );
+  constructor(service: string, message: string, details?: Record<string, unknown>) {
+    super(`${service} error: ${message}`, "EXTERNAL_SERVICE_ERROR", 502, true, details);
     this.name = "ExternalServiceError";
     this.service = service;
   }
@@ -132,11 +109,7 @@ export class ExternalServiceError extends AppError {
 export class EmailError extends AppError {
   public readonly email?: string;
 
-  constructor(
-    message: string,
-    email?: string,
-    details?: Record<string, unknown>,
-  ) {
+  constructor(message: string, email?: string, details?: Record<string, unknown>) {
     super(message, "EMAIL_ERROR", 500, true, { ...details, email });
     this.name = "EmailError";
     this.email = email;
@@ -162,10 +135,7 @@ export interface ErrorResponse {
 /**
  * Format an error into a consistent API response
  */
-export function formatErrorResponse(
-  error: Error | AppError,
-  requestId?: string,
-): ErrorResponse {
+export function formatErrorResponse(error: Error | AppError, requestId?: string): ErrorResponse {
   const isAppError = error instanceof AppError;
 
   // Don't expose internal error details in production
@@ -173,10 +143,7 @@ export function formatErrorResponse(
 
   const response: ErrorResponse = {
     error: isAppError ? error.name : "InternalError",
-    message:
-      isProduction && !isAppError
-        ? "An unexpected error occurred"
-        : error.message,
+    message: isProduction && !isAppError ? "An unexpected error occurred" : error.message,
     code: isAppError ? error.code : "INTERNAL_ERROR",
     timestamp: new Date().toISOString(),
   };
@@ -196,10 +163,7 @@ export function formatErrorResponse(
 /**
  * Create an error Response object
  */
-export function errorResponse(
-  error: Error | AppError,
-  requestId?: string,
-): Response {
+export function errorResponse(error: Error | AppError, requestId?: string): Response {
   const isAppError = error instanceof AppError;
   const statusCode = isAppError ? error.statusCode : 500;
   const body = formatErrorResponse(error, requestId);
@@ -232,8 +196,7 @@ const USER_FRIENDLY_MESSAGES: Record<string, string> = {
   NOT_FOUND: "The requested item could not be found.",
   VALIDATION_ERROR: "Please check your input and try again.",
   RATE_LIMIT: "You're doing that too often. Please wait a moment.",
-  EXTERNAL_SERVICE_ERROR:
-    "A service we depend on is having issues. Please try again.",
+  EXTERNAL_SERVICE_ERROR: "A service we depend on is having issues. Please try again.",
   EMAIL_ERROR: "There was a problem sending the email. Please try again.",
   INTERNAL_ERROR: "Something went wrong. Please try again later.",
 };
@@ -266,10 +229,7 @@ export type LogLevel = "debug" | "info" | "warn" | "error";
 /**
  * Log an error with context
  */
-export function logError(
-  error: Error | AppError,
-  context?: Record<string, unknown>,
-): void {
+export function logError(error: Error | AppError, context?: Record<string, unknown>): void {
   const isAppError = error instanceof AppError;
   const isOperational = isAppError && error.isOperational;
 
@@ -284,12 +244,12 @@ export function logError(
     timestamp: new Date().toISOString(),
   };
 
-  // Use console.error for non-operational (unexpected) errors
-  // Use console.warn for operational (expected) errors
+  // Use apiLogger.error for non-operational (unexpected) errors
+  // Use apiLogger.warn for operational (expected) errors
   if (isOperational) {
-    console.warn("[AppError]", JSON.stringify(logData));
+    apiLogger.warn("[AppError]", logData);
   } else {
-    console.error("[UnexpectedError]", JSON.stringify(logData));
+    apiLogger.error("[UnexpectedError]", logData);
   }
 }
 
@@ -319,12 +279,7 @@ export function withErrorHandling(
       }
 
       // Handle non-Error throws
-      const unknownError = new AppError(
-        "An unknown error occurred",
-        "UNKNOWN_ERROR",
-        500,
-        false,
-      );
+      const unknownError = new AppError("An unknown error occurred", "UNKNOWN_ERROR", 500, false);
       logError(unknownError, { requestId, originalError: String(error) });
       return errorResponse(unknownError, requestId);
     }
