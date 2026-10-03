@@ -197,7 +197,6 @@ export function ComposeForm() {
 
   // Email send hook
   const {
-    sendEmails,
     progress,
     sendStatus,
     isLoading: isSending,
@@ -266,7 +265,6 @@ export function ComposeForm() {
     editingDraftId,
     pdfColumn,
     showPersonalizedAttachments,
-    sendEmails,
     clearDraft,
     setIsSavingDraft,
   });

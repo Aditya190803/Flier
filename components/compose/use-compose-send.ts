@@ -1,14 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 import { toast } from "sonner";
 
-import type { useEmailSend } from "@/hooks/useEmailSend";
-import { generateCampaignId } from "@/lib/analytics";
-import { campaignsService, draftEmailsService, type EmailSignature } from "@/lib/appwrite";
+import { draftEmailsService, type EmailSignature } from "@/lib/appwrite";
 import { apiRequest } from "@/lib/appwrite/api-request";
 import type { PreflightReport } from "@/lib/email/preflight";
 import { componentLogger } from "@/lib/client-logger";
@@ -19,7 +17,7 @@ import { isValidEmail } from "@/lib/validation";
 import type { CSVRow } from "@/types/email";
 
 import { ensureAppwriteAttachment } from "./attachment-upload";
-import { buildPersonalizedEmails, buildRecipientFields } from "./recipient-data";
+import { buildRecipientFields } from "./recipient-data";
 
 import type { ComposeAttachment, Contact } from "./compose-types";
 import type { DeliveryMode } from "./delivery-options";
@@ -46,21 +44,11 @@ interface UseComposeSendArgs {
   editingDraftId: string | null;
   pdfColumn: string | null;
   showPersonalizedAttachments: boolean;
-  sendEmails: ReturnType<typeof useEmailSend>["sendEmails"];
   clearDraft: () => void;
   setIsSavingDraft: (value: boolean) => void;
 }
 
-/**
- * Orchestrates the final dispatch action for all three delivery modes:
- * validation, unsubscribe filtering, signature appending, then either
- * sending immediately via `useEmailSend`, queuing the campaign for a future
- * send, or saving it as a draft.
- *
- * Scheduling and drafting share a requirement the immediate path doesn't
- * have: attachments must already live in Appwrite, because the bytes are read
- * back later without the composer in memory.
- */
+/** Queues a frozen campaign snapshot, or saves a reusable draft. */
 export function useComposeSend({
   router,
   session,
@@ -82,12 +70,13 @@ export function useComposeSend({
   editingDraftId,
   pdfColumn,
   showPersonalizedAttachments,
-  sendEmails,
   clearDraft,
   setIsSavingDraft,
 }: UseComposeSendArgs) {
   const [isPreparingSend, setIsPreparingSend] = useState(false);
   const [showSendingDialog, setShowSendingDialog] = useState(false);
+
+  const queueRequest = useRef<{ fingerprint: string; id: string } | null>(null);
 
   const handleSend = async () => {
     if (!subject.trim()) {
@@ -189,8 +178,11 @@ export function useComposeSend({
     }
 
     // Handle scheduling for a future send
-    if (deliveryMode === "schedule" && session?.user?.email) {
-      const scheduleCheck = validateScheduleValue(scheduledAt);
+    if (deliveryMode !== "draft" && session?.user?.email) {
+      const scheduleCheck =
+        deliveryMode === "now"
+          ? { valid: true, date: new Date(), error: undefined }
+          : validateScheduleValue(scheduledAt);
       if (!scheduleCheck.valid || !scheduleCheck.date) {
         toast.error(scheduleCheck.error || "Pick a valid send time");
         setIsPreparingSend(false);
@@ -213,7 +205,27 @@ export function useComposeSend({
           }),
         );
 
+        const fingerprint = JSON.stringify({
+          subject,
+          finalContent,
+          filteredRecipients,
+          attachments,
+          recipientCsvData,
+          ccList,
+          bccList,
+          trackingEnabled,
+          isMarketing,
+          deliveryMode,
+          scheduledAt,
+          pdfColumn,
+          showPersonalizedAttachments,
+        });
+        if (queueRequest.current?.fingerprint !== fingerprint) {
+          queueRequest.current = { fingerprint, id: crypto.randomUUID() };
+        }
         await scheduledCampaignsService.create({
+          send_now: deliveryMode === "now",
+          request_id: queueRequest.current.id,
           subject,
           content: finalContent,
           recipients: filteredRecipients,
@@ -230,7 +242,11 @@ export function useComposeSend({
         });
 
         clearDraft();
-        toast.success(`Campaign scheduled for ${scheduleCheck.date.toLocaleString()}`);
+        toast.success(
+          deliveryMode === "now"
+            ? "Campaign queued. You can close this tab."
+            : `Campaign scheduled for ${scheduleCheck.date.toLocaleString()}`,
+        );
         router.push("/scheduled");
         return;
       } catch (error) {
@@ -303,73 +319,8 @@ export function useComposeSend({
       }
     }
 
-    setShowSendingDialog(true);
-    setIsPreparingSend(false); // Reset preparing state once sending dialog is shown
-
-    const personalizedEmails = buildPersonalizedEmails({
-      recipients: filteredRecipients,
-      subject,
-      content: finalContent,
-      csvData,
-      manualEntries,
-      contacts,
-      attachments,
-      pdfColumn,
-    });
-
-    try {
-      const campaignId = generateCampaignId();
-
-      const results = await sendEmails(personalizedEmails, {
-        campaignId,
-        isTransactional: !isMarketing,
-        trackingEnabled,
-        ...(ccList.length ? { cc: ccList } : {}),
-        ...(bccList.length ? { bcc: bccList } : {}),
-      });
-
-      const successCount = results.filter((r) => r.status === "success").length;
-      const failCount = results.filter((r) => r.status === "error").length;
-
-      // Save campaign to Appwrite (user_email is set server-side)
-      if (session?.user?.email) {
-        await campaignsService.create({
-          id: campaignId,
-          subject,
-          content,
-          recipients,
-          sent: successCount,
-          failed: failCount,
-          // A campaign where nothing got through is a failure, not a
-          // completion. Partial success still counts as completed — the
-          // per-recipient breakdown lives in `send_results`.
-          status: successCount === 0 && failCount > 0 ? "failed" : "completed",
-          campaign_type: csvData.length > 0 ? "bulk" : "contact_list",
-          attachments: attachments.map((a) => ({
-            fileName: a.name,
-            fileUrl: a.appwriteUrl || a.data,
-            fileSize: a.fileSize || 0,
-            appwrite_file_id: a.appwriteFileId,
-          })),
-          send_results: results.map((r) => ({
-            email: r.email,
-            status: r.status,
-            error: r.error,
-          })),
-          // Save personalized attachment info
-          has_personalized_attachments: !!pdfColumn && showPersonalizedAttachments,
-          personalized_attachment_column: pdfColumn || undefined,
-        });
-      }
-
-      // Clear draft after successful send
-      clearDraft();
-
-      toast.success(`Campaign complete! ${successCount} sent, ${failCount} failed`);
-    } catch (error) {
-      componentLogger.error("Send error", error instanceof Error ? error : undefined);
-      toast.error("Failed to send emails");
-    }
+    setIsPreparingSend(false);
+    toast.error("Sign in before queuing or saving a campaign.");
   };
 
   return {

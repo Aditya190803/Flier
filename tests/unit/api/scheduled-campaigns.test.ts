@@ -24,6 +24,10 @@ vi.mock("@/lib/services/scheduled-campaign-store", () => ({
   updateScheduledCampaign: vi.fn(),
 }));
 
+vi.mock("@/lib/services/unsubscribe-service", () => ({
+  findSuppressedRecipients: vi.fn().mockResolvedValue([]),
+}));
+
 import { POST } from "@/app/api/scheduled-campaigns/route";
 
 function request(body: Record<string, unknown>) {
@@ -104,4 +108,25 @@ describe("POST /api/scheduled-campaigns", () => {
       }),
     );
   });
+});
+
+it("queues Send now without the future lead window", async () => {
+  const response = await POST(
+    request({
+      ...validBody(),
+      send_now: true,
+      scheduled_at: new Date().toISOString(),
+      request_id: "878f5034-e464-4df0-b38e-cecebc572e80",
+    }) as never,
+  );
+  expect(response.status).toBe(201);
+  expect(createScheduledCampaign).toHaveBeenCalledWith(
+    expect.objectContaining({
+      requestId: "878f5034-e464-4df0-b38e-cecebc572e80",
+    }),
+  );
+});
+it("rejects unresolved personalization at the queue boundary", async () => {
+  const response = await POST(request({ ...validBody(), subject: "Hello {{name}}" }) as never);
+  expect(response.status).toBe(400);
 });

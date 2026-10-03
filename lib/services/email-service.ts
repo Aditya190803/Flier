@@ -62,6 +62,7 @@ export interface EmailContent {
  * Email sending options
  */
 export interface SendOptions {
+  beforeDelivery?: (email: string) => Promise<boolean>;
   /** Array of file attachments */
   attachments?: AttachmentData[];
   /** Delay between emails in milliseconds (default: 1000) */
@@ -578,6 +579,10 @@ export class EmailService {
         };
         const personalizedSubject = replacePlaceholders(email.subject, personalizationData);
         const personalizedMessage = replacePlaceholders(email.message, personalizationData);
+
+        if (options.beforeDelivery && !(await options.beforeDelivery(email.to))) {
+          continue;
+        }
 
         // Send the email
         try {

@@ -197,6 +197,8 @@ export const storedAttachmentSchema = z
   });
 
 export const scheduledCampaignSchema = z.object({
+  send_now: z.boolean().optional(),
+  request_id: z.string().uuid().optional(),
   // These limits mirror the Appwrite scheduled_campaigns attributes.
   subject: subjectSchema.max(500, "Subject too long (max 500 characters)"),
   content: messageSchema.max(100000, "Message too long (max 100000 characters)"),

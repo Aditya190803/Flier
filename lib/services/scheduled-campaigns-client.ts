@@ -23,10 +23,14 @@ export type ScheduledCampaignInput = Omit<
   | "sent_at"
   | "created_at"
   | "updated_at"
+  | "cancel_requested"
+  | "progress_migrated"
 >;
 
 export const scheduledCampaignsService = {
-  async create(data: ScheduledCampaignInput): Promise<ScheduledCampaign> {
+  async create(
+    data: ScheduledCampaignInput & { send_now?: boolean; request_id?: string },
+  ): Promise<ScheduledCampaign> {
     return apiRequest<ScheduledCampaign>(basePath, {
       method: "POST",
       body: JSON.stringify(data),

@@ -39,6 +39,19 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: flier
+          POSTGRES_PASSWORD: flier_test_only
+          POSTGRES_DB: flier_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U flier -d flier_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      QUEUE_TEST_DATABASE_URL: postgresql://flier:flier_test_only@localhost:5432/flier_test
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -59,6 +72,9 @@ jobs:
 
       - name: Run unit tests
         run: pnpm run test -- --reporter=verbose
+
+      - name: Verify PostgreSQL delivery queue concurrency
+        run: pnpm exec tsx scripts/verify-delivery-queue.ts
 
       - name: Generate coverage report
         run: pnpm run test:coverage

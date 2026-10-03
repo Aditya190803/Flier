@@ -32,6 +32,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { CampaignRecovery, DeliveryHealth } from "@/components/campaign-recovery";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -271,8 +272,8 @@ export default function ScheduledPage() {
     <>
       <PageShell>
         <PageHeader
-          title="Scheduled Campaigns"
-          description="Campaigns queued to send automatically at a chosen time"
+          title="Delivery & Recovery"
+          description="Background campaigns, progress, and recovery actions"
           actions={
             <Button asChild>
               <Link href="/compose">
@@ -283,6 +284,7 @@ export default function ScheduledPage() {
           }
         />
 
+        <DeliveryHealth />
         <Card className="border-primary/20 bg-primary/5">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
@@ -407,7 +409,7 @@ export default function ScheduledPage() {
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => cancelCampaign(campaign)}
-                                disabled={isProcessing}
+                                disabled={campaign.cancel_requested || busyId === campaign.$id}
                                 className="text-warning"
                               >
                                 <Pause className="h-4 w-4 mr-2" />
@@ -427,8 +429,8 @@ export default function ScheduledPage() {
                       </div>
                       {isProcessing && (
                         <p className="mt-3 text-xs text-muted-foreground">
-                          This campaign is being sent right now — it can't be changed until it
-                          finishes.
+                          Cancel stops before the next recipient. A message already in flight may
+                          finish.
                         </p>
                       )}
                     </CardContent>
@@ -476,6 +478,9 @@ export default function ScheduledPage() {
                         </Button>
                       </div>
                     </div>
+                    {["partial", "failed", "cancelled"].includes(campaign.status) && (
+                      <CampaignRecovery campaign={campaign} onChange={fetchCampaigns} />
+                    )}
                     {campaign.last_error && (
                       <div className="mt-3 p-2 bg-destructive/10 rounded text-sm text-destructive">
                         {campaign.last_error}

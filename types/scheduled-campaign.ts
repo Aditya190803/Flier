@@ -27,6 +27,9 @@ export interface ScheduledCampaign {
   sent: number;
   failed: number;
   attempts: number;
+  cancel_requested?: boolean;
+  progress_migrated?: boolean;
+  request_id?: string;
   locked_at?: string;
   last_error?: string;
   sent_at?: string;

@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 import { SCHEDULED_STATUS, type ScheduledStatus } from "@/lib/constants";
 import { dbQuery, isDatabaseConfigured } from "@/lib/db";
@@ -53,6 +53,8 @@ export interface CreateScheduledCampaignInput {
   isMarketing: boolean;
   hasPersonalizedAttachments: boolean;
   personalizedAttachmentColumn?: string;
+  requestId?: string;
+  sendNow?: boolean;
 }
 
 export function isScheduledSendingConfigured(): boolean {
@@ -103,6 +105,9 @@ export function mapScheduledCampaignRow(row: ScheduledCampaignRow): ScheduledCam
     sent: row.sent,
     failed: row.failed,
     attempts: row.attempts,
+    cancel_requested: Boolean(row.cancel_requested),
+    progress_migrated: Boolean(row.progress_migrated),
+    request_id: row.request_id as string | undefined,
     locked_at: iso(row.locked_at),
     last_error: row.last_error || undefined,
     sent_at: iso(row.sent_at),
@@ -127,16 +132,27 @@ export async function createScheduledCampaign(
   input: CreateScheduledCampaignInput,
 ): Promise<ScheduledCampaignRecord> {
   const id = randomUUID();
+  const requestHash = createHash("sha256")
+    .update(
+      JSON.stringify({
+        ...input,
+        requestId: undefined,
+        scheduledAt: input.sendNow ? "now" : input.scheduledAt.toISOString(),
+      }),
+    )
+    .digest("hex");
   const result = await dbQuery<ScheduledCampaignRow>(
     `INSERT INTO scheduled_campaigns (
       id, subject, content, recipients, scheduled_at, timezone, status,
       user_email, campaign_id, attachments, csv_data, cc, bcc,
       tracking_enabled, is_marketing, has_personalized_attachments,
-      personalized_attachment_column
+      personalized_attachment_column, request_id, request_hash
     ) VALUES (
       $1, $2, $3, $4::jsonb, $5, $6, $7, $8, $1, $9::jsonb,
-      $10::jsonb, $11::jsonb, $12::jsonb, $13, $14, $15, $16
-    ) RETURNING *`,
+      $10::jsonb, $11::jsonb, $12::jsonb, $13, $14, $15, $16, $17, $18
+    ) ON CONFLICT (user_email, request_id) DO UPDATE
+      SET request_id = EXCLUDED.request_id
+      WHERE scheduled_campaigns.request_hash = EXCLUDED.request_hash RETURNING *`,
     [
       id,
       input.subject,
@@ -154,8 +170,15 @@ export async function createScheduledCampaign(
       input.isMarketing,
       input.hasPersonalizedAttachments,
       input.personalizedAttachmentColumn || null,
+      input.requestId || null,
+      requestHash,
     ],
   );
+  if (!result.rows[0]) {
+    throw new Error(
+      "REQUEST_CONFLICT: This request already queued another snapshot. Check Delivery & Recovery before trying again.",
+    );
+  }
   return mapScheduledCampaignRow(result.rows[0]);
 }
 
@@ -185,6 +208,8 @@ export async function getScheduledCampaign(id: string): Promise<ScheduledCampaig
 }
 
 const UPDATE_COLUMNS = new Set([
+  "cancel_requested",
+  "progress_migrated",
   "scheduled_at",
   "timezone",
   "status",

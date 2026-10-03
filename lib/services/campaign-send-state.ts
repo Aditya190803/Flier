@@ -79,6 +79,7 @@ export interface CampaignSendState {
 export async function loadCampaignSendState(
   campaignId: string,
   userEmail: string,
+  strict = false,
 ): Promise<CampaignSendState> {
   const docId = toAppwriteDocId(campaignId);
   const empty: CampaignSendState = {
@@ -103,6 +104,9 @@ export async function loadCampaignSendState(
     );
 
     if (doc.user_email && doc.user_email !== userEmail) {
+      if (strict) {
+        throw new Error("Campaign belongs to another sender");
+      }
       // Not our campaign — don't leak or clobber another user's progress.
       return empty;
     }
@@ -118,7 +122,10 @@ export async function loadCampaignSendState(
       failed: doc.failed || 0,
       status: doc.status || CAMPAIGN_STATUS.SENDING,
     };
-  } catch {
+  } catch (error) {
+    if (strict && (error as { code?: number }).code !== 404) {
+      throw error;
+    }
     // Document not found (or a transient lookup error) — start fresh.
     return empty;
   }
