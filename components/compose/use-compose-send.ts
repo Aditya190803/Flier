@@ -8,12 +8,9 @@ import { toast } from "sonner";
 
 import type { useEmailSend } from "@/hooks/useEmailSend";
 import { generateCampaignId } from "@/lib/analytics";
-import {
-  campaignsService,
-  draftEmailsService,
-  unsubscribesService,
-  type EmailSignature,
-} from "@/lib/appwrite";
+import { campaignsService, draftEmailsService, type EmailSignature } from "@/lib/appwrite";
+import { apiRequest } from "@/lib/appwrite/api-request";
+import type { PreflightReport } from "@/lib/email/preflight";
 import { componentLogger } from "@/lib/client-logger";
 import { parseEmailList } from "@/lib/email/parse-list";
 import { getBrowserTimeZone, validateScheduleValue } from "@/lib/schedule";
@@ -132,30 +129,54 @@ export function useComposeSend({
     // Immediately show preparing state to prevent double-clicks
     setIsPreparingSend(true);
 
-    // Filter out unsubscribed emails - only for marketing emails, not transactional
     let filteredRecipients = recipients;
-    if (isMarketing && session?.user?.email) {
+    if (deliveryMode !== "draft") {
       try {
-        filteredRecipients = await unsubscribesService.filterUnsubscribed(
-          session.user.email,
-          recipients,
-        );
-        if (filteredRecipients.length < recipients.length) {
-          const skipped = recipients.length - filteredRecipients.length;
-          toast.info(`${skipped} unsubscribed email(s) will be skipped`);
+        const signature = signatures.find((signature) => signature.$id === selectedSignature);
+        const report = await apiRequest<PreflightReport>("/api/campaign-preflight", {
+          method: "POST",
+          body: JSON.stringify({
+            subject,
+            content: signature ? content + "<br/><br/>" + signature.content : content,
+            recipients,
+            isMarketing,
+            recipientFields: Object.fromEntries(
+              recipients.map((email) => [
+                email.trim().toLowerCase(),
+                buildRecipientFields({ email, csvData, manualEntries, contacts }),
+              ]),
+            ),
+            attachments: attachments.map((attachment) => ({
+              ...attachment,
+              data: ["appwrite", "processing", "error"].includes(attachment.data)
+                ? attachment.data
+                : attachment.data
+                  ? "inline"
+                  : "",
+            })),
+            personalizedAttachmentColumn: showPersonalizedAttachments
+              ? pdfColumn || undefined
+              : undefined,
+          }),
+        });
+        if (report.issues.length) {
+          toast.error(report.issues[0].message);
+          setIsPreparingSend(false);
+          return;
+        }
+        filteredRecipients = report.recipients;
+        if (report.suppressed.length || report.duplicates) {
+          toast.info(report.suppressed.length + report.duplicates + " excluded recipient(s)");
         }
       } catch (error) {
-        componentLogger.error(
-          "Error filtering unsubscribes",
-          error instanceof Error ? error : undefined,
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Unable to review campaign. Sending was stopped.",
         );
+        setIsPreparingSend(false);
+        return;
       }
-    }
-
-    if (filteredRecipients.length === 0) {
-      toast.warning("All recipients have unsubscribed from marketing emails");
-      setIsPreparingSend(false);
-      return;
     }
 
     // Append signature if selected

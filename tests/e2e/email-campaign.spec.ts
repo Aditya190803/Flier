@@ -222,7 +222,7 @@ test.describe("Dashboard Campaign Overview", () => {
 
     if (await viewAllLink.first().isVisible()) {
       await viewAllLink.first().click();
-      await expect(page.url()).toContain("/history");
+      await expect(page).toHaveURL(/\/history/);
     }
   });
 });

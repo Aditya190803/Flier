@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vite-plus/test";
 
 import * as gmail from "@/lib/gmail";
+import { fetchFileFromUrl } from "@/lib/attachment-fetcher";
 import { EmailService } from "@/lib/services/email-service";
 import { VerificationService } from "@/lib/services/verification-service";
 
@@ -128,6 +129,20 @@ describe("EmailService", () => {
       return results;
     });
     emailService = new EmailService(mockAccessToken, "sender@example.com");
+  });
+
+  it("does not send a message when its required personalized attachment fails", async () => {
+    vi.mocked(fetchFileFromUrl).mockRejectedValueOnce(new Error("File unavailable"));
+    const result = await emailService.sendSingle(
+      {
+        email: "reader@example.com",
+        personalizedAttachment: { url: "https://example.com/report.pdf" },
+      },
+      { subject: "Report", body: "Your report is attached" },
+    );
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("Nothing was sent");
+    expect(gmail.sendEmailViaAPI).not.toHaveBeenCalled();
   });
 
   describe("sendCampaign", () => {

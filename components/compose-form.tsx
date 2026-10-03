@@ -24,6 +24,11 @@ import {
   createProcessingAttachments,
   processAttachmentFile,
 } from "@/components/compose/attachment-upload";
+import { CampaignReview } from "@/components/compose/campaign-review";
+import { ConnectionStatus } from "@/components/compose/connection-status";
+import { buildPersonalizedEmails, buildRecipientFields } from "@/components/compose/recipient-data";
+import { apiRequest } from "@/lib/appwrite/api-request";
+import { reviewCampaign, type PreflightInput } from "@/lib/email/preflight";
 import { ComposeStep } from "@/components/compose/compose-step";
 import type { ComposeAttachment } from "@/components/compose/compose-types";
 import type { DeliveryMode } from "@/components/compose/delivery-options";
@@ -208,7 +213,7 @@ export function ComposeForm() {
     clearSavedCampaign,
     hasSavedCampaign,
     savedCampaignInfo,
-    quotaInfo: _quotaInfo,
+    quotaInfo,
   } = useEmailSend();
 
   // Preview (recipient navigation, personalization, formatted HTML, attachment metadata)
@@ -265,6 +270,65 @@ export function ComposeForm() {
     clearDraft,
     setIsSavingDraft,
   });
+
+  const [isSendingTest, setIsSendingTest] = useState(false);
+  const signatureContent = signatures.find(
+    (signature) => signature.$id === selectedSignature,
+  )?.content;
+  const finalContent = signatureContent ? content + "<br/><br/>" + signatureContent : content;
+  const reviewInput: PreflightInput = {
+    subject,
+    content: finalContent,
+    recipients,
+    recipientFields: Object.fromEntries(
+      recipients.map((email) => [
+        email.trim().toLowerCase(),
+        buildRecipientFields({ email, csvData, manualEntries, contacts }),
+      ]),
+    ),
+    attachments: attachments.map((attachment) => ({
+      ...attachment,
+      data:
+        attachment.data === "appwrite" ||
+        attachment.data === "processing" ||
+        attachment.data === "error"
+          ? attachment.data
+          : attachment.data
+            ? "inline"
+            : "",
+    })),
+    personalizedAttachmentColumn: showPersonalizedAttachments ? pdfColumn || undefined : undefined,
+  };
+  const sendTest = async () => {
+    const recipient = recipients[previewRecipientIndex] || recipients[0];
+    if (!recipient) {
+      return;
+    }
+    const report = reviewCampaign({ ...reviewInput, recipients: [recipient] });
+    if (report.issues.length) {
+      toast.error(report.issues[0].message);
+      return;
+    }
+    setIsSendingTest(true);
+    try {
+      const [email] = buildPersonalizedEmails({
+        recipients: [recipient],
+        subject,
+        content: finalContent,
+        csvData,
+        manualEntries,
+        contacts,
+        attachments,
+        pdfColumn: showPersonalizedAttachments ? pdfColumn : null,
+      });
+      await apiRequest("/api/send-test-email", { method: "POST", body: JSON.stringify(email) });
+      toast.success("Test email sent to " + session?.user?.email);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Test email failed");
+    } finally {
+      setIsSendingTest(false);
+    }
+  };
 
   // Load template or campaign content if templateId is provided
   useEffect(() => {
@@ -602,6 +666,7 @@ export function ComposeForm() {
                   return (
                     <button
                       key={s.id}
+                      aria-label={`${i + 1} ${s.label}`}
                       onClick={() => setActiveTab(s.id)}
                       className="flex items-center md:items-start gap-3 md:gap-4 md:w-full min-w-max pr-4 md:pr-0 pl-1 md:pl-0 text-left transition-all group outline-none"
                     >
@@ -746,7 +811,14 @@ export function ComposeForm() {
             </div>
 
             {/* Preview Tab */}
-            <div className={activeTab === "preview" ? "block" : "hidden"}>
+            <div className={activeTab === "preview" ? "block space-y-4" : "hidden"}>
+              <ConnectionStatus quota={quotaInfo} />
+              <CampaignReview
+                input={reviewInput}
+                isMarketing={isMarketing}
+                onSendTest={sendTest}
+                isSendingTest={isSendingTest}
+              />
               <PreviewStep
                 previewMode={previewMode}
                 setPreviewMode={setPreviewMode}
