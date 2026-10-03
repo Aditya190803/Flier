@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { Pool } from "pg";
 import { closeDatabase, dbQuery } from "../lib/db";
+import { exportCampaignAccountData } from "../lib/services/campaign-account-data";
 import {
   beginDelivery,
   finishDelivery,
@@ -14,6 +15,7 @@ import {
 import {
   claimNextDueCampaign,
   createScheduledCampaign,
+  deleteScheduledDataForUser,
   updateScheduledCampaign,
 } from "../lib/services/scheduled-campaign-store";
 
@@ -90,6 +92,89 @@ async function main() {
     assert(
       await beginDelivery(id, "one@example.com"),
       "explicit not-sent confirmation allows retry",
+    );
+    const reviewId = randomUUID();
+    const reviewHash = "approved-snapshot-hash";
+    await dbQuery(
+      `INSERT INTO campaign_reviews(id,team_id,submitter_email,snapshot,snapshot_hash,status)
+      VALUES ($1,'team',$2,'{}'::jsonb,$3,'approved')`,
+      [reviewId, input.userEmail, reviewHash],
+    );
+    const reviewed = { ...input, teamId: "team", reviewId, reviewHash, requestId: randomUUID() };
+    await assert.rejects(
+      createScheduledCampaign({ ...reviewed, reviewHash: "changed" }),
+      /REVIEW_CONFLICT/,
+    );
+    assert.equal(
+      (await dbQuery("SELECT status FROM campaign_reviews WHERE id = $1", [reviewId])).rows[0]
+        .status,
+      "approved",
+      "failed approval validation rolls back consumption",
+    );
+    const racing = await Promise.allSettled([
+      createScheduledCampaign(reviewed),
+      createScheduledCampaign({ ...reviewed, requestId: randomUUID() }),
+    ]);
+    assert.equal(
+      racing.filter((result) => result.status === "fulfilled").length,
+      1,
+      "one approval can queue only one campaign",
+    );
+    const winner = racing.find((result) => result.status === "fulfilled");
+    assert(winner?.status === "fulfilled");
+    const winningRow = (
+      await dbQuery("SELECT request_id FROM scheduled_campaigns WHERE id = $1", [winner.value.$id])
+    ).rows[0];
+    const lostResponseRetry = await createScheduledCampaign({
+      ...reviewed,
+      requestId: winningRow.request_id,
+    });
+    assert.equal(
+      lostResponseRetry.$id,
+      winner.value.$id,
+      "retry after approval consumption returns the original job",
+    );
+    const review = (
+      await dbQuery("SELECT status, queued_campaign_id FROM campaign_reviews WHERE id = $1", [
+        reviewId,
+      ])
+    ).rows[0];
+    assert.equal(review.status, "queued");
+    assert.equal(review.queued_campaign_id, winner.value.$id);
+    await dbQuery(
+      "INSERT INTO saved_audiences(id,user_email,name,filters) VALUES ($1,$2,'Audience','{}'::jsonb)",
+      [randomUUID(), input.userEmail],
+    );
+    const foreignReview = randomUUID();
+    await dbQuery(
+      `INSERT INTO campaign_reviews(id,team_id,submitter_email,snapshot,snapshot_hash,reviewed_by)
+      VALUES ($1,'team','other@example.com','{}'::jsonb,'hash',$2)`,
+      [foreignReview, input.userEmail],
+    );
+    await dbQuery(
+      "INSERT INTO campaign_review_comments(id,review_id,author_email,content) VALUES ($1,$2,$3,'Note')",
+      [randomUUID(), foreignReview, input.userEmail],
+    );
+    const exported = await exportCampaignAccountData(input.userEmail);
+    assert.equal(exported.submitted_reviews.length, 1, "export includes only owned reviews");
+    assert.equal(exported.submitted_reviews[0].id, reviewId);
+    assert.equal(exported.saved_audiences.length, 1);
+    assert.equal(exported.review_comments.length, 1, "own comments on team reviews are exported");
+    assert.equal(exported.delivery_results.length, 2);
+    assert(!("oauth_tokens" in exported), "offline credentials are excluded from export");
+    const removed = await deleteScheduledDataForUser(input.userEmail);
+    assert(removed.savedAudiences > 0);
+    assert(removed.campaignReviews > 0);
+    assert(removed.reviewComments > 0);
+    assert.equal(
+      (await dbQuery("SELECT * FROM campaign_deliveries")).rows.length,
+      0,
+      "delivery results cascade with account jobs",
+    );
+    assert.equal(
+      (await dbQuery("SELECT reviewed_by FROM campaign_reviews WHERE id = $1", [foreignReview]))
+        .rows[0].reviewed_by,
+      "Deleted member",
     );
     console.log("Delivery queue PostgreSQL integration checks passed");
   } finally {

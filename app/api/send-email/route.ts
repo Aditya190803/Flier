@@ -42,6 +42,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    if (body.team_id || body.review_id) {
+      return NextResponse.json(
+        { error: "Team campaigns must use background delivery and its approval checks" },
+        { status: 400 },
+      );
+    }
     const parsed = validate(sendEmailRequestSchema, body);
     if (!parsed.success || !parsed.data) {
       return NextResponse.json({ error: parsed.message || "Invalid request" }, { status: 400 });

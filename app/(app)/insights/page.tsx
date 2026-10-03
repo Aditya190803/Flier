@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { History, Plus } from "lucide-react";
 import { toast } from "sonner";
 
+import { MeasurementNote } from "@/components/insights/measurement-note";
 import { CampaignSelector } from "@/components/insights/campaign-selector";
 import { InsightsExportActions } from "@/components/insights/insights-export-actions";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,9 @@ export default function HistoryPage() {
   const router = useRouter();
   const {
     historyData,
+    trackingStatus,
+    trackingTotal,
+    historyError,
     insightsCampaigns,
     summary,
     comparison,
@@ -169,6 +173,12 @@ export default function HistoryPage() {
   if (!historyData || historyData.totalCampaigns === 0) {
     return (
       <PageShell>
+        <MeasurementNote
+          trackingStatus={trackingStatus}
+          loaded={allTrackingEvents.length}
+          total={trackingTotal}
+          error={historyError}
+        />
         <EmptyState
           icon={<History className="w-8 h-8" />}
           title="No Emails Sent Yet"
@@ -201,6 +211,12 @@ export default function HistoryPage() {
           }
         />
 
+        <MeasurementNote
+          trackingStatus={trackingStatus}
+          loaded={allTrackingEvents.length}
+          total={trackingTotal}
+          error={historyError}
+        />
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
           <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 hide-scrollbar">
             <TabsList className="inline-flex w-auto min-w-full sm:min-w-0 h-10 p-1 bg-muted/30">
@@ -210,16 +226,32 @@ export default function HistoryPage() {
               <TabsTrigger value="campaigns" className="rounded-md">
                 Campaigns
               </TabsTrigger>
-              <TabsTrigger value="performance" className="rounded-md">
+              <TabsTrigger
+                disabled={trackingStatus === "unavailable"}
+                value="performance"
+                className="rounded-md"
+              >
                 Performance
               </TabsTrigger>
-              <TabsTrigger value="heatmap" className="rounded-md">
+              <TabsTrigger
+                disabled={trackingStatus === "unavailable"}
+                value="heatmap"
+                className="rounded-md"
+              >
                 Heatmap
               </TabsTrigger>
-              <TabsTrigger value="recipients" className="rounded-md">
+              <TabsTrigger
+                disabled={trackingStatus === "unavailable"}
+                value="recipients"
+                className="rounded-md"
+              >
                 Recipients
               </TabsTrigger>
-              <TabsTrigger value="tracking" className="rounded-md">
+              <TabsTrigger
+                disabled={trackingStatus === "unavailable"}
+                value="tracking"
+                className="rounded-md"
+              >
                 Raw Events
               </TabsTrigger>
             </TabsList>

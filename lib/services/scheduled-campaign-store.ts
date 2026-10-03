@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 
 import { SCHEDULED_STATUS, type ScheduledStatus } from "@/lib/constants";
-import { dbQuery, isDatabaseConfigured } from "@/lib/db";
+import { dbQuery, dbTransaction, isDatabaseConfigured } from "@/lib/db";
 import type { AttachmentData } from "@/lib/email/attachment-manager";
 import type { ScheduledCampaign, StoredScheduledAttachment } from "@/types/scheduled-campaign";
 
@@ -55,6 +55,9 @@ export interface CreateScheduledCampaignInput {
   personalizedAttachmentColumn?: string;
   requestId?: string;
   sendNow?: boolean;
+  teamId?: string;
+  reviewId?: string;
+  reviewHash?: string;
 }
 
 export function isScheduledSendingConfigured(): boolean {
@@ -108,6 +111,8 @@ export function mapScheduledCampaignRow(row: ScheduledCampaignRow): ScheduledCam
     cancel_requested: Boolean(row.cancel_requested),
     progress_migrated: Boolean(row.progress_migrated),
     request_id: row.request_id as string | undefined,
+    team_id: row.team_id as string | undefined,
+    review_id: row.review_id as string | undefined,
     locked_at: iso(row.locked_at),
     last_error: row.last_error || undefined,
     sent_at: iso(row.sent_at),
@@ -128,11 +133,8 @@ export function toAttachmentData(attachments: StoredAttachment[]): AttachmentDat
     }));
 }
 
-export async function createScheduledCampaign(
-  input: CreateScheduledCampaignInput,
-): Promise<ScheduledCampaignRecord> {
-  const id = randomUUID();
-  const requestHash = createHash("sha256")
+function requestHashFor(input: CreateScheduledCampaignInput): string {
+  return createHash("sha256")
     .update(
       JSON.stringify({
         ...input,
@@ -141,15 +143,63 @@ export async function createScheduledCampaign(
       }),
     )
     .digest("hex");
-  const result = await dbQuery<ScheduledCampaignRow>(
+}
+
+export async function createScheduledCampaign(
+  input: CreateScheduledCampaignInput,
+): Promise<ScheduledCampaignRecord> {
+  if (!input.reviewId) {
+    return insertScheduledCampaign(input);
+  }
+  return dbTransaction(async (query) => {
+    await query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [
+      `${input.userEmail}:${input.requestId || input.reviewId}`,
+    ]);
+    if (input.requestId) {
+      const existing = await query<ScheduledCampaignRow>(
+        "SELECT * FROM scheduled_campaigns WHERE user_email = $1 AND request_id = $2",
+        [input.userEmail, input.requestId],
+      );
+      if (existing.rows[0]) {
+        if (existing.rows[0].request_hash !== requestHashFor(input)) {
+          throw new Error(
+            "REQUEST_CONFLICT: This request already queued another snapshot. Check Delivery & Recovery.",
+          );
+        }
+        return mapScheduledCampaignRow(existing.rows[0]);
+      }
+    }
+    const approved = await query(
+      `UPDATE campaign_reviews SET status = 'queued', queued_campaign_id = $1
+      WHERE id = $2 AND team_id = $3 AND submitter_email = $4 AND snapshot_hash = $5 AND status = 'approved' RETURNING id`,
+      [input.reviewId, input.reviewId, input.teamId, input.userEmail, input.reviewHash],
+    );
+    if (!approved.rows.length) {
+      throw new Error(
+        "REVIEW_CONFLICT: Approval changed or was already used. Request a new review.",
+      );
+    }
+    // The job and consumption of its approval commit together.
+    return insertScheduledCampaign(input, query, input.reviewId);
+  });
+}
+
+async function insertScheduledCampaign(
+  input: CreateScheduledCampaignInput,
+  query: typeof dbQuery = dbQuery,
+  approvedJobId?: string,
+): Promise<ScheduledCampaignRecord> {
+  const id = approvedJobId || randomUUID();
+  const requestHash = requestHashFor(input);
+  const result = await query<ScheduledCampaignRow>(
     `INSERT INTO scheduled_campaigns (
       id, subject, content, recipients, scheduled_at, timezone, status,
       user_email, campaign_id, attachments, csv_data, cc, bcc,
       tracking_enabled, is_marketing, has_personalized_attachments,
-      personalized_attachment_column, request_id, request_hash
+      personalized_attachment_column, request_id, request_hash, team_id, review_id
     ) VALUES (
       $1, $2, $3, $4::jsonb, $5, $6, $7, $8, $1, $9::jsonb,
-      $10::jsonb, $11::jsonb, $12::jsonb, $13, $14, $15, $16, $17, $18
+      $10::jsonb, $11::jsonb, $12::jsonb, $13, $14, $15, $16, $17, $18, $19, $20
     ) ON CONFLICT (user_email, request_id) DO UPDATE
       SET request_id = EXCLUDED.request_id
       WHERE scheduled_campaigns.request_hash = EXCLUDED.request_hash RETURNING *`,
@@ -172,6 +222,8 @@ export async function createScheduledCampaign(
       input.personalizedAttachmentColumn || null,
       input.requestId || null,
       requestHash,
+      input.teamId || null,
+      input.reviewId || null,
     ],
   );
   if (!result.rows[0]) {
@@ -309,27 +361,58 @@ export async function reclaimStaleCampaigns(staleBefore: Date, limit: number): P
 export async function deleteScheduledDataForUser(userEmail: string): Promise<{
   scheduledCampaigns: number;
   oauthTokens: number;
+  savedAudiences: number;
+  campaignReviews: number;
+  reviewComments: number;
 }> {
   if (!isScheduledSendingConfigured()) {
-    return { scheduledCampaigns: 0, oauthTokens: 0 };
+    return {
+      scheduledCampaigns: 0,
+      oauthTokens: 0,
+      savedAudiences: 0,
+      campaignReviews: 0,
+      reviewComments: 0,
+    };
   }
 
   const result = await dbQuery<
-    QueryResultRow & { scheduled_campaigns: string; oauth_tokens: string }
+    QueryResultRow & {
+      scheduled_campaigns: string;
+      oauth_tokens: string;
+      saved_audiences: string;
+      campaign_reviews: string;
+      review_comments: string;
+    }
   >(
     `WITH deleted_campaigns AS (
        DELETE FROM scheduled_campaigns WHERE user_email = $1 RETURNING 1
      ), deleted_tokens AS (
        DELETE FROM oauth_tokens WHERE user_email = $1 RETURNING 1
+     ), deleted_audiences AS (
+       DELETE FROM saved_audiences WHERE user_email = $1 RETURNING 1
+     ), deleted_comments AS (
+       DELETE FROM campaign_review_comments WHERE author_email = $1
+       AND review_id NOT IN (SELECT id FROM campaign_reviews WHERE submitter_email = $1) RETURNING 1
+     ), deleted_reviews AS (
+       DELETE FROM campaign_reviews WHERE submitter_email = $1 RETURNING 1
+     ), anonymized_decisions AS (
+       UPDATE campaign_reviews SET reviewed_by = 'Deleted member'
+       WHERE reviewed_by = $1 AND submitter_email <> $1
      )
      SELECT
        (SELECT count(*) FROM deleted_campaigns) AS scheduled_campaigns,
-       (SELECT count(*) FROM deleted_tokens) AS oauth_tokens`,
+       (SELECT count(*) FROM deleted_tokens) AS oauth_tokens,
+       (SELECT count(*) FROM deleted_audiences) AS saved_audiences,
+       (SELECT count(*) FROM deleted_reviews) AS campaign_reviews,
+       (SELECT count(*) FROM deleted_comments) AS review_comments`,
     [userEmail],
   );
   const row = result.rows[0];
   return {
     scheduledCampaigns: Number(row?.scheduled_campaigns || 0),
     oauthTokens: Number(row?.oauth_tokens || 0),
+    savedAudiences: Number(row?.saved_audiences || 0),
+    campaignReviews: Number(row?.campaign_reviews || 0),
+    reviewComments: Number(row?.review_comments || 0),
   };
 }

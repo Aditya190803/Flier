@@ -30,6 +30,8 @@ export interface ScheduledCampaign {
   cancel_requested?: boolean;
   progress_migrated?: boolean;
   request_id?: string;
+  team_id?: string;
+  review_id?: string;
   locked_at?: string;
   last_error?: string;
   sent_at?: string;

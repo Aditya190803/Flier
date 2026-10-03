@@ -166,21 +166,25 @@ export function CampaignsTab({
                         <div className="p-3 bg-background rounded-lg border">
                           <div className="text-xs text-muted-foreground mb-1">Open Rate</div>
                           <div className="text-lg font-bold">
-                            {(analytics?.openRate || 0).toFixed(1)}%
+                            {analytics?.openRate === undefined
+                              ? "Unavailable"
+                              : `${analytics.openRate.toFixed(1)}%`}
                           </div>
                         </div>
                         <div className="p-3 bg-background rounded-lg border">
                           <div className="text-xs text-muted-foreground mb-1">Click Rate</div>
                           <div className="text-lg font-bold">
-                            {(analytics?.clickRate || 0).toFixed(1)}%
+                            {analytics?.clickRate === undefined
+                              ? "Unavailable"
+                              : `${analytics.clickRate.toFixed(1)}%`}
                           </div>
                         </div>
                         <div className="p-3 bg-background rounded-lg border">
-                          <div className="text-xs text-muted-foreground mb-1">Delivered</div>
+                          <div className="text-xs text-muted-foreground mb-1">Gmail accepted</div>
                           <div className="text-lg font-bold">{campaign.sent || 0}</div>
                         </div>
                         <div className="p-3 bg-background rounded-lg border">
-                          <div className="text-xs text-muted-foreground mb-1">Bounced</div>
+                          <div className="text-xs text-muted-foreground mb-1">Failed sends</div>
                           <div className="text-lg font-bold">{campaign.failed || 0}</div>
                         </div>
                       </div>

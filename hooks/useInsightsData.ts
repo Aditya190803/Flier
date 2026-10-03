@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { generateWeekOverWeekComparison } from "@/lib/activity/comparison";
+import { uniqueCampaignEngagement } from "@/lib/activity/engagement";
 import { aggregateDeviceData } from "@/lib/activity/devices";
 import { calculateSummary, transformCampaignToAnalytics } from "@/lib/activity/export";
 import { aggregateClickData } from "@/lib/activity/heatmap";
@@ -21,6 +22,11 @@ import type {
 } from "@/types/activity";
 
 export function useInsightsData(userEmail: string | undefined) {
+  const [trackingStatus, setTrackingStatus] = useState<"available" | "partial" | "unavailable">(
+    "unavailable",
+  );
+  const [trackingTotal, setTrackingTotal] = useState(0);
+  const [historyError, setHistoryError] = useState("");
   const [historyData, setHistoryData] = useState<HistoryData | null>(null);
   const [insightsCampaigns, setInsightsCampaigns] = useState<CampaignAnalytics[]>([]);
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
@@ -43,20 +49,27 @@ export function useInsightsData(userEmail: string | undefined) {
       const campaignsResponse = await campaignsService.listByUser(userEmail);
       const campaigns = campaignsResponse.documents;
 
+      setHistoryError("");
       let events: TrackingEvent[] = [];
+      let available = false;
       try {
         const eventsResponse = await metricsService.listEvents({ limit: 1000 });
         events = eventsResponse.documents as unknown as TrackingEvent[];
+        available = true;
+        const total = eventsResponse.total ?? events.length;
+        setTrackingTotal(total);
+        setTrackingStatus(total > events.length ? "partial" : "available");
       } catch (error) {
+        setTrackingStatus("unavailable");
+        setTrackingTotal(0);
         componentLogger.error("Error fetching tracking events", error as Error);
       }
 
       const transformed = campaigns.map((c) => {
-        const campaignEvents = events.filter((e) => e.campaign_id === c.$id);
-        return transformCampaignToAnalytics(c, {
-          opens: campaignEvents.filter((e) => e.event_type === "open").length,
-          clicks: campaignEvents.filter((e) => e.event_type === "click").length,
-        });
+        return transformCampaignToAnalytics(
+          c,
+          available ? uniqueCampaignEngagement(events, c.$id) : undefined,
+        );
       });
 
       setInsightsCampaigns(transformed);
@@ -72,6 +85,7 @@ export function useInsightsData(userEmail: string | undefined) {
 
       setHistoryData(buildHistoryData(campaigns));
     } catch (error) {
+      setHistoryError(error instanceof Error ? error.message : "Refresh to retry");
       componentLogger.error("Error fetching history", error instanceof Error ? error : undefined);
     } finally {
       setIsLoadingData(false);
@@ -103,6 +117,9 @@ export function useInsightsData(userEmail: string | undefined) {
 
   return {
     historyData,
+    trackingStatus,
+    trackingTotal,
+    historyError,
     insightsCampaigns,
     summary,
     comparison,

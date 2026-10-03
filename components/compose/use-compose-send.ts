@@ -23,6 +23,7 @@ import type { ComposeAttachment, Contact } from "./compose-types";
 import type { DeliveryMode } from "./delivery-options";
 
 interface UseComposeSendArgs {
+  teamId?: string;
   router: AppRouterInstance;
   session: { user?: { email?: string | null } | null } | null | undefined;
   subject: string;
@@ -50,6 +51,7 @@ interface UseComposeSendArgs {
 
 /** Queues a frozen campaign snapshot, or saves a reusable draft. */
 export function useComposeSend({
+  teamId,
   router,
   session,
   subject,
@@ -78,7 +80,17 @@ export function useComposeSend({
 
   const queueRequest = useRef<{ fingerprint: string; id: string } | null>(null);
 
-  const handleSend = async () => {
+  const [approval, setApproval] = useState<{ id: string; teamId: string } | null>(null);
+  const approvalId = approval && approval.teamId === teamId ? approval.id : "";
+  const uploaded = useRef<{
+    fingerprint: string;
+    files: Awaited<ReturnType<typeof ensureAppwriteAttachment>>[];
+  } | null>(null);
+  const handleSend = async (action: "send" | "review" = "send") => {
+    if (action === "review" && (!teamId || deliveryMode === "draft")) {
+      toast.error("Choose a team and Send now or Schedule before requesting review.");
+      return;
+    }
     if (!subject.trim()) {
       toast.error("Please enter a subject");
       return;
@@ -192,9 +204,14 @@ export function useComposeSend({
       try {
         // The worker reads attachments from Appwrite storage, so anything
         // still held as inline base64 has to be uploaded first.
-        const processedAttachments = await Promise.all(
-          attachments.map((a) => ensureAppwriteAttachment(a)),
-        );
+        const attachmentFingerprint = JSON.stringify(attachments);
+        if (uploaded.current?.fingerprint !== attachmentFingerprint) {
+          uploaded.current = {
+            fingerprint: attachmentFingerprint,
+            files: await Promise.all(attachments.map((a) => ensureAppwriteAttachment(a))),
+          };
+        }
+        const processedAttachments = uploaded.current.files;
 
         const recipientCsvData = filteredRecipients.map((recipientEmail) =>
           buildRecipientFields({
@@ -206,6 +223,7 @@ export function useComposeSend({
         );
 
         const fingerprint = JSON.stringify({
+          teamId,
           subject,
           finalContent,
           filteredRecipients,
@@ -223,9 +241,8 @@ export function useComposeSend({
         if (queueRequest.current?.fingerprint !== fingerprint) {
           queueRequest.current = { fingerprint, id: crypto.randomUUID() };
         }
-        await scheduledCampaignsService.create({
+        const snapshot = {
           send_now: deliveryMode === "now",
-          request_id: queueRequest.current.id,
           subject,
           content: finalContent,
           recipients: filteredRecipients,
@@ -239,6 +256,21 @@ export function useComposeSend({
           is_marketing: isMarketing,
           has_personalized_attachments: !!pdfColumn && showPersonalizedAttachments,
           personalized_attachment_column: pdfColumn || undefined,
+        };
+        if (action === "review") {
+          const review = await apiRequest<{ id: string }>("/api/campaign-reviews", {
+            method: "POST",
+            body: JSON.stringify({ team_id: teamId, snapshot }),
+          });
+          setApproval({ id: review.id, teamId: teamId! });
+          toast.success("Review requested. Another owner or admin must approve before dispatch.");
+          return;
+        }
+        await scheduledCampaignsService.create({
+          ...snapshot,
+          request_id: queueRequest.current.id,
+          team_id: teamId || undefined,
+          review_id: teamId && approvalId ? approvalId : undefined,
         });
 
         clearDraft();
@@ -324,7 +356,9 @@ export function useComposeSend({
   };
 
   return {
-    handleSend,
+    handleSend: () => handleSend(),
+    handleRequestReview: () => handleSend("review"),
+    approvalId,
     isPreparingSend,
     showSendingDialog,
     setShowSendingDialog,

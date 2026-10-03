@@ -76,7 +76,7 @@ export function OverviewTab({
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Delivery Success</span>
+                <span className="text-muted-foreground">Gmail Acceptance</span>
                 <span className="font-medium">{historyData.successRate.toFixed(1)}%</span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -89,8 +89,12 @@ export function OverviewTab({
 
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Open Rate</span>
-                <span className="font-medium">{summary?.averageOpenRate?.toFixed(1) || 0}%</span>
+                <span className="text-muted-foreground">Recorded Open Rate (estimate)</span>
+                <span className="font-medium">
+                  {summary?.averageOpenRate === undefined
+                    ? "Unavailable"
+                    : `${summary.averageOpenRate.toFixed(1)}%`}
+                </span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div
@@ -103,7 +107,11 @@ export function OverviewTab({
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Click Rate</span>
-                <span className="font-medium">{summary?.averageClickRate?.toFixed(1) || 0}%</span>
+                <span className="font-medium">
+                  {summary?.averageClickRate === undefined
+                    ? "Unavailable"
+                    : `${summary.averageClickRate.toFixed(1)}%`}
+                </span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div

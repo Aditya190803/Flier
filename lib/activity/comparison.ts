@@ -72,10 +72,10 @@ function calculatePeriodMetrics(
     sent,
     failed,
     successRate,
-    opens: opens > 0 ? opens : undefined,
-    clicks: clicks > 0 ? clicks : undefined,
-    openRate: opens > 0 ? openRate : undefined,
-    clickRate: clicks > 0 ? clickRate : undefined,
+    opens: campaigns.some((c) => c.opens !== undefined) ? opens : undefined,
+    clicks: campaigns.some((c) => c.clicks !== undefined) ? clicks : undefined,
+    openRate: campaigns.some((c) => c.opens !== undefined) && sent > 0 ? openRate : undefined,
+    clickRate: campaigns.some((c) => c.clicks !== undefined) && sent > 0 ? clickRate : undefined,
   };
 }
 

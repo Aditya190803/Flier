@@ -56,8 +56,8 @@
 ### 🔒 **Security, Privacy & GDPR Compliance**
 
 - Secure OAuth 2.0 authentication
-- No email credentials stored
-- End-to-end encrypted API communications
+- Offline Google refresh tokens are encrypted at rest for background delivery
+- HTTPS protects API communications in transit
 - **GDPR Compliance Tools:**
   - Data export (download all your data as JSON)
   - Data deletion (right to be forgotten)
@@ -78,7 +78,7 @@
 ### 🔗 **Webhooks & Integrations**
 
 - Configure webhook notifications for email events
-- Real-time event callbacks (sent, opened, clicked, bounced)
+- Event callbacks for sent, opened and clicked messages; bounce ingestion is not implemented
 - Custom webhook endpoints with secret verification
 
 ### ⌨️ **Keyboard Shortcuts**
@@ -519,3 +519,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [shadcn/ui](https://ui.shadcn.com/) - UI components
 - [Tailwind CSS](https://tailwindcss.com/) - Styling
 - [Gmail API](https://developers.google.com/gmail/api) - Email sending
+
+## Campaign review and measurement
+
+See [delivery operations](docs/DELIVERY_OPERATIONS.md), [campaign productivity](docs/CAMPAIGN_PRODUCTIVITY.md), and [team review and metrics](docs/TEAM_REVIEW_AND_METRICS.md). Apply `vp run db:migrate` before deploying these features.

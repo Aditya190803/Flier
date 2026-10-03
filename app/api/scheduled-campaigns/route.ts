@@ -5,8 +5,8 @@ import { isAuthed, requireSession } from "@/lib/api-auth";
 import { MAX_SCHEDULE_HORIZON_MS, MIN_SCHEDULE_LEAD_MS, SCHEDULED_STATUS } from "@/lib/constants";
 import { apiLogger } from "@/lib/logger";
 import { hasUsableRefreshToken } from "@/lib/services/oauth-token-store";
-import { reviewCampaign } from "@/lib/email/preflight";
-import { findSuppressedRecipients } from "@/lib/services/unsubscribe-service";
+import { checkCampaignEligibility } from "@/lib/services/campaign-eligibility";
+import { authorizeTeamCampaign, TeamReviewError } from "@/lib/services/team-review";
 import {
   createScheduledCampaign,
   deleteScheduledCampaign,
@@ -141,39 +141,23 @@ export async function POST(request: NextRequest) {
     }
 
     const data = parsed.data;
-    const suppressed = data.is_marketing
-      ? await findSuppressedRecipients(auth.email, data.recipients)
-      : [];
-    const report = reviewCampaign(
-      {
-        subject: data.subject,
-        content: data.content,
-        recipients: data.recipients,
-        recipientFields: Object.fromEntries(
-          (data.csv_data || []).map((row) => [
-            (
-              Object.entries(row).find(([key]) => key.toLowerCase() === "email")?.[1] || ""
-            ).toLowerCase(),
-            row,
-          ]),
-        ),
-        attachments: (data.attachments || []).map((attachment) => ({
-          name: attachment.fileName,
-          data: "appwrite",
-          appwriteFileId: attachment.appwrite_file_id || attachment.fileUrl,
-          fileSize: attachment.fileSize,
-        })),
-        personalizedAttachmentColumn: data.has_personalized_attachments
-          ? data.personalized_attachment_column
-          : undefined,
-      },
-      suppressed,
-    );
+    const report = await checkCampaignEligibility(data, auth.email);
     if (report.issues.length) {
       return NextResponse.json({ error: report.issues[0].message }, { status: 400 });
     }
+    const approval = data.team_id
+      ? await authorizeTeamCampaign(
+          data.team_id,
+          data.review_id,
+          { ...data, recipients: report.recipients },
+          auth.email,
+        )
+      : undefined;
     const campaign = await createScheduledCampaign({
       requestId: data.request_id,
+      teamId: data.team_id,
+      reviewId: approval?.reviewId,
+      reviewHash: approval?.hash,
       sendNow: data.send_now,
       subject: data.subject,
       content: data.content,
@@ -197,6 +181,12 @@ export async function POST(request: NextRequest) {
       "Error creating scheduled campaign",
       error instanceof Error ? { message: error.message } : undefined,
     );
+    if (error instanceof Error && error.message.startsWith("REVIEW_CONFLICT:")) {
+      return NextResponse.json({ error: error.message }, { status: 412 });
+    }
+    if (error instanceof TeamReviewError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     if (error instanceof Error && error.message.startsWith("REQUEST_CONFLICT:")) {
       return NextResponse.json({ error: error.message }, { status: 409 });
     }
@@ -260,6 +250,15 @@ export async function PUT(request: NextRequest) {
 
     const updates: Record<string, unknown> = {};
 
+    if (record.review_id && changes.scheduled_at) {
+      return NextResponse.json(
+        {
+          error:
+            "Approved send times are frozen. Duplicate this campaign and request a fresh review to reschedule.",
+        },
+        { status: 412 },
+      );
+    }
     if (changes.scheduled_at) {
       const timing = validateSendTime(changes.scheduled_at);
       if ("error" in timing) {
