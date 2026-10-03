@@ -15,6 +15,8 @@ const schema = z.object({
     group_id: z.string().max(100).optional(),
   }),
 });
+const idSchema = z.string().uuid();
+const invalidId = () => NextResponse.json({ error: "Invalid audience ID" }, { status: 400 });
 export async function GET(request: NextRequest) {
   const auth = await requireSession(request);
   if (!isAuthed(auth)) {
@@ -28,6 +30,9 @@ export async function GET(request: NextRequest) {
   }
   try {
     const id = request.nextUrl.searchParams.get("id");
+    if (id !== null && !idSchema.safeParse(id).success) {
+      return invalidId();
+    }
     const result = await dbQuery(
       "SELECT id, name, filters FROM saved_audiences WHERE user_email = $1 AND ($2::uuid IS NULL OR id = $2::uuid) ORDER BY created_at DESC LIMIT 100",
       [auth.email, id],
@@ -104,6 +109,9 @@ export async function DELETE(request: NextRequest) {
   }
   try {
     const id = request.nextUrl.searchParams.get("id");
+    if (!idSchema.safeParse(id).success) {
+      return invalidId();
+    }
     const result = await dbQuery(
       "DELETE FROM saved_audiences WHERE id = $1 AND user_email = $2 RETURNING id",
       [id, auth.email],

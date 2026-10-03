@@ -11,7 +11,7 @@ vi.mock("@/lib/appwrite-server", () => ({
   config: { databaseId: "db", contactGroupsCollectionId: "groups" },
 }));
 vi.mock("@/lib/services/contact-directory", () => ({ listOwnedContacts: mocks.contacts }));
-import { GET, POST } from "@/app/api/audiences/route";
+import { DELETE, GET, POST } from "@/app/api/audiences/route";
 beforeEach(() => vi.clearAllMocks());
 it("scopes saved recipes to the session rather than a caller-supplied owner", async () => {
   mocks.query.mockResolvedValueOnce({ rows: [] });
@@ -50,4 +50,13 @@ it("resolves current contacts only after owner-scoped recipe lookup", async () =
     { email: "one@example.com", name: "", company: "Acme", phone: "" },
   ]);
   expect(mocks.contacts).toHaveBeenCalledWith("owner@example.com");
+});
+it("rejects malformed audience IDs before querying the database", async () => {
+  const get = await GET(new NextRequest("http://localhost/api/audiences?id=not-a-uuid"));
+  const remove = await DELETE(
+    new NextRequest("http://localhost/api/audiences?id=not-a-uuid", { method: "DELETE" }),
+  );
+  expect(get.status).toBe(400);
+  expect(remove.status).toBe(400);
+  expect(mocks.query).not.toHaveBeenCalled();
 });
