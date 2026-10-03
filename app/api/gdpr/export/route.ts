@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { isAuthed, requireSession } from "@/lib/api-auth";
 import { databases, config, Query, ID } from "@/lib/appwrite-server";
+import { exportCampaignAccountData } from "@/lib/services/campaign-account-data";
 import { apiLogger } from "@/lib/logger";
 import type { GDPRDataExport } from "@/types/gdpr";
 
@@ -161,10 +162,10 @@ export async function GET(request: NextRequest) {
       user_email: userEmail,
       user_name: userName,
       data: {
+        campaign_workspace: await exportCampaignAccountData(userEmail),
         profile: {
           email: userEmail,
           name: userName,
-          created_at: new Date().toISOString(), // We don't have the actual creation date
         },
         contacts: (contacts.documents as ExportContactDoc[]).map((doc) => ({
           email: doc.email,

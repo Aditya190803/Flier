@@ -197,6 +197,8 @@ export const storedAttachmentSchema = z
   });
 
 export const scheduledCampaignSchema = z.object({
+  team_id: z.string().min(1).max(100).optional(),
+  review_id: z.string().uuid().optional(),
   send_now: z.boolean().optional(),
   request_id: z.string().uuid().optional(),
   // These limits mirror the Appwrite scheduled_campaigns attributes.

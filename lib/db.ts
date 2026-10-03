@@ -54,3 +54,19 @@ export async function closeDatabase(): Promise<void> {
     pool = undefined;
   }
 }
+
+export async function dbTransaction<T>(action: (query: typeof dbQuery) => Promise<T>): Promise<T> {
+  const client = await getPool().connect();
+  try {
+    await client.query("BEGIN");
+    const query: typeof dbQuery = (text, values = []) => client.query(text, [...values]);
+    const result = await action(query);
+    await client.query("COMMIT");
+    return result;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}

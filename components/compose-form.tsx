@@ -24,6 +24,7 @@ import {
   createProcessingAttachments,
   processAttachmentFile,
 } from "@/components/compose/attachment-upload";
+import { TeamCampaignReview } from "@/components/compose/team-campaign-review";
 import { CampaignReview } from "@/components/compose/campaign-review";
 import { ConnectionStatus } from "@/components/compose/connection-status";
 import { buildPersonalizedEmails, buildRecipientFields } from "@/components/compose/recipient-data";
@@ -68,6 +69,7 @@ export function ComposeForm() {
   // How this campaign leaves the composer: immediately, at a chosen time, or
   // parked as a draft. `saveAsDraft` stays derived from it so draft recovery
   // (which only knows about the boolean) keeps working unchanged.
+  const [teamId, setTeamId] = useState("");
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("now");
   const [scheduledAt, setScheduledAt] = useState("");
   const saveAsDraft = deliveryMode === "draft";
@@ -244,7 +246,15 @@ export function ComposeForm() {
   });
 
   // Send / save-as-draft orchestration
-  const { handleSend, isPreparingSend, showSendingDialog, setShowSendingDialog } = useComposeSend({
+  const {
+    handleSend,
+    handleRequestReview,
+    approvalId,
+    isPreparingSend,
+    showSendingDialog,
+    setShowSendingDialog,
+  } = useComposeSend({
+    teamId,
     router,
     session,
     subject,
@@ -818,6 +828,13 @@ export function ComposeForm() {
             {/* Preview Tab */}
             <div className={activeTab === "preview" ? "block space-y-4" : "hidden"}>
               <ConnectionStatus quota={quotaInfo} />
+              <TeamCampaignReview
+                teamId={teamId}
+                setTeamId={setTeamId}
+                reviewId={approvalId}
+                requestReview={handleRequestReview}
+                busy={isPreparingSend}
+              />
               <CampaignReview
                 input={reviewInput}
                 isMarketing={isMarketing}

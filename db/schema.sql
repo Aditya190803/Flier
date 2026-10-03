@@ -78,3 +78,26 @@ CREATE TABLE IF NOT EXISTS saved_audiences (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS saved_audiences_user_idx ON saved_audiences(user_email);
+
+CREATE TABLE IF NOT EXISTS campaign_reviews (
+  id uuid PRIMARY KEY,
+  team_id text NOT NULL,
+  submitter_email text NOT NULL,
+  snapshot jsonb NOT NULL,
+  snapshot_hash text NOT NULL,
+  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'queued')),
+  reviewed_by text,
+  reviewed_at timestamptz,
+  queued_campaign_id text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS campaign_reviews_team_idx ON campaign_reviews(team_id, created_at DESC);
+CREATE TABLE IF NOT EXISTS campaign_review_comments (
+  id uuid PRIMARY KEY,
+  review_id uuid NOT NULL REFERENCES campaign_reviews(id) ON DELETE CASCADE,
+  author_email text NOT NULL,
+  content varchar(2000) NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE scheduled_campaigns ADD COLUMN IF NOT EXISTS team_id text;
+ALTER TABLE scheduled_campaigns ADD COLUMN IF NOT EXISTS review_id uuid;

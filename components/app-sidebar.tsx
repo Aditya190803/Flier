@@ -63,7 +63,10 @@ const dataNav = [
   { name: "A/B Tests", href: "/ab-testing", icon: Beaker },
 ];
 
-const workspaceNav = [{ name: "Teams", href: "/settings/teams", icon: Users }];
+const workspaceNav = [
+  { name: "Teams", href: "/settings/teams", icon: Users },
+  { name: "Reviews", href: "/reviews", icon: FileText },
+];
 
 function NavGroup({
   label,

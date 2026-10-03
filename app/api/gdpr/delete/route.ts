@@ -35,6 +35,9 @@ export async function DELETE(request: NextRequest) {
       consent_records: 0,
       scheduled_campaigns: 0,
       oauth_tokens: 0,
+      saved_audiences: 0,
+      campaign_reviews: 0,
+      review_comments: 0,
       errors: [] as string[],
     };
 
@@ -100,6 +103,9 @@ export async function DELETE(request: NextRequest) {
       const scheduled = await deleteScheduledDataForUser(userEmail);
       deletionResults.scheduled_campaigns = scheduled.scheduledCampaigns;
       deletionResults.oauth_tokens = scheduled.oauthTokens;
+      deletionResults.saved_audiences = scheduled.savedAudiences;
+      deletionResults.campaign_reviews = scheduled.campaignReviews;
+      deletionResults.review_comments = scheduled.reviewComments;
     } catch (e) {
       deletionResults.errors.push(`Failed to delete scheduled sending data: ${errorMessage(e)}`);
     }

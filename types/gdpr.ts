@@ -198,5 +198,6 @@ export interface GDPRDataExport {
       user_agent?: string;
       created_at: string;
     }>;
+    campaign_workspace?: Record<string, unknown>;
   };
 }

@@ -30,6 +30,7 @@ import {
   isUncertainDeliveryError,
   recordWorkerTick,
 } from "@/lib/services/campaign-delivery-store";
+import { getTeamPolicy, TeamReviewError } from "@/lib/services/team-review";
 import { checkUserUnsubscribed } from "@/lib/services/unsubscribe-service";
 
 /**
@@ -145,6 +146,12 @@ async function dispatchCampaign(
   const total = allEmails.length;
 
   try {
+    if (
+      campaign.team_id &&
+      (await getTeamPolicy(campaign.team_id, campaign.user_email)).role === "viewer"
+    ) {
+      throw new TeamReviewError("Sender is now a viewer and cannot send this team campaign");
+    }
     if (!campaign.progress_migrated) {
       const legacy = await loadCampaignSendState(campaignId, campaign.user_email, true);
       for (const result of legacy.results) {
@@ -322,7 +329,9 @@ async function dispatchCampaign(
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    const terminal = attempts >= SCHEDULED_MAX_ATTEMPTS;
+    const terminal =
+      attempts >= SCHEDULED_MAX_ATTEMPTS ||
+      (error instanceof TeamReviewError && error.status === 403);
 
     await updateScheduledCampaign(campaign.$id, {
       status: terminal ? SCHEDULED_STATUS.FAILED : SCHEDULED_STATUS.SCHEDULED,
