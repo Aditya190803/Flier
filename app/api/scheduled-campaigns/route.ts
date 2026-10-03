@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { isAuthed, requireSession } from "@/lib/api-auth";
 import { MAX_SCHEDULE_HORIZON_MS, MIN_SCHEDULE_LEAD_MS, SCHEDULED_STATUS } from "@/lib/constants";
+import { assertEmailQuota, PlanLimitError, planLimitResponse } from "@/lib/billing";
 import { apiLogger } from "@/lib/logger";
 import { hasUsableRefreshToken } from "@/lib/services/oauth-token-store";
 import { checkCampaignEligibility } from "@/lib/services/campaign-eligibility";
@@ -145,6 +146,10 @@ export async function POST(request: NextRequest) {
     if (report.issues.length) {
       return NextResponse.json({ error: report.issues[0].message }, { status: 400 });
     }
+    // Immediate sends must fit today's plan quota; later sends are re-checked per recipient at dispatch.
+    if (data.send_now) {
+      await assertEmailQuota(auth.email, report.recipients.length);
+    }
     const approval = data.team_id
       ? await authorizeTeamCampaign(
           data.team_id,
@@ -181,6 +186,9 @@ export async function POST(request: NextRequest) {
       "Error creating scheduled campaign",
       error instanceof Error ? { message: error.message } : undefined,
     );
+    if (error instanceof PlanLimitError) {
+      return planLimitResponse(error);
+    }
     if (error instanceof Error && error.message.startsWith("REVIEW_CONFLICT:")) {
       return NextResponse.json({ error: error.message }, { status: 412 });
     }

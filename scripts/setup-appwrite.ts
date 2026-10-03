@@ -354,6 +354,59 @@ const collections = [
       },
     ],
   },
+  // Billing / subscriptions (one doc per user)
+  {
+    id: "subscriptions",
+    name: "Subscriptions",
+    attributes: [
+      { key: "user_email", type: "string", size: 255, required: true },
+      { key: "plan", type: "string", size: 50, required: true }, // free | insights | pro | enterprise
+      { key: "status", type: "string", size: 50, required: true }, // active | past_due | cancelled | trialing | none
+      { key: "interval", type: "string", size: 20, required: false }, // monthly | annual
+      {
+        key: "razorpay_subscription_id",
+        type: "string",
+        size: 255,
+        required: false,
+      },
+      {
+        key: "razorpay_customer_id",
+        type: "string",
+        size: 255,
+        required: false,
+      },
+      { key: "razorpay_plan_id", type: "string", size: 255, required: false },
+      { key: "current_period_end", type: "string", size: 50, required: false },
+      {
+        key: "cancel_at_period_end",
+        type: "boolean",
+        required: false,
+        default: false,
+      },
+      {
+        key: "emails_per_day_override",
+        type: "integer",
+        required: false,
+      },
+      {
+        key: "emails_per_month_override",
+        type: "integer",
+        required: false,
+      },
+      { key: "contacts_override", type: "integer", required: false },
+      { key: "created_at", type: "string", size: 50, required: false },
+      { key: "updated_at", type: "string", size: 50, required: false },
+    ],
+    indexes: [
+      { key: "user_email_idx", type: "unique", attributes: ["user_email"] },
+      { key: "plan_idx", type: "key", attributes: ["plan"] },
+      {
+        key: "razorpay_sub_idx",
+        type: "key",
+        attributes: ["razorpay_subscription_id"],
+      },
+    ],
+  },
 ];
 
 // Bucket definition
@@ -584,6 +637,8 @@ async function generateEnvVariables() {
   console.log("# GDPR & Compliance");
   console.log(`NEXT_PUBLIC_APPWRITE_AUDIT_LOGS_COLLECTION_ID=audit_logs`);
   console.log(`NEXT_PUBLIC_APPWRITE_CONSENTS_COLLECTION_ID=consents`);
+  console.log("\n# Billing");
+  console.log(`NEXT_PUBLIC_APPWRITE_SUBSCRIPTIONS_COLLECTION_ID=subscriptions`);
   console.log("");
 }
 

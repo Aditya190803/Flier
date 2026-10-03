@@ -1,6 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { isAuthed, requireSession } from "@/lib/api-auth";
+import {
+  PlanLimitError,
+  assertEmailQuota,
+  planLimitResponse,
+  incrementEmailUsage,
+} from "@/lib/billing";
 import { SEND_EMAIL_CHUNK_BUDGET_MS } from "@/lib/constants";
 import { apiLogger } from "@/lib/logger";
 import { rateLimitAsync, rateLimitUserEmailAsync, RATE_LIMITS } from "@/lib/rate-limit";
@@ -149,6 +155,9 @@ export async function POST(request: NextRequest) {
       return userRateLimitResponse;
     }
 
+    // Plan daily/monthly quota, counted against recipients not yet processed.
+    await assertEmailQuota(auth.email, pending.length);
+
     const emailService = new EmailService(auth.accessToken, auth.email);
 
     const chunk = await emailService.sendPersonalizedBatch(pending, {
@@ -185,6 +194,10 @@ export async function POST(request: NextRequest) {
       done,
     });
 
+    if (chunk.sent > 0) {
+      await incrementEmailUsage(auth.email, chunk.sent);
+    }
+
     return NextResponse.json({
       results: chunk.results,
       summary: {
@@ -199,6 +212,9 @@ export async function POST(request: NextRequest) {
       remaining: Math.max(0, total - allResults.length),
     });
   } catch (error) {
+    if (error instanceof PlanLimitError) {
+      return planLimitResponse(error);
+    }
     apiLogger.error("Send email API error", error instanceof Error ? error : undefined);
     return NextResponse.json({ error: "Failed to process email request" }, { status: 500 });
   }

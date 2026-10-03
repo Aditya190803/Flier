@@ -25,6 +25,41 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 /* ─── data ───────────────────────────────────────────────── */
+const pricingTeaser = [
+  {
+    name: "Free",
+    price: "₹0",
+    blurb: "100 emails/day · 1k contacts",
+    cta: "Start free",
+    href: "/pricing",
+    highlight: false,
+  },
+  {
+    name: "Insights",
+    price: "₹299",
+    blurb: "Analytics + export · same send volume",
+    cta: "See Insights",
+    href: "/pricing",
+    highlight: false,
+  },
+  {
+    name: "Pro",
+    price: "₹999",
+    blurb: "500 emails/day · A/B, teams, webhooks",
+    cta: "Go Pro",
+    href: "/pricing",
+    highlight: true,
+  },
+  {
+    name: "Enterprise",
+    price: "Custom",
+    blurb: "SSO, invoice, custom limits",
+    cta: "Contact sales",
+    href: "/enterprise",
+    highlight: false,
+  },
+];
+
 const features = [
   {
     icon: FileSpreadsheet,
@@ -268,6 +303,66 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* ══ PRICING TEASER ══════════════════════════════ */}
+        <section id="pricing" className="py-20 lg:py-28 border-t">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <Reveal className="text-center mb-14">
+              <Badge variant="outline" className="mb-4">
+                Pricing
+              </Badge>
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+                Start free. Scale when you need to.
+              </h2>
+              <p className="text-muted-foreground max-w-xl mx-auto">
+                Hard server-side limits. Unlock analytics on Insights, full product on Pro. Annual
+                saves two months.
+              </p>
+            </Reveal>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {pricingTeaser.map((p, i) => (
+                <Reveal key={p.name} delay={i * 50}>
+                  <div
+                    className={`h-full rounded-xl border bg-card p-6 flex flex-col ${
+                      p.highlight
+                        ? "border-primary shadow-md shadow-primary/10 ring-1 ring-primary/20"
+                        : ""
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="font-semibold">{p.name}</span>
+                      {p.highlight && <Badge className="text-[10px]">Popular</Badge>}
+                    </div>
+                    <div className="text-2xl font-bold tracking-tight mb-1 tabular-nums">
+                      {p.price}
+                      {p.price.startsWith("₹") && p.price !== "₹0" && (
+                        <span className="text-sm font-normal text-muted-foreground">/mo</span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground flex-1 mb-5">{p.blurb}</p>
+                    <Button
+                      asChild
+                      size="sm"
+                      variant={p.highlight ? "default" : "outline"}
+                      className="w-full"
+                    >
+                      <Link href={p.href}>{p.cta}</Link>
+                    </Button>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+
+            <div className="mt-8 text-center">
+              <Button variant="link" asChild>
+                <Link href="/pricing" className="gap-1.5">
+                  Full comparison <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+
         {/* ══ HOW IT WORKS ════════════════════════════════ */}
         <section id="how-it-works" className="py-20 lg:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -346,12 +441,20 @@ export default function HomePage() {
                 </div>
 
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-5 text-sm text-muted-foreground">
-                  {["No credit card", "Free forever tier", "Open source"].map((t) => (
+                  {["No credit card", "Free forever tier", "Plans from ₹299"].map((t) => (
                     <div key={t} className="flex items-center gap-1.5">
                       <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
                       {t}
                     </div>
                   ))}
+                </div>
+                <div className="mt-4">
+                  <Link
+                    href="/pricing"
+                    className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                  >
+                    View pricing →
+                  </Link>
                 </div>
               </div>
             </Reveal>

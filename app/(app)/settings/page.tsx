@@ -17,6 +17,7 @@ import {
   Shield,
   Users,
   FileText,
+  CreditCard,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +28,14 @@ const settingsCategories = [
   {
     title: "Account & Workspace",
     items: [
+      {
+        name: "Billing & Plan",
+        description: "Usage, upgrades, and subscription management",
+        icon: CreditCard,
+        href: "/settings/billing",
+        color: "text-primary",
+        bgColor: "bg-primary/10",
+      },
       {
         name: "Profile & Preferences",
         description: "Update your personal profile and default preferences",

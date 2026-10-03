@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { isAuthed, requireSession } from "@/lib/api-auth";
 import { respondWithOwnedDocument } from "@/lib/appwrite/single-document";
 import { databases, config, ID } from "@/lib/appwrite-server";
+import { PlanLimitError, assertContactQuota, planLimitResponse } from "@/lib/billing";
 import { listOwnedContacts } from "@/lib/services/contact-directory";
 import { contactSchema, validate } from "@/lib/validation";
 import { apiLogger } from "@/lib/logger";
@@ -49,6 +50,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: parsed.message || "Invalid contact" }, { status: 400 });
     }
     const { email, name, company, phone, tags } = parsed.data;
+
+    try {
+      await assertContactQuota(auth.email, 1);
+    } catch (error) {
+      if (error instanceof PlanLimitError) {
+        return planLimitResponse(error);
+      }
+      throw error;
+    }
 
     const result = await databases.createDocument(
       config.databaseId,

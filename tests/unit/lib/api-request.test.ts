@@ -47,4 +47,17 @@ describe("apiRequest headers", () => {
     expect(sentHeaders.get("Content-Type")).toBe("application/json");
     expect(sentHeaders.get(CSRF_HEADER_NAME)).toBe("caller-token");
   });
+
+  it("shows the readable reason for plan limit responses", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 403,
+        json: async () => ({ error: "PLAN_LIMIT", message: "Daily email limit reached" }),
+      }),
+    );
+
+    await expect(apiRequest("/api/example")).rejects.toThrow("Daily email limit reached");
+  });
 });

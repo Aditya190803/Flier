@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { ArrowLeft, Globe } from "lucide-react";
+import { ArrowLeft, Globe, Zap } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { PageShell, PageHeader } from "@/components/ui/page-shell";
 import { generateWebhookSecret } from "@/components/webhooks/event-types";
+import { useBilling } from "@/hooks/useBilling";
 import { useWebhooks } from "@/hooks/useWebhooks";
 import { type Webhook as WebhookType } from "@/lib/appwrite";
 
@@ -22,6 +24,8 @@ import { WebhookList } from "./_components/webhook-list";
 export default function WebhooksPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { plan, loading: billingLoading } = useBilling();
+  const canWebhooks = Boolean(plan?.features.webhooks);
   const {
     webhooks,
     isLoading,
@@ -53,6 +57,11 @@ export default function WebhooksPage() {
 
   const createWebhook = async () => {
     if (!newWebhook.name.trim() || !newWebhook.url.trim() || newWebhook.events.length === 0) {
+      return;
+    }
+    if (!canWebhooks) {
+      toast.error("Webhooks require Pro. Upgrade to unlock.");
+      router.push("/pricing");
       return;
     }
     try {
@@ -116,17 +125,38 @@ export default function WebhooksPage() {
           }
           description="Integrate Flier with your apps and services in real-time"
           actions={
-            <CreateWebhookDialog
-              open={showCreateDialog}
-              onOpenChange={setShowCreateDialog}
-              newWebhook={newWebhook}
-              setNewWebhook={setNewWebhook}
-              isLoading={isLoading}
-              onCreateWebhook={createWebhook}
-              onGenerateSecret={generateWebhookSecret}
-            />
+            canWebhooks ? (
+              <CreateWebhookDialog
+                open={showCreateDialog}
+                onOpenChange={setShowCreateDialog}
+                newWebhook={newWebhook}
+                setNewWebhook={setNewWebhook}
+                isLoading={isLoading}
+                onCreateWebhook={createWebhook}
+                onGenerateSecret={generateWebhookSecret}
+              />
+            ) : (
+              <Button className="gap-2" onClick={() => router.push("/pricing")}>
+                <Zap className="h-4 w-4" />
+                Upgrade for Webhooks
+              </Button>
+            )
           }
         />
+
+        {!canWebhooks && !billingLoading && (
+          <Card className="border-primary/30 bg-primary/5 mb-6">
+            <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="font-semibold">Webhooks are a Pro feature</div>
+                <p className="text-sm text-muted-foreground">
+                  Upgrade to Pro to send real-time event callbacks to your apps.
+                </p>
+              </div>
+              <Button onClick={() => router.push("/pricing")}>View plans</Button>
+            </CardContent>
+          </Card>
+        )}
 
         <WebhookList
           webhooks={webhooks}
@@ -136,7 +166,7 @@ export default function WebhooksPage() {
           }}
           onToggleActive={toggleWebhookActive}
           onDelete={deleteWebhook}
-          onAddWebhook={() => setShowCreateDialog(true)}
+          onAddWebhook={() => (canWebhooks ? setShowCreateDialog(true) : router.push("/pricing"))}
         />
 
         <WebhookDocsSection />

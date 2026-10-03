@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { isAuthed, requireSession } from "@/lib/api-auth";
 import { respondWithOwnedDocument } from "@/lib/appwrite/single-document";
 import { databases, config, Query, ID } from "@/lib/appwrite-server";
+import { PlanLimitError, assertFeature, planLimitResponse } from "@/lib/billing";
 import { apiLogger } from "@/lib/logger";
 import type { WebhookDocument } from "@/types/appwrite";
 
@@ -77,6 +78,15 @@ export async function POST(request: NextRequest) {
       return auth;
     }
 
+    try {
+      await assertFeature(auth.email, "webhooks", "Webhooks");
+    } catch (error) {
+      if (error instanceof PlanLimitError) {
+        return planLimitResponse(error);
+      }
+      throw error;
+    }
+
     const body = await request.json();
     const { name, url, events, is_active, secret } = body;
     const now = new Date().toISOString();
@@ -114,6 +124,15 @@ export async function PUT(request: NextRequest) {
     const auth = await requireSession(request);
     if (!isAuthed(auth)) {
       return auth;
+    }
+
+    try {
+      await assertFeature(auth.email, "webhooks", "Webhooks");
+    } catch (error) {
+      if (error instanceof PlanLimitError) {
+        return planLimitResponse(error);
+      }
+      throw error;
     }
 
     const body = await request.json();

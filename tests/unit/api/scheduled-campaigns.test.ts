@@ -1,9 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-const { requireSession, createScheduledCampaign, hasUsableRefreshToken } = vi.hoisted(() => ({
-  requireSession: vi.fn(),
-  createScheduledCampaign: vi.fn(),
-  hasUsableRefreshToken: vi.fn(),
+const { requireSession, createScheduledCampaign, hasUsableRefreshToken, assertEmailQuota } =
+  vi.hoisted(() => ({
+    requireSession: vi.fn(),
+    createScheduledCampaign: vi.fn(),
+    hasUsableRefreshToken: vi.fn(),
+    assertEmailQuota: vi.fn(),
+  }));
+
+vi.mock("@/lib/billing", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  assertEmailQuota,
 }));
 
 vi.mock("@/lib/api-auth", () => ({
@@ -29,6 +36,7 @@ vi.mock("@/lib/services/unsubscribe-service", () => ({
 }));
 
 import { POST } from "@/app/api/scheduled-campaigns/route";
+import { PlanLimitError } from "@/lib/billing";
 
 function request(body: Record<string, unknown>) {
   return new Request("http://localhost/api/scheduled-campaigns", {
@@ -53,6 +61,7 @@ describe("POST /api/scheduled-campaigns", () => {
     vi.clearAllMocks();
     requireSession.mockResolvedValue({ email: "owner@example.com" });
     hasUsableRefreshToken.mockResolvedValue(true);
+    assertEmailQuota.mockResolvedValue({});
     createScheduledCampaign.mockImplementation((data) =>
       Promise.resolve({
         $id: "scheduled-1",
@@ -129,4 +138,14 @@ it("queues Send now without the future lead window", async () => {
 it("rejects unresolved personalization at the queue boundary", async () => {
   const response = await POST(request({ ...validBody(), subject: "Hello {{name}}" }) as never);
   expect(response.status).toBe(400);
+});
+it("refuses Send now when the campaign exceeds today's plan quota", async () => {
+  assertEmailQuota.mockRejectedValueOnce(new PlanLimitError("Daily email limit reached"));
+  const response = await POST(
+    request({ ...validBody(), send_now: true, scheduled_at: new Date().toISOString() }) as never,
+  );
+  expect(response.status).toBe(403);
+  expect(await response.json()).toMatchObject({ message: "Daily email limit reached" });
+  expect(assertEmailQuota).toHaveBeenCalledWith("owner@example.com", 1);
+  expect(createScheduledCampaign).not.toHaveBeenCalled();
 });

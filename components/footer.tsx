@@ -53,6 +53,22 @@ export function Footer() {
                   API & Webhooks
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/pricing"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Pricing
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/enterprise"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Enterprise
+                </Link>
+              </li>
             </ul>
           </div>
 

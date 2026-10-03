@@ -3,6 +3,7 @@ import { BarChart3, History } from "lucide-react";
 import { CampaignFunnelWidget } from "@/components/activity/campaign-funnel";
 import { DeviceBreakdownChart } from "@/components/activity/device-breakdown";
 import { LinkPerformanceTable } from "@/components/activity/link-performance";
+import { PremiumGate } from "@/components/insights/premium-gate";
 import type { HistoryData } from "@/hooks/useInsightsData";
 import type { TrackingEvent } from "@/types/activity";
 
@@ -10,12 +11,14 @@ interface PerformanceTabProps {
   selectedHeatmapCampaignId: string | null;
   historyData: HistoryData | null;
   allTrackingEvents: TrackingEvent[];
+  isPremium: boolean;
 }
 
 export function PerformanceTab({
   selectedHeatmapCampaignId,
   historyData,
   allTrackingEvents,
+  isPremium,
 }: PerformanceTabProps) {
   if (!selectedHeatmapCampaignId) {
     return (
@@ -48,11 +51,13 @@ export function PerformanceTab({
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <CampaignFunnelWidget sent={sent} events={events} />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-        <DeviceBreakdownChart events={events} />
-        <LinkPerformanceTable events={events} uniqueOpens={openedEmails.size} />
-      </div>
+      <PremiumGate featureName="Campaign performance analytics" isPremium={isPremium}>
+        <CampaignFunnelWidget sent={sent} events={events} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+          <DeviceBreakdownChart events={events} />
+          <LinkPerformanceTable events={events} uniqueOpens={openedEmails.size} />
+        </div>
+      </PremiumGate>
     </div>
   );
 }

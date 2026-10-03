@@ -1,16 +1,18 @@
 import { STORAGE_KEY_GMAIL_QUOTA } from "@/lib/constants";
 import type { QuotaInfo } from "@/types/campaign";
 
+/** Gmail free-account ceiling — Pro plan max, not Free default */
 export const GMAIL_DAILY_LIMIT = 500;
-
+/** Free-tier default until /api/billing/plan loads */
+export const DEFAULT_PLAN_DAILY_LIMIT = 100;
 export const QUOTA_STORAGE_KEY = STORAGE_KEY_GMAIL_QUOTA;
 
 export const loadInitialQuota = (): QuotaInfo => {
   if (typeof window === "undefined") {
     return {
-      dailyLimit: GMAIL_DAILY_LIMIT,
+      dailyLimit: DEFAULT_PLAN_DAILY_LIMIT,
       estimatedUsed: 0,
-      estimatedRemaining: GMAIL_DAILY_LIMIT,
+      estimatedRemaining: DEFAULT_PLAN_DAILY_LIMIT,
       lastUpdated: null,
     };
   }
@@ -23,10 +25,11 @@ export const loadInitialQuota = (): QuotaInfo => {
       const now = new Date();
 
       if (lastUpdated.toDateString() !== now.toDateString()) {
+        const limit = parsed.dailyLimit || DEFAULT_PLAN_DAILY_LIMIT;
         return {
-          dailyLimit: GMAIL_DAILY_LIMIT,
+          dailyLimit: limit,
           estimatedUsed: 0,
-          estimatedRemaining: GMAIL_DAILY_LIMIT,
+          estimatedRemaining: limit,
           lastUpdated: null,
         };
       }
@@ -41,12 +44,35 @@ export const loadInitialQuota = (): QuotaInfo => {
   }
 
   return {
-    dailyLimit: GMAIL_DAILY_LIMIT,
+    dailyLimit: DEFAULT_PLAN_DAILY_LIMIT,
     estimatedUsed: 0,
-    estimatedRemaining: GMAIL_DAILY_LIMIT,
+    estimatedRemaining: DEFAULT_PLAN_DAILY_LIMIT,
     lastUpdated: null,
   };
 };
+
+/** Merge server plan usage into local quota display */
+export async function syncQuotaFromBilling(): Promise<QuotaInfo | null> {
+  try {
+    const res = await fetch("/api/billing/plan");
+    if (!res.ok) {
+      return null;
+    }
+    const data = await res.json();
+    const dailyLimit = data.plan?.emailsPerDay ?? DEFAULT_PLAN_DAILY_LIMIT;
+    const used = data.usage?.emailsToday ?? 0;
+    const quota: QuotaInfo = {
+      dailyLimit,
+      estimatedUsed: used,
+      estimatedRemaining: Math.max(0, dailyLimit - used),
+      lastUpdated: new Date(),
+    };
+    persistQuota(quota);
+    return quota;
+  } catch {
+    return null;
+  }
+}
 
 export const persistQuota = (quotaInfo: QuotaInfo) => {
   if (typeof window === "undefined") {

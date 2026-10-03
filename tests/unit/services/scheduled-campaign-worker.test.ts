@@ -10,6 +10,13 @@ const mocks = vi.hoisted(() => ({
   send: vi.fn(),
   token: vi.fn(),
   load: vi.fn(),
+  quota: vi.fn(),
+  usage: vi.fn(),
+}));
+vi.mock("@/lib/billing", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  assertEmailQuota: mocks.quota,
+  incrementEmailUsage: mocks.usage,
 }));
 vi.mock("@/lib/services/scheduled-campaign-store", () => ({
   claimNextDueCampaign: mocks.claim,
@@ -39,6 +46,7 @@ vi.mock("@/lib/services/campaign-send-state", () => ({
 }));
 vi.mock("@/lib/services/unsubscribe-service", () => ({ checkUserUnsubscribed: vi.fn() }));
 vi.mock("@/lib/attachment-fetcher", () => ({ isPdfUrl: () => false }));
+import { PlanLimitError } from "@/lib/billing";
 import { runScheduledCampaignPass } from "@/lib/services/scheduled-campaign-worker";
 
 const campaign = {
@@ -73,6 +81,8 @@ beforeEach(() => {
     results.push(result);
   });
   mocks.load.mockResolvedValue({ docId: "job", exists: false, results: [] });
+  mocks.quota.mockResolvedValue({});
+  mocks.usage.mockResolvedValue(undefined);
   mocks.send.mockImplementation(async ([email], options) => {
     expect(await options.beforeDelivery(email.to)).toBe(true);
     return { results: [{ email: email.to, status: "success", messageId: "gmail" }] };
@@ -115,5 +125,28 @@ it("does not call Gmail if legacy progress cannot be verified", async () => {
   expect(mocks.update).toHaveBeenCalledWith(
     "job",
     expect.objectContaining({ last_error: "History unavailable" }),
+  );
+});
+it("counts each Gmail-accepted send against the plan quota", async () => {
+  await runScheduledCampaignPass();
+  expect(mocks.quota).toHaveBeenCalledTimes(2);
+  expect(mocks.usage).toHaveBeenCalledWith("owner@example.com", 1);
+  expect(mocks.usage).toHaveBeenCalledTimes(2);
+});
+it("pauses until the quota resets instead of exceeding the plan", async () => {
+  const resetAt = "2026-10-04T00:00:00.000Z";
+  mocks.quota
+    .mockResolvedValueOnce({})
+    .mockRejectedValueOnce(new PlanLimitError("Daily email limit reached", { resetAt }));
+  const pass = await runScheduledCampaignPass();
+  expect(mocks.send).toHaveBeenCalledTimes(1);
+  expect(pass.processed[0]).toMatchObject({ status: "scheduled", remaining: 1 });
+  expect(mocks.update).toHaveBeenCalledWith(
+    "job",
+    expect.objectContaining({
+      status: "scheduled",
+      scheduled_at: resetAt,
+      last_error: "Paused: Daily email limit reached",
+    }),
   );
 });

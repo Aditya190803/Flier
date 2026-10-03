@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { isAuthed, requireSession } from "@/lib/api-auth";
 import { databases, config, Query, ID } from "@/lib/appwrite-server";
+import { PlanLimitError, assertFeature, planLimitResponse } from "@/lib/billing";
 import { apiLogger } from "@/lib/logger";
 import type { ABTestDocument } from "@/types/appwrite";
 
@@ -115,6 +116,15 @@ export async function POST(request: NextRequest) {
       return auth;
     }
 
+    try {
+      await assertFeature(auth.email, "abTesting", "A/B testing");
+    } catch (error) {
+      if (error instanceof PlanLimitError) {
+        return planLimitResponse(error);
+      }
+      throw error;
+    }
+
     const body = await request.json();
     const {
       name,
@@ -171,6 +181,15 @@ export async function PUT(request: NextRequest) {
     const auth = await requireSession(request);
     if (!isAuthed(auth)) {
       return auth;
+    }
+
+    try {
+      await assertFeature(auth.email, "abTesting", "A/B testing");
+    } catch (error) {
+      if (error instanceof PlanLimitError) {
+        return planLimitResponse(error);
+      }
+      throw error;
     }
 
     const body = await request.json();

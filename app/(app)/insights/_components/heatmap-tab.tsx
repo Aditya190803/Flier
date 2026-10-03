@@ -1,14 +1,16 @@
 import { BarChart3, MousePointer2 } from "lucide-react";
 
 import { HeatmapWidget } from "@/components/activity/dashboard-widgets";
+import { PremiumGate } from "@/components/insights/premium-gate";
 import type { ClickHeatmapData } from "@/types/activity";
 
 interface HeatmapTabProps {
   selectedHeatmapCampaignId: string | null;
   heatmap: ClickHeatmapData | null;
+  isPremium: boolean;
 }
 
-export function HeatmapTab({ selectedHeatmapCampaignId, heatmap }: HeatmapTabProps) {
+export function HeatmapTab({ selectedHeatmapCampaignId, heatmap, isPremium }: HeatmapTabProps) {
   if (!selectedHeatmapCampaignId) {
     return (
       <div className="border border-border/50 rounded-xl bg-card p-12 flex flex-col items-center justify-center text-center text-muted-foreground shadow-sm">
@@ -25,11 +27,13 @@ export function HeatmapTab({ selectedHeatmapCampaignId, heatmap }: HeatmapTabPro
     <>
       <h2 className="text-lg font-semibold text-foreground">Send-Time Heatmap</h2>
       {heatmap && heatmap.links && heatmap.links.length > 0 ? (
-        <HeatmapWidget
-          links={heatmap.links}
-          totalClicks={heatmap.totalClicks}
-          title="When do your recipients open emails?"
-        />
+        <PremiumGate featureName="Send-time heatmap" isPremium={isPremium}>
+          <HeatmapWidget
+            links={heatmap.links}
+            totalClicks={heatmap.totalClicks}
+            title="When do your recipients open emails?"
+          />
+        </PremiumGate>
       ) : (
         <div className="border border-border/50 rounded-xl bg-card p-12 flex flex-col items-center justify-center text-center text-muted-foreground shadow-sm mt-4">
           <MousePointer2 className="h-10 w-10 mb-4 opacity-40" />

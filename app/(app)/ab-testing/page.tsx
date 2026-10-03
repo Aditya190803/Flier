@@ -39,6 +39,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageShell, PageHeader, EmptyState } from "@/components/ui/page-shell";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useBilling } from "@/hooks/useBilling";
 import { useAbTests } from "@/hooks/useAbTests";
 import type { ABTest } from "@/lib/appwrite";
 import { abTestsService } from "@/lib/appwrite";
@@ -47,6 +48,8 @@ import { componentLogger } from "@/lib/client-logger";
 export default function ABTestingPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { plan, loading: billingLoading } = useBilling();
+  const canAbTest = Boolean(plan?.features.abTesting);
   const { tests, loading, contacts, submitting, fetchTests, createTest, startTest } = useAbTests(
     session?.user?.email ?? undefined,
   );
@@ -242,24 +245,50 @@ export default function ABTestingPage() {
           title="A/B Testing"
           description="Test different email variants to optimize your campaigns"
           actions={
-            <Button onClick={() => setShowCreateDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Test
-            </Button>
+            canAbTest ? (
+              <Button onClick={() => setShowCreateDialog(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                New Test
+              </Button>
+            ) : (
+              <Button onClick={() => router.push("/pricing")}>Upgrade to Pro</Button>
+            )
           }
         />
+
+        {!canAbTest && !billingLoading && (
+          <Card className="border-primary/30 bg-primary/5">
+            <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="font-semibold">A/B testing is a Pro feature</div>
+                <p className="text-sm text-muted-foreground">
+                  Upgrade to Pro to create subject and content experiments.
+                </p>
+              </div>
+              <Button onClick={() => router.push("/pricing")}>View plans</Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Tests List */}
         {tests.length === 0 ? (
           <EmptyState
             icon={<Beaker className="w-8 h-8" />}
             title="No A/B Tests Yet"
-            description="Create your first A/B test to compare different subject lines or email content."
+            description={
+              canAbTest
+                ? "Create your first A/B test to compare different subject lines or email content."
+                : "Upgrade to Pro to run A/B tests on subject lines and content."
+            }
             action={
-              <Button onClick={() => setShowCreateDialog(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create A/B Test
-              </Button>
+              canAbTest ? (
+                <Button onClick={() => setShowCreateDialog(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create A/B Test
+                </Button>
+              ) : (
+                <Button onClick={() => router.push("/pricing")}>Upgrade to Pro</Button>
+              )
             }
           />
         ) : (

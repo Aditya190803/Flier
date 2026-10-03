@@ -2,6 +2,12 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { isAuthed, requireSession } from "@/lib/api-auth";
+import {
+  PlanLimitError,
+  assertEmailQuota,
+  incrementEmailUsage,
+  planLimitResponse,
+} from "@/lib/billing";
 import { formatEmailSendErrorForUser } from "@/lib/gmail-user-message";
 import { apiLogger } from "@/lib/logger";
 import { rateLimitAsync, RATE_LIMITS } from "@/lib/rate-limit";
@@ -62,6 +68,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    await assertEmailQuota(auth.email, 1);
+
     const emailService = new EmailService(auth.accessToken, auth.email!);
 
     const result = await emailService.sendSingle(
@@ -97,11 +105,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    await incrementEmailUsage(auth.email, 1);
+
     return NextResponse.json({
       success: true,
       messageId: result.messageId,
     });
   } catch (error) {
+    if (error instanceof PlanLimitError) {
+      return planLimitResponse(error);
+    }
     apiLogger.error("Send single email API error", error instanceof Error ? error : undefined);
     return NextResponse.json({ error: "Failed to process email request" }, { status: 500 });
   }

@@ -6,6 +6,7 @@ import {
   SCHEDULED_MAX_ATTEMPTS,
   SCHEDULED_STATUS,
 } from "@/lib/constants";
+import { assertEmailQuota, incrementEmailUsage, PlanLimitError } from "@/lib/billing";
 import { apiLogger } from "@/lib/logger";
 import {
   loadCampaignSendState,
@@ -170,6 +171,7 @@ async function dispatchCampaign(
     const pending = allEmails.filter((email) => !processed.has(email.to.toLowerCase()));
     const service = new EmailService(token.accessToken, campaign.user_email);
     let cancelled = false;
+    let quotaPause: { message: string; resetAt?: string } | undefined;
     for (const email of pending) {
       if (Date.now() >= deadline - 2_000) {
         break;
@@ -177,6 +179,19 @@ async function dispatchCampaign(
       const current = await getScheduledCampaign(campaign.$id);
       if (!current || current.cancel_requested) {
         cancelled = true;
+        break;
+      }
+      try {
+        await assertEmailQuota(campaign.user_email, 1);
+      } catch (error) {
+        if (!(error instanceof PlanLimitError)) {
+          throw error;
+        }
+        // Plan quota reached: pause until it resets rather than exceeding the plan.
+        quotaPause = {
+          message: `Paused: ${error.message}`,
+          resetAt: typeof error.details.resetAt === "string" ? error.details.resetAt : undefined,
+        };
         break;
       }
       let reserved = false;
@@ -208,6 +223,13 @@ async function dispatchCampaign(
             error: result.error,
           });
         }
+        const accepted = chunk.results.filter((result) => result.status === "success").length;
+        await incrementEmailUsage(campaign.user_email, accepted).catch((error) =>
+          apiLogger.error("Plan usage could not be recorded", {
+            campaignId,
+            error: String(error),
+          }),
+        );
       } catch (error) {
         if (reserved) {
           throw error;
@@ -281,7 +303,8 @@ async function dispatchCampaign(
         locked_at: null,
         sent,
         failed,
-        last_error: null,
+        last_error: quotaPause?.message ?? null,
+        ...(quotaPause?.resetAt ? { scheduled_at: quotaPause.resetAt } : {}),
       });
 
       return {

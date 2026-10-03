@@ -6,6 +6,7 @@ import {
   RecentCampaignsWidget,
 } from "@/components/activity/dashboard-widgets";
 import { GlobalLeaderboard } from "@/components/activity/global-leaderboard";
+import { PremiumGate } from "@/components/insights/premium-gate";
 import { InsightsSummaryCards } from "@/components/insights/insights-summary-cards";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { HistoryData } from "@/hooks/useInsightsData";
@@ -25,6 +26,7 @@ interface OverviewTabProps {
   insightsCampaigns: CampaignAnalytics[];
   allTrackingEvents: TrackingEvent[];
   onViewCampaign: (id: string) => void;
+  isPremium: boolean;
 }
 
 export function OverviewTab({
@@ -35,6 +37,7 @@ export function OverviewTab({
   insightsCampaigns,
   allTrackingEvents,
   onViewCampaign,
+  isPremium,
 }: OverviewTabProps) {
   return (
     <div className="space-y-8">
@@ -125,7 +128,9 @@ export function OverviewTab({
       </div>
 
       <div className="mt-8">
-        <GlobalLeaderboard events={allTrackingEvents} limit={3} />
+        <PremiumGate featureName="Recipient leaderboard" isPremium={isPremium}>
+          <GlobalLeaderboard events={allTrackingEvents} limit={3} />
+        </PremiumGate>
       </div>
     </div>
   );

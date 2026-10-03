@@ -28,6 +28,8 @@ const getAppwriteConfig = () => ({
   // Team/Organization collections
   teamsCollectionId: env.NEXT_PUBLIC_APPWRITE_TEAMS_COLLECTION_ID,
   teamMembersCollectionId: env.NEXT_PUBLIC_APPWRITE_TEAM_MEMBERS_COLLECTION_ID,
+  subscriptionsCollectionId:
+    env.NEXT_PUBLIC_APPWRITE_SUBSCRIPTIONS_COLLECTION_ID || "subscriptions",
 });
 
 // Lazy initialization for client and services

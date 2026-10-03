@@ -14,9 +14,10 @@ import {
 } from "@/hooks/useEmailSend/persistence";
 import {
   clearQuota,
-  GMAIL_DAILY_LIMIT,
+  DEFAULT_PLAN_DAILY_LIMIT,
   loadInitialQuota,
   persistQuota,
+  syncQuotaFromBilling,
 } from "@/hooks/useEmailSend/quota";
 import {
   isPersistentError,
@@ -131,19 +132,31 @@ export function useEmailSend(): UseEmailSendResult {
   const [hasSavedCampaign, setHasSavedCampaign] = useState(false);
   const [savedCampaignInfo, setSavedCampaignInfo] = useState<SavedCampaignInfo | null>(null);
 
-  // Quota tracking state
+  // Quota tracking state (plan-aware; synced from /api/billing/plan)
   const [quotaInfo, setQuotaInfo] = useState<QuotaInfo>(() => {
     try {
       return loadInitialQuota();
     } catch {
       return {
-        dailyLimit: GMAIL_DAILY_LIMIT,
+        dailyLimit: DEFAULT_PLAN_DAILY_LIMIT,
         estimatedUsed: 0,
-        estimatedRemaining: GMAIL_DAILY_LIMIT,
+        estimatedRemaining: DEFAULT_PLAN_DAILY_LIMIT,
         lastUpdated: null,
       };
     }
   });
+
+  useEffect(() => {
+    let cancelled = false;
+    void syncQuotaFromBilling().then((q) => {
+      if (!cancelled && q) {
+        setQuotaInfo(q);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Store remaining emails for retry
   const remainingEmailsRef = useRef<PersonalizedEmailData[]>([]);
@@ -320,10 +333,11 @@ export function useEmailSend(): UseEmailSendResult {
 
   // Reset daily quota (for manual reset or new day)
   const resetDailyQuota = useCallback(() => {
+    const limit = quotaInfo.dailyLimit || DEFAULT_PLAN_DAILY_LIMIT;
     const reset = {
-      dailyLimit: GMAIL_DAILY_LIMIT,
+      dailyLimit: limit,
       estimatedUsed: 0,
-      estimatedRemaining: GMAIL_DAILY_LIMIT,
+      estimatedRemaining: limit,
       lastUpdated: null,
     };
     setQuotaInfo(reset);
@@ -333,7 +347,7 @@ export function useEmailSend(): UseEmailSendResult {
     } catch (e) {
       emailSendLogger.error("Error clearing quota info", e instanceof Error ? e : undefined);
     }
-  }, []);
+  }, [quotaInfo.dailyLimit]);
 
   // Check token status and trigger refresh if needed
   const checkTokenStatus = useCallback(async (): Promise<TokenStatus> => {

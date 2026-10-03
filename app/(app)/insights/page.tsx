@@ -17,6 +17,7 @@ import { PageHeader, PageShell, EmptyState } from "@/components/ui/page-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { useBilling } from "@/hooks/useBilling";
 import { useCampaignDetails } from "@/hooks/useCampaignDetails";
 import { useInsightsData } from "@/hooks/useInsightsData";
 import { buildCampaignChartData } from "@/lib/activity/chart-data";
@@ -34,6 +35,10 @@ import { RecipientsTab } from "./_components/recipients-tab";
 import { TrackingTab } from "./_components/tracking-tab";
 
 export default function HistoryPage() {
+  const { isPremiumAnalytics } = useBilling();
+  const goUpgrade = () => {
+    window.location.href = "/pricing";
+  };
   const { session, status, isLoading: _isLoading } = useAuthGuard();
   const router = useRouter();
   const {
@@ -203,11 +208,17 @@ export default function HistoryPage() {
           title="Insights & History"
           description="Track your campaign performance and delivery metrics"
           actions={
-            <InsightsExportActions
-              isExporting={isExporting}
-              onExportCSV={handleExportCSV}
-              onExportPDF={handleExportPDF}
-            />
+            isPremiumAnalytics ? (
+              <InsightsExportActions
+                isExporting={isExporting}
+                onExportCSV={handleExportCSV}
+                onExportPDF={handleExportPDF}
+              />
+            ) : (
+              <Button size="sm" variant="outline" onClick={goUpgrade}>
+                Upgrade for export
+              </Button>
+            )
           }
         />
 
@@ -283,6 +294,7 @@ export default function HistoryPage() {
                   setSelectedCampaign(c);
                 }
               }}
+              isPremium={isPremiumAnalytics}
             />
           </TabsContent>
 
@@ -311,11 +323,16 @@ export default function HistoryPage() {
               selectedHeatmapCampaignId={selectedHeatmapCampaignId}
               historyData={historyData}
               allTrackingEvents={allTrackingEvents}
+              isPremium={isPremiumAnalytics}
             />
           </TabsContent>
 
           <TabsContent value="heatmap" className="space-y-6">
-            <HeatmapTab selectedHeatmapCampaignId={selectedHeatmapCampaignId} heatmap={heatmap} />
+            <HeatmapTab
+              selectedHeatmapCampaignId={selectedHeatmapCampaignId}
+              heatmap={heatmap}
+              isPremium={isPremiumAnalytics}
+            />
           </TabsContent>
 
           <TabsContent value="recipients" className="space-y-6">

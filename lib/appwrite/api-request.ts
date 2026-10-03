@@ -18,7 +18,9 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: "Request failed" }));
-    throw new Error(error.error || `Request failed with status ${response.status}`);
+    // Plan limit responses carry a machine code in `error` and the readable reason in `message`.
+    const message = error.error === "PLAN_LIMIT" && error.message ? error.message : error.error;
+    throw new Error(message || `Request failed with status ${response.status}`);
   }
 
   return response.json();

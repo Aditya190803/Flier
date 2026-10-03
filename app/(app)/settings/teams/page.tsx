@@ -55,6 +55,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useBilling } from "@/hooks/useBilling";
 import { componentLogger } from "@/lib/client-logger";
 import { CSRF_HEADER_NAME, CSRF_TOKEN_NAME } from "@/lib/constants";
 import { getCookie } from "@/lib/utils";
@@ -102,6 +103,8 @@ const roleColors = {
 export default function TeamsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { plan } = useBilling();
+  const canTeams = Boolean(plan?.features.teams);
   const [teams, setTeams] = useState<Team[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -169,6 +172,12 @@ export default function TeamsPage() {
       return;
     }
 
+    if (!canTeams) {
+      toast.error("Teams require Pro. Upgrade to unlock.");
+      router.push("/pricing");
+      return;
+    }
+
     setIsCreating(true);
     try {
       const csrfToken = getCookie(CSRF_TOKEN_NAME);
@@ -183,7 +192,7 @@ export default function TeamsPage() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to create team");
+        throw new Error(error.message || error.error || "Failed to create team");
       }
 
       const team = await response.json();
@@ -344,10 +353,25 @@ export default function TeamsPage() {
         description="Collaborate with your team on email campaigns"
       />
 
-      <div className="flex justify-end mb-8">
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+      <div className="flex justify-end mb-8 gap-2">
+        {!canTeams && (
+          <Button variant="outline" onClick={() => router.push("/pricing")}>
+            Upgrade to Pro for Teams
+          </Button>
+        )}
+        <Dialog
+          open={createDialogOpen}
+          onOpenChange={(open) => {
+            if (open && !canTeams) {
+              toast.error("Teams require Pro");
+              router.push("/pricing");
+              return;
+            }
+            setCreateDialogOpen(open);
+          }}
+        >
           <DialogTrigger asChild>
-            <Button className="gap-2">
+            <Button className="gap-2" disabled={!canTeams}>
               <Plus className="h-4 w-4" />
               Create Team
             </Button>

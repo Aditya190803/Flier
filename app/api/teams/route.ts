@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { isAuthed, requireSession } from "@/lib/api-auth";
 import { databases, config, Query, ID } from "@/lib/appwrite-server";
+import { PlanLimitError, assertFeature, planLimitResponse } from "@/lib/billing";
 import { apiLogger } from "@/lib/logger";
 import { createTeamSchema, updateTeamSchema, validate } from "@/lib/validation";
 import type { TeamDocument, TeamMembershipDocument } from "@/types/appwrite";
@@ -88,6 +89,15 @@ export async function POST(request: NextRequest) {
 
     if (!config.teamsCollectionId || !config.teamMembersCollectionId) {
       return NextResponse.json({ error: "Teams feature not configured" }, { status: 503 });
+    }
+
+    try {
+      await assertFeature(auth.email, "teams", "Teams");
+    } catch (error) {
+      if (error instanceof PlanLimitError) {
+        return planLimitResponse(error);
+      }
+      throw error;
     }
 
     const body = await request.json();

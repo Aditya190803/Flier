@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { aggregateDeviceData } from "@/lib/activity/devices";
 import { isAuthed, requireSession } from "@/lib/api-auth";
 import { databases, config, Query } from "@/lib/appwrite-server";
+import { PlanLimitError, assertFeature, planLimitResponse } from "@/lib/billing";
 import { apiLogger } from "@/lib/logger";
 import type { TrackingEvent } from "@/types/activity";
 import type { CampaignDocument } from "@/types/appwrite";
@@ -25,6 +26,17 @@ export async function GET(request: NextRequest) {
 
     if (!campaignId) {
       return NextResponse.json({ error: "Campaign ID is required" }, { status: 400 });
+    }
+
+    if (advanced) {
+      try {
+        await assertFeature(auth.email, "advancedAnalytics", "Advanced analytics");
+      } catch (error) {
+        if (error instanceof PlanLimitError) {
+          return planLimitResponse(error);
+        }
+        throw error;
+      }
     }
 
     // Verify campaign belongs to user

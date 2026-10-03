@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { isAuthed, requireSession } from "@/lib/api-auth";
 import { databases, config, Query } from "@/lib/appwrite-server";
+import { PlanLimitError, assertFeature, planLimitResponse } from "@/lib/billing";
 import { apiLogger } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,15 @@ export async function GET(request: NextRequest) {
     const auth = await requireSession(request);
     if (!isAuthed(auth)) {
       return auth;
+    }
+
+    try {
+      await assertFeature(auth.email, "exportReports", "Report export");
+    } catch (error) {
+      if (error instanceof PlanLimitError) {
+        return planLimitResponse(error);
+      }
+      throw error;
     }
 
     const { searchParams } = new URL(request.url);

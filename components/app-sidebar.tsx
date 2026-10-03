@@ -19,6 +19,8 @@ import {
   Moon,
   Sun,
   Monitor,
+  CreditCard,
+  Zap,
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
@@ -190,6 +192,18 @@ export function AppSidebar() {
                   <Link href="/settings" className="cursor-pointer">
                     <Settings className="mr-2 h-4 w-4" />
                     Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/settings/billing" className="cursor-pointer">
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Billing
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/pricing" className="cursor-pointer">
+                    <Zap className="mr-2 h-4 w-4" />
+                    Upgrade
                   </Link>
                 </DropdownMenuItem>
 
