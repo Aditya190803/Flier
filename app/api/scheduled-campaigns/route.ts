@@ -5,6 +5,8 @@ import { isAuthed, requireSession } from "@/lib/api-auth";
 import { MAX_SCHEDULE_HORIZON_MS, MIN_SCHEDULE_LEAD_MS, SCHEDULED_STATUS } from "@/lib/constants";
 import { apiLogger } from "@/lib/logger";
 import { hasUsableRefreshToken } from "@/lib/services/oauth-token-store";
+import { reviewCampaign } from "@/lib/email/preflight";
+import { findSuppressedRecipients } from "@/lib/services/unsubscribe-service";
 import {
   createScheduledCampaign,
   deleteScheduledCampaign,
@@ -29,7 +31,7 @@ const EDITABLE_STATUSES: string[] = [SCHEDULED_STATUS.SCHEDULED];
 function notConfigured() {
   return NextResponse.json(
     {
-      error: "Scheduled sending is not configured. Set DATABASE_URL and run `npm run db:migrate`.",
+      error: "Background sending is not configured. Set DATABASE_URL and run `vp run db:migrate`.",
     },
     { status: 503 },
   );
@@ -116,7 +118,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: parsed.message || "Invalid request" }, { status: 400 });
     }
 
-    const timing = validateSendTime(parsed.data.scheduled_at);
+    const timing = parsed.data.send_now
+      ? { at: new Date() }
+      : validateSendTime(parsed.data.scheduled_at);
     if ("error" in timing) {
       return NextResponse.json({ error: timing.error }, { status: 400 });
     }
@@ -137,10 +141,43 @@ export async function POST(request: NextRequest) {
     }
 
     const data = parsed.data;
+    const suppressed = data.is_marketing
+      ? await findSuppressedRecipients(auth.email, data.recipients)
+      : [];
+    const report = reviewCampaign(
+      {
+        subject: data.subject,
+        content: data.content,
+        recipients: data.recipients,
+        recipientFields: Object.fromEntries(
+          (data.csv_data || []).map((row) => [
+            (
+              Object.entries(row).find(([key]) => key.toLowerCase() === "email")?.[1] || ""
+            ).toLowerCase(),
+            row,
+          ]),
+        ),
+        attachments: (data.attachments || []).map((attachment) => ({
+          name: attachment.fileName,
+          data: "appwrite",
+          appwriteFileId: attachment.appwrite_file_id || attachment.fileUrl,
+          fileSize: attachment.fileSize,
+        })),
+        personalizedAttachmentColumn: data.has_personalized_attachments
+          ? data.personalized_attachment_column
+          : undefined,
+      },
+      suppressed,
+    );
+    if (report.issues.length) {
+      return NextResponse.json({ error: report.issues[0].message }, { status: 400 });
+    }
     const campaign = await createScheduledCampaign({
+      requestId: data.request_id,
+      sendNow: data.send_now,
       subject: data.subject,
       content: data.content,
-      recipients: data.recipients,
+      recipients: report.recipients,
       scheduledAt: timing.at,
       timezone: data.timezone,
       userEmail: auth.email,
@@ -160,6 +197,9 @@ export async function POST(request: NextRequest) {
       "Error creating scheduled campaign",
       error instanceof Error ? { message: error.message } : undefined,
     );
+    if (error instanceof Error && error.message.startsWith("REQUEST_CONFLICT:")) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
     return NextResponse.json({ error: "Failed to schedule campaign" }, { status: 500 });
   }
 }
@@ -190,6 +230,24 @@ export async function PUT(request: NextRequest) {
     }
     if (record.user_email !== auth.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+    if (
+      record.status === SCHEDULED_STATUS.PROCESSING &&
+      changes.status === "cancelled" &&
+      !changes.scheduled_at
+    ) {
+      const changed = await updateScheduledCampaign(
+        id,
+        { cancel_requested: true },
+        SCHEDULED_STATUS.PROCESSING,
+      );
+      if (!changed) {
+        return NextResponse.json(
+          { error: "Campaign status changed; refresh and try again" },
+          { status: 409 },
+        );
+      }
+      return NextResponse.json(await getScheduledCampaign(id));
     }
     if (!EDITABLE_STATUSES.includes(record.status)) {
       return NextResponse.json(

@@ -230,3 +230,16 @@ describe("persistCampaignSendState", () => {
     ).resolves.toBeUndefined();
   });
 });
+
+describe("strict legacy progress loading", () => {
+  it("fails closed on a transient lookup instead of resending", async () => {
+    vi.mocked(databases.getDocument).mockRejectedValueOnce(new Error("Appwrite unavailable"));
+    await expect(loadCampaignSendState("old-job", "owner@example.com", true)).rejects.toThrow(
+      "unavailable",
+    );
+  });
+  it("allows a genuinely new document", async () => {
+    vi.mocked(databases.getDocument).mockRejectedValueOnce({ code: 404 });
+    expect((await loadCampaignSendState("new-job", "owner@example.com", true)).exists).toBe(false);
+  });
+});

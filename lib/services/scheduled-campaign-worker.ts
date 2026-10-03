@@ -15,12 +15,21 @@ import { EmailService, type PersonalizedEmail } from "@/lib/services/email-servi
 import { getOfflineAccessToken } from "@/lib/services/oauth-token-store";
 import {
   claimNextDueCampaign,
+  getScheduledCampaign,
   isScheduledSendingConfigured,
   reclaimStaleCampaigns,
   toAttachmentData,
   updateScheduledCampaign,
   type ScheduledCampaignRecord,
 } from "@/lib/services/scheduled-campaign-store";
+import {
+  beginDelivery,
+  finishDelivery,
+  listDeliveries,
+  markInterruptedDeliveries,
+  isUncertainDeliveryError,
+  recordWorkerTick,
+} from "@/lib/services/campaign-delivery-store";
 import { checkUserUnsubscribed } from "@/lib/services/unsubscribe-service";
 
 /**
@@ -136,57 +145,127 @@ async function dispatchCampaign(
   const total = allEmails.length;
 
   try {
-    const state = await loadCampaignSendState(campaignId, campaign.user_email);
-
-    // Skip anyone already processed on an earlier tick.
-    const pending = allEmails.filter((email) => !state.processedEmails.has(email.to.toLowerCase()));
-
-    let chunkSent = 0;
-    let chunkFailed = 0;
-    let results = state.results;
-    let done = pending.length === 0;
-
-    if (pending.length > 0) {
-      const emailService = new EmailService(token.accessToken, campaign.user_email);
-
-      const chunk = await emailService.sendPersonalizedBatch(pending, {
-        verifyBeforeSending: true,
-        tracking: {
-          enabled: campaign.tracking_enabled,
-          campaignId,
-          userEmail: campaign.user_email,
-        },
-        // Transactional mail ignores the unsubscribe list by design.
-        checkUnsubscribe: campaign.is_marketing
-          ? async (email: string) => checkUserUnsubscribed(campaign.user_email, email)
-          : undefined,
-        deadline,
-      });
-
-      chunkSent = chunk.sent;
-      chunkFailed = chunk.failed;
-      results = [...state.results, ...chunk.results];
-      done = chunk.done !== false && results.length >= total;
+    if (!campaign.progress_migrated) {
+      const legacy = await loadCampaignSendState(campaignId, campaign.user_email, true);
+      for (const result of legacy.results) {
+        await finishDelivery(campaign.$id, {
+          email: result.email,
+          status: result.status,
+          message_id: result.messageId,
+          error: result.error,
+        });
+      }
+      await updateScheduledCampaign(campaign.$id, { progress_migrated: true });
     }
-
-    const sent = state.sent + chunkSent;
-    const failed = state.failed + chunkFailed;
-
-    await persistCampaignSendState({
-      campaignId,
-      docId: state.docId,
-      existed: state.exists,
-      userEmail: campaign.user_email,
-      subject: campaign.subject,
-      content: campaign.content,
-      fullRecipients: campaign.recipients,
-      allResults: results,
-      sentDelta: chunkSent,
-      failedDelta: chunkFailed,
-      previousSent: state.sent,
-      previousFailed: state.failed,
-      done,
-    });
+    await markInterruptedDeliveries(campaign.$id);
+    const previous = await listDeliveries(campaign.$id);
+    const processed = new Set(previous.map((result) => result.email));
+    const pending = allEmails.filter((email) => !processed.has(email.to.toLowerCase()));
+    const service = new EmailService(token.accessToken, campaign.user_email);
+    let cancelled = false;
+    for (const email of pending) {
+      if (Date.now() >= deadline - 2_000) {
+        break;
+      }
+      const current = await getScheduledCampaign(campaign.$id);
+      if (!current || current.cancel_requested) {
+        cancelled = true;
+        break;
+      }
+      let reserved = false;
+      try {
+        const chunk = await service.sendPersonalizedBatch([email], {
+          verifyBeforeSending: true,
+          tracking: {
+            enabled: campaign.tracking_enabled,
+            campaignId,
+            userEmail: campaign.user_email,
+          },
+          checkUnsubscribe: campaign.is_marketing
+            ? (address: string) => checkUserUnsubscribed(campaign.user_email, address)
+            : undefined,
+          beforeDelivery: async (address: string) => {
+            reserved = await beginDelivery(campaign.$id, address);
+            return reserved;
+          },
+          deadline,
+        });
+        for (const result of chunk.results) {
+          await finishDelivery(campaign.$id, {
+            email: result.email,
+            status:
+              result.status === "error" && reserved && isUncertainDeliveryError(result.error || "")
+                ? "unknown"
+                : result.status,
+            message_id: result.messageId,
+            error: result.error,
+          });
+        }
+      } catch (error) {
+        if (reserved) {
+          throw error;
+        } // Keep the reservation uncertain if result persistence fails.
+        await finishDelivery(campaign.$id, {
+          email: email.to,
+          status: "error",
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    const deliveries = await listDeliveries(campaign.$id);
+    const sent = deliveries.filter((result) => result.status === "success").length;
+    const unknown = deliveries.filter(
+      (result) => result.status === "unknown" || result.status === "sending",
+    ).length;
+    const failed = deliveries.filter((result) => result.status === "error").length + unknown;
+    const done = deliveries.length >= total;
+    if (cancelled) {
+      await updateScheduledCampaign(campaign.$id, {
+        status: SCHEDULED_STATUS.CANCELLED,
+        locked_at: null,
+        sent,
+        failed,
+        last_error: "Stopped before the next recipient. An in-flight message may have completed.",
+      });
+      return {
+        id: campaign.$id,
+        status: SCHEDULED_STATUS.CANCELLED,
+        sent,
+        failed,
+        remaining: total - deliveries.length,
+      };
+    }
+    // Appwrite history is a projection; PostgreSQL owns delivery progress.
+    try {
+      const state = await loadCampaignSendState(campaignId, campaign.user_email, true);
+      await persistCampaignSendState({
+        campaignId,
+        docId: state.docId,
+        existed: state.exists,
+        userEmail: campaign.user_email,
+        subject: campaign.subject,
+        content: campaign.content,
+        fullRecipients: campaign.recipients,
+        allResults: deliveries.map((result) => ({
+          email: result.email,
+          status:
+            result.status === "unknown" || result.status === "sending" ? "error" : result.status,
+          messageId: result.message_id,
+          error: result.error,
+        })),
+        sentDelta: sent,
+        failedDelta: failed,
+        previousSent: 0,
+        previousFailed: 0,
+        done,
+      });
+    } catch (error) {
+      apiLogger.error("Delivery history projection unavailable", {
+        campaignId,
+        error: String(error),
+      });
+    }
 
     // Not finished: hand the row back to the queue so the next tick resumes.
     if (!done) {
@@ -203,7 +282,7 @@ async function dispatchCampaign(
         status: SCHEDULED_STATUS.SCHEDULED,
         sent,
         failed,
-        remaining: Math.max(0, total - results.length),
+        remaining: Math.max(0, total - deliveries.length),
       };
     }
 
@@ -220,7 +299,11 @@ async function dispatchCampaign(
       sent,
       failed,
       sent_at: new Date().toISOString(),
-      last_error: failed > 0 ? `${failed} of ${total} recipients failed` : null,
+      last_error: unknown
+        ? `${unknown} uncertain outcome(s). Check Gmail Sent before recovery.`
+        : failed > 0
+          ? `${failed} of ${total} recipients failed`
+          : null,
     });
 
     apiLogger.info("Scheduled campaign dispatched", {
@@ -278,6 +361,7 @@ export async function runScheduledCampaignPass(): Promise<ScheduledCampaignPass>
     throw new Error("Scheduled sending is not configured");
   }
 
+  await recordWorkerTick();
   const startedAt = Date.now();
   const deadline = startedAt + SCHEDULED_CRON_BUDGET_MS;
   const reclaimed = await reclaimStaleCampaigns(
