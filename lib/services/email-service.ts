@@ -279,7 +279,9 @@ export class EmailService {
             url: recipient.personalizedAttachment.url,
             error: error instanceof Error ? error.message : String(error),
           });
-          // Continue sending without the personalized attachment
+          throw new Error(
+            "Required personalized attachment could not be fetched. Nothing was sent.",
+          );
         }
       }
 
@@ -561,7 +563,9 @@ export class EmailService {
               url: email.personalizedAttachment.url,
               error: error instanceof Error ? error.message : String(error),
             });
-            // Continue sending without the personalized attachment
+            throw new Error(
+              "Required personalized attachment could not be fetched. Nothing was sent.",
+            );
           }
         }
 
