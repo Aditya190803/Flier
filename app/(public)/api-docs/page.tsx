@@ -1,56 +1,77 @@
-"use client";
-
-import dynamic from "next/dynamic";
 import Link from "next/link";
-import "swagger-ui-react/swagger-ui.css";
+import { ApiReference } from "@/components/api-reference";
+import { publicPageMetadata } from "@/lib/seo";
+import specification from "@/public/openapi.json";
 
-// Dynamically import SwaggerUI to avoid SSR issues
-const SwaggerUI = dynamic(() => import("swagger-ui-react"), { ssr: false });
+export const metadata = publicPageMetadata("/api-docs");
 
-/**
- * API Documentation Page
- *
- * This page provides interactive cumentation using Swagger UI.
- * It loads the OpenAPI specification from /public/openapi.json
- */
 export default function ApiDocsPage() {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <main className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8">
-        <header className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">API & Webhooks Documentation</h1>
-          <p className="text-muted-foreground">
-            Interactive API and Webhooks documentation for the Flier email campaign platform. API
-            endpoints require authentication via active session or API keys. Webhooks can be
-            configured in your account settings.
-          </p>
-        </header>
-
-        <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
-          <SwaggerUI
-            url="/openapi.json"
-            docExpansion="list"
-            defaultModelsExpandDepth={-1}
-            displayRequestDuration={true}
-            filter={true}
-            showExtensions={true}
-            showCommonExtensions={true}
-          />
+    <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8">
+      <header className="mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">API &amp; Webhooks Documentation</h1>
+        <p className="text-muted-foreground">
+          Flier's API manages contacts, campaigns, templates, and email sending through Gmail.
+          Protected endpoints require an authenticated session; mutations also require a CSRF token.
+          Configure webhooks in your account settings to receive campaign event notifications.
+        </p>
+      </header>
+      <section aria-labelledby="api-overview" className="mb-8 space-y-4">
+        <h2 id="api-overview" className="text-xl font-semibold">
+          API reference overview
+        </h2>
+        <p className="text-muted-foreground">
+          The reference below lists the documented endpoints. Expand the interactive reference for
+          request parameters and responses, or{" "}
+          <Link href="/openapi.json" className="text-primary underline">
+            download the OpenAPI specification
+          </Link>
+          .
+        </p>
+        <div className="overflow-x-auto rounded-lg border">
+          <table className="w-full text-sm text-left">
+            <caption className="sr-only">Documented Flier API methods and endpoints</caption>
+            <thead className="bg-muted">
+              <tr>
+                <th className="p-3">Method</th>
+                <th className="p-3">Endpoint</th>
+                <th className="p-3">Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(specification.paths).flatMap(([path, operations]) =>
+                Object.entries(operations).map(([method, operation]) => (
+                  <tr key={`${method}:${path}`} className="border-t">
+                    <td className="p-3 font-mono">{method.toUpperCase()}</td>
+                    <td className="p-3 font-mono">{path}</td>
+                    <td className="p-3">{operation.summary}</td>
+                  </tr>
+                )),
+              )}
+            </tbody>
+          </table>
         </div>
-
-        <div className="mt-8 text-center text-sm text-muted-foreground">
-          <p>
-            For more information, see the{" "}
-            <Link href="/docs/API.md" className="text-primary hover:underline">
-              API Markdown Documentation
-            </Link>{" "}
-            or the{" "}
-            <Link href="/docs/DEVELOPER_GUIDE.md" className="text-primary hover:underline">
-              Developer Guide
-            </Link>
-          </p>
-        </div>
-      </main>
+      </section>
+      <section
+        aria-labelledby="interactive-reference"
+        className="bg-card rounded-lg border shadow-sm overflow-hidden"
+      >
+        <h2 id="interactive-reference" className="text-xl font-semibold p-4">
+          Interactive API reference
+        </h2>
+        <ApiReference />
+      </section>
+      <p className="mt-8 text-sm text-muted-foreground">
+        New to Flier?{" "}
+        <Link href="/guides/gmail-mail-merge" className="text-primary underline">
+          Learn how to send a Gmail mail merge
+        </Link>{" "}
+        or{" "}
+        <Link href="/" className="text-primary underline">
+          explore the campaign features
+        </Link>
+        .
+      </p>
     </div>
   );
 }

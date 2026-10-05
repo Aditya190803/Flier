@@ -41,4 +41,11 @@ describe("browser test isolation", () => {
     );
     expect(response.status).toBe(403);
   });
+
+  it("does not rate limit the public API documentation as an API endpoint", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const response = await proxy(new NextRequest("https://sendflier.tech/api-docs"));
+    expect(response.status).toBe(200);
+    expect(rateLimit).not.toHaveBeenCalled();
+  });
 });

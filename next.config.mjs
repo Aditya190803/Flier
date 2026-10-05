@@ -74,6 +74,15 @@ const nextConfig = {
     return [
       {
         source: "/:path*",
+        has: [
+          { type: "host", value: "sendflier.tech" },
+          { type: "header", key: "x-forwarded-proto", value: "http" },
+        ],
+        destination: "https://sendflier.tech/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
         has: [{ type: "host", value: "www.sendflier.tech" }],
         destination: "https://sendflier.tech/:path*",
         permanent: true,
@@ -109,6 +118,7 @@ const nextConfig = {
       {
         source: "/api/:path*",
         headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
           {
             key: "Access-Control-Allow-Origin",
             value: origin,
@@ -157,11 +167,11 @@ const nextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://apis.google.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://apis.google.com https://www.googletagmanager.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https: http:",
-              "connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com https://gmail.googleapis.com https://*.appwrite.io wss://*.appwrite.io",
+              "connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com https://gmail.googleapis.com https://*.appwrite.io wss://*.appwrite.io https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com",
               "frame-src 'self' https://accounts.google.com",
               "object-src 'none'",
               "base-uri 'self'",

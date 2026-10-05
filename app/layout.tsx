@@ -3,6 +3,7 @@ import type React from "react";
 import "./globals.css";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { APP_NAME } from "@/lib/brand";
+import { SITE_URL } from "@/lib/seo";
 
 import { Providers } from "./providers";
 
@@ -12,7 +13,15 @@ import type { Metadata, Viewport } from "next";
 const fontClassName = "font-sans";
 
 export const metadata: Metadata = {
-  title: `${APP_NAME} - Professional email for your list`,
+  metadataBase: new URL(SITE_URL),
+  title: { default: APP_NAME, template: `%s | ${APP_NAME}` },
+  robots: { index: false, follow: false },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
+    other: process.env.BING_SITE_VERIFICATION
+      ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION }
+      : undefined,
+  },
   description:
     "Send personalized updates through Gmail. Upload contacts, compose rich messages, and reach your whole list with Flier.",
   generator: "Next.js",

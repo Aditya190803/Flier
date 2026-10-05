@@ -1,22 +1,11 @@
 import type { MetadataRoute } from "next";
-
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://sendflier.tech";
+import { SITE_URL } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: {
-      userAgent: "*",
-      allow: ["/", "/api-docs", "/privacy", "/tos"],
-      disallow: [
-        "/dashboard/",
-        "/compose/",
-        "/contacts/",
-        "/templates/",
-        "/insights/",
-        "/settings/",
-        "/auth/",
-      ],
-    },
-    sitemap: `${BASE_URL}/sitemap.xml`,
+    // Account pages stay crawlable so bots can see their noindex directives.
+    // The wildcard also permits search/AI crawlers to read all public content.
+    rules: { userAgent: "*", allow: "/", disallow: "/api/" },
+    sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }

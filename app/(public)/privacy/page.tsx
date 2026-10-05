@@ -1,18 +1,20 @@
-"use client";
+import { publicPageMetadata } from "@/lib/seo";
 
 import { Shield, Eye, Lock, Database, UserCheck, Mail } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+
+export const metadata = publicPageMetadata("/privacy");
 
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Main Content */}
-      <main className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-4xl mx-auto">
           <Card className="shadow-lg">
             <CardHeader className="text-center pb-2">
-              <CardTitle className="text-2xl sm:text-3xl font-bold mb-2">Privacy Policy</CardTitle>
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2">Privacy Policy</h1>
               <p className="text-sm text-muted-foreground">Last updated: June 11, 2025</p>
             </CardHeader>
             <CardContent className="p-6">
@@ -177,7 +179,7 @@ export default function PrivacyPolicyPage() {
             </CardContent>
           </Card>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

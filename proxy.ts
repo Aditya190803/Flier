@@ -30,7 +30,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // Only apply to API routes
-  if (pathname.startsWith("/api")) {
+  if (pathname === "/api" || pathname.startsWith("/api/")) {
     // 2. CSRF Protection for POST/PUT/DELETE
     if (["POST", "PUT", "DELETE"].includes(request.method)) {
       // Skip CSRF for public tracking/unsubscribe endpoints if they exist
