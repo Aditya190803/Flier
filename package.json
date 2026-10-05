@@ -20,7 +20,8 @@
     "prepare": "husky",
     "validate": "pnpm run typecheck && pnpm run lint && pnpm run test",
     "db:migrate": "node scripts/migrate-db.mjs",
-    "scheduled:clock": "tsx scripts/scheduled-clock.ts"
+    "scheduled:clock": "tsx scripts/scheduled-clock.ts",
+    "seo:verify": "tsx scripts/verify-seo.ts"
   },
   "dependencies": {
     "@next/bundle-analyzer": "^16.0.6",
