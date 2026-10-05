@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 
 import { Mail } from "lucide-react";
@@ -20,8 +18,8 @@ export function Footer() {
               <span className="text-xl font-bold tracking-tight">Flier</span>
             </div>
             <p className="text-sm text-muted-foreground max-w-md">
-              Send personalized emails at scale with Flier's powerful Gmail API integration.
-              Privacy-first, secure, and GDPR compliant.
+              Send personalized emails at scale with Flier's powerful Gmail API integration. Import
+              contacts, personalize messages, and manage your campaigns in one place.
             </p>
           </div>
 
@@ -43,6 +41,14 @@ export function Footer() {
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   How it Works
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/guides/gmail-mail-merge"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
+                  Gmail mail merge guide
                 </Link>
               </li>
               <li>

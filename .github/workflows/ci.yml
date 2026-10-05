@@ -135,6 +135,26 @@ jobs:
           CRON_SECRET: "ci-cron-secret"
           TRACKING_TOKEN_SECRET: "ci-tracking-secret"
 
+      - name: Verify production crawlability
+        run: |
+          pnpm run start --port 3200 > /tmp/flier-seo-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://localhost:3200/ > /dev/null; then break; fi
+            sleep 1
+          done
+          pnpm run seo:verify http://localhost:3200 https://sendflier.tech
+        env:
+          NEXTAUTH_URL: "http://localhost:3200"
+          NEXTAUTH_SECRET: "ci-nextauth-secret"
+          GOOGLE_CLIENT_ID: "ci-google-client"
+          GOOGLE_CLIENT_SECRET: "ci-google-secret"
+          NEXT_PUBLIC_APPWRITE_ENDPOINT: "https://test.appwrite.io/v1"
+          NEXT_PUBLIC_APPWRITE_PROJECT_ID: "test-project"
+          NEXT_PUBLIC_APPWRITE_DATABASE_ID: "test-db"
+          APPWRITE_API_KEY: "ci-appwrite-key"
+
       - name: Run E2E tests
         run: pnpm run test:e2e
         env:

@@ -1,9 +1,4 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import {
   Users,
@@ -17,9 +12,11 @@ import {
   Lock,
   FileSpreadsheet,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
 
 import { AuthButton } from "@/components/auth-button";
+import { HomeSessionRedirect } from "@/components/home-session-redirect";
+import { HOMEPAGE_STRUCTURED_DATA, publicPageMetadata } from "@/lib/seo";
+
 import { ProductDemo } from "@/components/product-demo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -54,7 +51,7 @@ const features = [
     icon: Zap,
     title: "Bulk Sending",
     description:
-      "Send thousands of personalised emails in one click with live progress tracking built in.",
+      "Send personalized campaigns with live progress tracking, within your Gmail account limits.",
     accent: "text-yellow-500",
     bg: "bg-yellow-500/10",
   },
@@ -62,7 +59,7 @@ const features = [
     icon: Shield,
     title: "Secure & Private",
     description:
-      "OAuth 2.0 authentication. Your data never leaves your account. Fully GDPR-compliant.",
+      "Connect with Google OAuth. Manage consent, export your data, or delete your account in settings.",
     accent: "text-emerald-500",
     bg: "bg-emerald-500/10",
   },
@@ -98,75 +95,18 @@ const steps = [
   },
 ];
 
-/* ─── scroll reveal ──────────────────────────────────────── */
-function Reveal({
-  children,
-  className = "",
-  delay = 0,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  delay?: number;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+export const metadata = publicPageMetadata("/");
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) {
-      return;
-    }
-    const obs = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          timeoutRef.current = setTimeout(() => el.classList.add("is-visible"), delay);
-          obs.disconnect();
-        }
-      },
-      { threshold: 0.08 },
-    );
-    obs.observe(el);
-    return () => {
-      obs.disconnect();
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, [delay]);
-
-  return (
-    <div ref={ref} className={`reveal-block ${className}`}>
-      {children}
-    </div>
-  );
-}
-
-/* ─── Page ───────────────────────────────────────────────── */
 export default function HomePage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (status === "authenticated" && session && !session.error) {
-      router.push("/dashboard");
-    }
-  }, [status, session, router]);
-
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="h-9 w-9 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-      </div>
-    );
-  }
-
   return (
     <>
-      {/* ── reveal animation styles ──────────────────────── */}
-      <style>{`
-        .reveal-block { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
-        .reveal-block.is-visible { opacity: 1; transform: translateY(0); }
-      `}</style>
+      <HomeSessionRedirect />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(HOMEPAGE_STRUCTURED_DATA).replace(/</g, "\\u003c"),
+        }}
+      />
 
       <div className="min-h-screen">
         {/* ══ HERO — split layout ══════════════════════════ */}
@@ -179,13 +119,13 @@ export default function HomePage() {
               {/* left: text */}
               <div className="space-y-7">
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.08] text-balance">
-                  Send your <span className="text-primary">Flier</span>{" "}
+                  Personalized <span className="text-primary">email campaigns</span>{" "}
                   <br className="hidden sm:block" />
-                  to the whole list
+                  through Gmail
                 </h1>
 
                 <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-md">
-                  Upload your contacts, write with{" "}
+                  Import CSV contacts, personalize your mail merge with{" "}
                   <code className="text-[13px] font-mono bg-muted/80 px-1.5 py-0.5 rounded text-foreground border">
                     {"{{variables}}"}
                   </code>
@@ -205,17 +145,14 @@ export default function HomePage() {
                 </div>
 
                 <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground pt-1">
-                  {[
-                    "No credit card required",
-                    "Free to start",
-                    "GDPR compliant",
-                    "Open source",
-                  ].map((t) => (
-                    <div key={t} className="flex items-center gap-1.5">
-                      <CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                      {t}
-                    </div>
-                  ))}
+                  {["No credit card required", "Free to start", "Google OAuth", "Open source"].map(
+                    (t) => (
+                      <div key={t} className="flex items-center gap-1.5">
+                        <CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                        {t}
+                      </div>
+                    ),
+                  )}
                 </div>
               </div>
 
@@ -235,23 +172,23 @@ export default function HomePage() {
         {/* ══ FEATURES ════════════════════════════════════ */}
         <section id="features" className="py-20 lg:py-28 border-t bg-muted/20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <Reveal className="text-center mb-14">
+            <div className="text-center mb-14">
               <Badge variant="outline" className="mb-4">
                 Features
               </Badge>
               <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-                Everything you need to succeed
+                Tools for Gmail mail merge and email campaigns
               </h2>
               <p className="text-muted-foreground max-w-xl mx-auto">
                 Powerful tools designed to make your email campaigns more effective and efficient.
               </p>
-            </Reveal>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {features.map((f, i) => {
                 const Icon = f.icon;
                 return (
-                  <Reveal key={i} delay={i * 60}>
+                  <div key={i}>
                     <div className="h-full rounded-xl border bg-card p-6 hover:border-primary/40 hover:shadow-md transition-all duration-200">
                       <div className={`inline-flex p-2.5 rounded-lg ${f.bg} mb-4`}>
                         <Icon className={`h-5 w-5 ${f.accent}`} />
@@ -261,7 +198,7 @@ export default function HomePage() {
                         {f.description}
                       </p>
                     </div>
-                  </Reveal>
+                  </div>
                 );
               })}
             </div>
@@ -271,7 +208,7 @@ export default function HomePage() {
         {/* ══ HOW IT WORKS ════════════════════════════════ */}
         <section id="how-it-works" className="py-20 lg:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <Reveal className="text-center mb-14">
+            <div className="text-center mb-14">
               <Badge variant="outline" className="mb-4">
                 How It Works
               </Badge>
@@ -279,13 +216,13 @@ export default function HomePage() {
               <p className="text-muted-foreground max-w-xl mx-auto">
                 Three simple steps — no technical knowledge required.
               </p>
-            </Reveal>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
               {steps.map((item, i) => {
                 const Icon = item.icon;
                 return (
-                  <Reveal key={i} delay={i * 80}>
+                  <div key={i}>
                     <div className="relative flex flex-col gap-4">
                       {i < steps.length - 1 && (
                         <div className="hidden md:block absolute top-5 left-[calc(50%+3rem)] right-[-3rem] h-px border-t border-dashed border-border/60" />
@@ -305,17 +242,69 @@ export default function HomePage() {
                         </p>
                       </div>
                     </div>
-                  </Reveal>
+                  </div>
                 );
               })}
             </div>
           </div>
         </section>
 
+        <section id="faq" className="py-16 border-t">
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 space-y-8">
+            <h2 className="text-3xl font-bold">Gmail mail merge questions</h2>
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold">What does Flier do?</h3>
+                <p className="mt-2 text-muted-foreground">
+                  Flier is a web app for personalized email campaigns through your Gmail account.
+                  Import contacts from CSV, write a rich text message, preview each recipient's
+                  email, and send or schedule a campaign.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">
+                  How do CSV fields become personalized emails?
+                </h3>
+                <p className="mt-2 text-muted-foreground">
+                  CSV column names become template variables. For example, a name column can fill{" "}
+                  <code>{"{{name}}"}</code> in your message. Preview the results before sending to
+                  check missing values and formatting.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Does Flier bypass Gmail sending limits?</h3>
+                <p className="mt-2 text-muted-foreground">
+                  No. Emails are sent through Google's Gmail API and remain subject to your
+                  account's sending limits and anti-spam rules. Only email recipients who expect to
+                  hear from you.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">
+                  Can I schedule campaigns and track results?
+                </h3>
+                <p className="mt-2 text-muted-foreground">
+                  Flier supports scheduled delivery and campaign analytics, including open and click
+                  tracking. Open tracking depends on image loading and can be affected by privacy
+                  features in email clients.
+                </p>
+              </div>
+            </div>
+            <p>
+              <Link
+                href="/guides/gmail-mail-merge"
+                className="text-primary underline underline-offset-4"
+              >
+                Read the step-by-step Gmail mail merge guide
+              </Link>
+            </p>
+          </div>
+        </section>
+
         {/* ══ CTA ═════════════════════════════════════════ */}
         <section className="py-20 lg:py-28 border-t bg-muted/20">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <Reveal>
+            <div>
               <div className="relative rounded-2xl border bg-card overflow-hidden text-center p-10 md:p-16">
                 <div
                   aria-hidden
@@ -346,7 +335,7 @@ export default function HomePage() {
                 </div>
 
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-5 text-sm text-muted-foreground">
-                  {["No credit card", "Free forever tier", "Open source"].map((t) => (
+                  {["No credit card", "Free to start", "Open source"].map((t) => (
                     <div key={t} className="flex items-center gap-1.5">
                       <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
                       {t}
@@ -354,7 +343,7 @@ export default function HomePage() {
                   ))}
                 </div>
               </div>
-            </Reveal>
+            </div>
           </div>
         </section>
       </div>
