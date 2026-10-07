@@ -40,7 +40,8 @@ test("reviewer inspects a frozen personalized sample and approves with a comment
     });
   });
   await page.goto("/reviews");
-  await page.getByLabel("Review team", { exact: true }).selectOption("team");
+  await page.getByLabel("Review team", { exact: true }).click();
+  await page.getByRole("option", { name: "Design team" }).click();
   await page.getByRole("button", { name: "Inspect campaign" }).click();
   await expect(
     page
@@ -113,10 +114,11 @@ test("sender requests review, cannot dispatch pending or changed content, then q
   await page.locator("#subject").fill("Hello {{name}}");
   await page.locator('[contenteditable="true"]').fill("Message {{name}}");
   await page.getByRole("button", { name: "3 Preview", exact: true }).click();
-  await page.getByLabel("Campaign workspace", { exact: true }).selectOption("team");
+  await page.getByLabel("Campaign workspace", { exact: true }).click();
+  await page.getByRole("option", { name: "Design team" }).click();
   await page.getByRole("button", { name: "Request team review" }).click();
   await expect(page.getByRole("link", { name: "View review" })).toBeVisible();
-  await page.getByRole("button", { name: /Dispatch/ }).click();
+  await page.getByRole("button", { name: "Send now", exact: true }).click();
   await expect(
     page.getByText("Approval pending or campaign changed. Request a new review."),
   ).toBeVisible();
@@ -125,11 +127,11 @@ test("sender requests review, cannot dispatch pending or changed content, then q
   await page.getByRole("button", { name: "2 Compose", exact: true }).click();
   await page.locator("#subject").fill("Changed subject");
   await page.getByRole("button", { name: "3 Preview", exact: true }).click();
-  await page.getByRole("button", { name: /Dispatch/ }).click();
+  await page.getByRole("button", { name: "Send now", exact: true }).click();
   expect(accepted).toBe(0);
   await page.getByRole("button", { name: "Request team review" }).click();
   await expect.poll(() => reviewedSubject).toBe("Changed subject");
-  await page.getByRole("button", { name: /Dispatch/ }).click();
+  await page.getByRole("button", { name: "Send now", exact: true }).click();
   await expect(page).toHaveURL(/\/scheduled/);
   expect(accepted).toBe(1);
 });
@@ -155,6 +157,7 @@ test("analytics explains acceptance and reports unavailable tracking instead of 
   );
   await page.goto("/insights");
   const definitions = page.getByRole("region", { name: "Metric definitions" });
+  await definitions.getByText("What these metrics measure").click();
   await expect(definitions.getByText(/Sent means Gmail accepted the request/)).toBeVisible();
   await expect(definitions.getByText(/Tracking data is unavailable/)).toBeVisible();
   await expect(page.getByRole("tab", { name: "Performance", exact: true })).toBeDisabled();

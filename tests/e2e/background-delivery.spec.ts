@@ -40,7 +40,7 @@ test("Send now queues a frozen snapshot and navigates away without browser deliv
   await page.locator("#subject").fill("Hello {{name}}");
   await page.locator('[contenteditable="true"]').fill("Update {{name}}");
   await page.getByRole("button", { name: "3 Preview", exact: true }).click();
-  await page.getByRole("button", { name: /Dispatch/i }).click();
+  await page.getByRole("button", { name: "Send now", exact: true }).click();
   await expect(page).toHaveURL(/\/scheduled/);
   await expect(page.getByText("Worker is responding.")).toBeVisible();
   expect(job).toMatchObject({

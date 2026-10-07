@@ -2,15 +2,15 @@
 
 import { useEffect, useState, useMemo } from "react";
 
-import { FileText, Plus, Search } from "lucide-react";
+import { FileText, Search } from "lucide-react";
 
-import { EmptyStateCard } from "@/components/empty-state-card";
 import { PaginationControls } from "@/components/pagination";
 import { TemplateCard } from "@/components/templates/template-card";
 import { TemplateEditorDialog } from "@/components/templates/template-editor-dialog";
 import { TemplateVersionHistoryDialog } from "@/components/templates/template-version-history-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { EmptyState, PageHeader, PageShell } from "@/components/ui/page-shell";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { usePagination } from "@/hooks/usePagination";
 import { useTemplateActions } from "@/hooks/useTemplateActions";
@@ -147,136 +147,136 @@ export default function TemplatesPage() {
     return null;
   }
 
+  const starterSection = (
+    <StarterTemplatesSection
+      templates={templates}
+      isLoading={isLoading}
+      onAddAllDefaultTemplates={addAllDefaultTemplates}
+      onApplyDefaultTemplate={applyDefaultTemplate}
+      onAddDefaultTemplate={addDefaultTemplate}
+    />
+  );
+  // New users have nothing to search, so lead with the starters instead of an empty state.
+  const isFirstRun = templates.length === 0;
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <main className="flex-1 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Email Templates</h1>
-            <p className="text-muted-foreground">Create and manage reusable email templates</p>
-          </div>
-          <CreateTemplateDialog
-            open={showCreateDialog}
-            onOpenChange={handleCreateDialogOpenChange}
-            newTemplate={newTemplate}
-            setNewTemplate={setNewTemplate}
-            isLoading={isLoading}
-            onCreateTemplate={createTemplate}
-            onCancel={() => {
-              setShowCreateDialog(false);
-              resetNewTemplate();
-            }}
-          />
-        </div>
-
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <Input
-            icon={<Search className="h-4 w-4" />}
-            placeholder="Search templates..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-md"
-          />
-          <div className="flex gap-2 flex-wrap">
-            <Button
-              variant={selectedCategory === null ? "secondary" : "outline"}
-              size="sm"
-              onClick={() => setSelectedCategory(null)}
-            >
-              All
-            </Button>
-            {TEMPLATE_CATEGORIES.map((cat) => (
-              <Button
-                key={cat.value}
-                variant={selectedCategory === cat.value ? "secondary" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(cat.value)}
-              >
-                {cat.label}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        {/* Templates Grid */}
-        {filteredTemplates.length > 0 ? (
-          <>
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-sm text-muted-foreground">
-                Showing {paginatedTemplates.length} of {filteredTemplates.length} templates
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {paginatedTemplates.map((template) => {
-                const categoryInfo = getCategoryInfo(template.category);
-                return (
-                  <TemplateCard
-                    key={template.$id}
-                    template={template}
-                    categoryLabel={categoryInfo.label}
-                    categoryColor={categoryInfo.color}
-                    formatDate={formatDate}
-                    onUseTemplate={applyTemplate}
-                    onEdit={(currentTemplate) => {
-                      setEditingTemplate(currentTemplate);
-                      setShowEditDialog(true);
-                    }}
-                    onDuplicate={duplicateTemplate}
-                    onShowVersions={fetchVersions}
-                    onDelete={deleteTemplate}
-                  />
-                );
-              })}
-            </div>
-
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="mt-6">
-                <PaginationControls
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  pageSize={pageSize}
-                  totalItems={filteredTemplates.length}
-                  hasPreviousPage={hasPreviousPage}
-                  hasNextPage={hasNextPage}
-                  onPageChange={goToPage}
-                  onPageSizeChange={setPageSize}
-                  getPageNumbers={() => Array.from({ length: totalPages }, (_, i) => i + 1)}
-                  startIndex={(currentPage - 1) * pageSize}
-                  endIndex={Math.min(currentPage * pageSize - 1, filteredTemplates.length - 1)}
-                />
-              </div>
-            )}
-          </>
-        ) : (
-          <EmptyStateCard
-            icon={<FileText className="h-8 w-8 text-muted-foreground" />}
-            title={searchTerm || selectedCategory ? "No templates found" : "No templates yet"}
-            description={
-              searchTerm || selectedCategory
-                ? "Try adjusting your search or filter"
-                : "Create your first email template to speed up your workflow"
-            }
-          >
-            {!searchTerm && !selectedCategory && (
-              <Button onClick={() => setShowCreateDialog(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Template
-              </Button>
-            )}
-          </EmptyStateCard>
-        )}
-
-        <StarterTemplatesSection
-          templates={templates}
-          isLoading={isLoading}
-          onAddAllDefaultTemplates={addAllDefaultTemplates}
-          onApplyDefaultTemplate={applyDefaultTemplate}
-          onAddDefaultTemplate={addDefaultTemplate}
+    <>
+      <PageShell>
+        <PageHeader
+          title="Templates"
+          description="Reusable emails you can start a campaign from"
+          actions={
+            <CreateTemplateDialog
+              open={showCreateDialog}
+              onOpenChange={handleCreateDialogOpenChange}
+              newTemplate={newTemplate}
+              setNewTemplate={setNewTemplate}
+              isLoading={isLoading}
+              onCreateTemplate={createTemplate}
+              onCancel={() => {
+                setShowCreateDialog(false);
+                resetNewTemplate();
+              }}
+            />
+          }
         />
-      </main>
+
+        {isFirstRun ? (
+          starterSection
+        ) : (
+          <>
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <Input
+                icon={<Search className="h-4 w-4" />}
+                placeholder="Search templates..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-md"
+              />
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  variant={selectedCategory === null ? "secondary" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(null)}
+                >
+                  All
+                </Button>
+                {TEMPLATE_CATEGORIES.map((cat) => (
+                  <Button
+                    key={cat.value}
+                    variant={selectedCategory === cat.value ? "secondary" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedCategory(cat.value)}
+                  >
+                    {cat.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Templates Grid */}
+            {filteredTemplates.length > 0 ? (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {paginatedTemplates.length} of {filteredTemplates.length} templates
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {paginatedTemplates.map((template) => {
+                    const categoryInfo = getCategoryInfo(template.category);
+                    return (
+                      <TemplateCard
+                        key={template.$id}
+                        template={template}
+                        categoryLabel={categoryInfo.label}
+                        categoryColor={categoryInfo.color}
+                        formatDate={formatDate}
+                        onUseTemplate={applyTemplate}
+                        onEdit={(currentTemplate) => {
+                          setEditingTemplate(currentTemplate);
+                          setShowEditDialog(true);
+                        }}
+                        onDuplicate={duplicateTemplate}
+                        onShowVersions={fetchVersions}
+                        onDelete={deleteTemplate}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="mt-6">
+                    <PaginationControls
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      pageSize={pageSize}
+                      totalItems={filteredTemplates.length}
+                      hasPreviousPage={hasPreviousPage}
+                      hasNextPage={hasNextPage}
+                      onPageChange={goToPage}
+                      onPageSizeChange={setPageSize}
+                      getPageNumbers={() => Array.from({ length: totalPages }, (_, i) => i + 1)}
+                      startIndex={(currentPage - 1) * pageSize}
+                      endIndex={Math.min(currentPage * pageSize - 1, filteredTemplates.length - 1)}
+                    />
+                  </div>
+                )}
+              </>
+            ) : (
+              <EmptyState
+                icon={<FileText className="h-6 w-6" />}
+                title="No templates found"
+                description="Try adjusting your search or filter"
+              />
+            )}
+
+            {starterSection}
+          </>
+        )}
+      </PageShell>
 
       <TemplateEditorDialog
         open={showEditDialog}
@@ -313,6 +313,6 @@ export default function TemplatesPage() {
           setVersions([]);
         }}
       />
-    </div>
+    </>
   );
 }

@@ -56,17 +56,17 @@ function statusConfig(status: string) {
     case "completed":
       return {
         label: "Completed",
-        class: "bg-emerald-500/10 text-emerald-700 border-emerald-300 dark:text-emerald-400",
+        class: "bg-success/10 text-success border-success/30",
       };
     case "sending":
       return {
         label: "Sending",
-        class: "bg-yellow-500/10 text-yellow-700 border-yellow-300 dark:text-yellow-400",
+        class: "bg-warning/10 text-warning border-warning/30",
       };
     case "failed":
       return {
         label: "Failed",
-        class: "bg-red-500/10 text-red-700 border-red-300 dark:text-red-400",
+        class: "bg-destructive/10 text-destructive border-destructive/30",
       };
     default:
       return { label: status, class: "bg-muted text-muted-foreground" };
@@ -162,14 +162,14 @@ export function RecentActivityFeed({
                     {/* inline delivery bar (mobile + small screens) */}
                     <div className="mt-2 md:hidden">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                        <CheckCircle className="h-3 w-3 text-emerald-500" />
+                        <CheckCircle className="h-3 w-3 text-success" />
                         <span>
                           {c.sent || 0} sent · {deliverPct}%
                         </span>
                       </div>
                       <div className="h-1 bg-muted rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-emerald-500 rounded-full"
+                          className="h-full bg-success rounded-full"
                           style={{ width: `${deliverPct}%` }}
                         />
                       </div>
@@ -181,12 +181,12 @@ export function RecentActivityFeed({
                     <Users className="h-3.5 w-3.5 text-muted-foreground" />
                     {recCount}
                   </div>
-                  <div className="hidden md:flex justify-end items-center gap-1 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                  <div className="hidden md:flex justify-end items-center gap-1 text-sm font-medium text-success">
                     <CheckCircle className="h-3.5 w-3.5" />
                     {c.sent || 0}
                   </div>
                   <div
-                    className={`hidden md:flex justify-end items-center gap-1 text-sm font-medium ${(c.failed || 0) > 0 ? "text-red-500" : "text-muted-foreground"}`}
+                    className={`hidden md:flex justify-end items-center gap-1 text-sm font-medium ${(c.failed || 0) > 0 ? "text-destructive" : "text-muted-foreground"}`}
                   >
                     <XCircle className="h-3.5 w-3.5" />
                     {c.failed || 0}

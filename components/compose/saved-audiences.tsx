@@ -3,11 +3,21 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { apiRequest } from "@/lib/appwrite/api-request";
 import type { ContactGroup } from "./compose-types";
 import type { CSVRow } from "@/types/email";
 import type { AudienceFilters } from "@/lib/contacts/audiences";
 type Audience = { id: string; name: string; filters: AudienceFilters };
+
+// Radix Select cannot use "" as an item value.
+const ANY_GROUP = "__any__";
 export function SavedAudiences({
   groups,
   onApply,
@@ -75,19 +85,24 @@ export function SavedAudiences({
               value={company}
               onChange={(event) => setCompany(event.target.value)}
             />
-            <select
-              aria-label="Audience group"
-              className="rounded border p-2 bg-background"
-              value={group}
-              onChange={(event) => setGroup(event.target.value)}
+            <Select
+              value={group || ANY_GROUP}
+              onValueChange={(value) => setGroup(value === ANY_GROUP ? "" : value)}
             >
-              <option value="">Any group</option>
-              {groups.map((item) => (
-                <option key={item.$id} value={item.$id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger aria-label="Audience group">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ANY_GROUP}>Any group</SelectItem>
+                {groups
+                  .filter((item) => item.$id)
+                  .map((item) => (
+                    <SelectItem key={item.$id} value={item.$id as string}>
+                      {item.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button
             disabled={busy || !name.trim()}

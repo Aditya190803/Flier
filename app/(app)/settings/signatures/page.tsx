@@ -2,9 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 
-import { useRouter } from "next/navigation";
-
-import { Pen, Plus, Trash2, Edit, MoreVertical, Star, ArrowLeft } from "lucide-react";
+import { Pen, Plus, Trash2, Edit, MoreVertical, Star } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
@@ -47,7 +45,6 @@ import { componentLogger } from "@/lib/client-logger";
 
 export default function SignaturesPage() {
   const { data: session, status } = useSession();
-  const router = useRouter();
   const [signatures, setSignatures] = useState<EmailSignature[]>([]);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -64,12 +61,6 @@ export default function SignaturesPage() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/");
-    }
-  }, [status, router]);
 
   const fetchSignatures = useCallback(async () => {
     if (!session?.user?.email) {
@@ -219,14 +210,8 @@ export default function SignaturesPage() {
     <>
       <PageShell>
         <PageHeader
-          title={
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              Email Signatures
-            </div>
-          }
+          back={{ href: "/settings", label: "Settings" }}
+          title="Email Signatures"
           description="Create and manage your email signatures"
           actions={
             <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>

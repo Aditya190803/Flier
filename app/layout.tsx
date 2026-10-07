@@ -9,7 +9,7 @@ import { Providers } from "./providers";
 
 import type { Metadata, Viewport } from "next";
 
-// System font stack - no external network dependency
+// System font stack (see --font-sans in globals.css) - no external network dependency
 const fontClassName = "font-sans";
 
 export const metadata: Metadata = {

@@ -12,6 +12,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { TEMPLATE_CATEGORIES } from "@/lib/templates/default-templates";
 
 export interface NewTemplateState {
@@ -66,23 +73,21 @@ export function CreateTemplateDialog({
             </div>
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
-              <select
-                id="category"
+              <Select
                 value={newTemplate.category}
-                onChange={(e) =>
-                  setNewTemplate({
-                    ...newTemplate,
-                    category: e.target.value,
-                  })
-                }
-                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                onValueChange={(category) => setNewTemplate({ ...newTemplate, category })}
               >
-                {TEMPLATE_CATEGORIES.map((cat) => (
-                  <option key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger id="category">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TEMPLATE_CATEGORIES.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="space-y-2">

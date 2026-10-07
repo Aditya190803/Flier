@@ -7,8 +7,18 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { IMPORT_FIELDS } from "@/lib/contacts/import";
 import type { useContactImportExport } from "@/hooks/useContactImportExport";
+
+// Radix Select cannot use "" as an item value; "" in the mapping means "not imported".
+const UNMAPPED = "__unmapped__";
 
 export function ContactImportDialog({
   importer,
@@ -39,37 +49,49 @@ export function ContactImportDialog({
               <label htmlFor={`import-column-${field}`}>
                 {field === "email" ? "Email column (required)" : `${field} column`}
               </label>
-              <select
-                id={`import-column-${field}`}
-                className="w-full rounded border p-2 bg-background"
+              <Select
                 disabled={busy || completed}
-                value={importer.mapping[field]}
-                onChange={(event) =>
-                  importer.setMapping({ ...importer.mapping, [field]: event.target.value })
+                value={importer.mapping[field] || UNMAPPED}
+                onValueChange={(value) =>
+                  importer.setMapping({
+                    ...importer.mapping,
+                    [field]: value === UNMAPPED ? "" : value,
+                  })
                 }
               >
-                <option value="">{field === "email" ? "Choose a column" : "Do not import"}</option>
-                {importer.headers.map((header) => (
-                  <option key={header} value={header}>
-                    {header}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger id={`import-column-${field}`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={UNMAPPED}>
+                    {field === "email" ? "Choose a column" : "Do not import"}
+                  </SelectItem>
+                  {importer.headers.map((header) => (
+                    <SelectItem key={header} value={header}>
+                      {header}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           ))}
         </div>
-        <label className="space-y-1 text-sm">
-          <span>Existing contacts</span>
-          <select
-            className="w-full rounded border p-2 bg-background"
+        <div className="space-y-1 text-sm">
+          <label htmlFor="import-existing-mode">Existing contacts</label>
+          <Select
             disabled={busy || completed}
             value={importer.mode}
-            onChange={(event) => importer.setMode(event.target.value as "skip" | "update")}
+            onValueChange={(value) => importer.setMode(value as "skip" | "update")}
           >
-            <option value="skip">Skip existing email addresses</option>
-            <option value="update">Update existing email addresses</option>
-          </select>
-        </label>
+            <SelectTrigger id="import-existing-mode">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="skip">Skip existing email addresses</SelectItem>
+              <SelectItem value="update">Update existing email addresses</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <p aria-live="polite" className="text-sm">
           {plan.creates} new · {plan.updates} updates · {plan.skipped} skipped ·{" "}
           {importer.rejected.length} rejected{busy ? ` · ${importer.progress} processed` : ""}

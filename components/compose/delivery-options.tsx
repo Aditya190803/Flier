@@ -27,7 +27,7 @@ const MODES: {
   {
     id: "now",
     label: "Send now",
-    description: "Dispatch as soon as you hit send",
+    description: "Goes out as soon as you confirm",
     icon: <Send className="h-5 w-5" />,
   },
   {

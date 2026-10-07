@@ -4,18 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 
 import { useRouter, useSearchParams } from "next/navigation";
 
-import {
-  Users,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Eye,
-  Save,
-  Trash2,
-  RefreshCw,
-  Pen,
-  Play,
-} from "lucide-react";
+import { CheckCircle, XCircle, AlertCircle, Save, Trash2, RefreshCw, Play } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
@@ -43,8 +32,8 @@ import { useComposePreview } from "@/components/compose/use-compose-preview";
 import { useComposeRecipients } from "@/components/compose/use-compose-recipients";
 import { useComposeSend } from "@/components/compose/use-compose-send";
 import { useDraftPersistence } from "@/components/compose/use-draft-persistence";
+import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
 import { LazyEmailClientPreview } from "@/components/lazy-components";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-shell";
 import { useEmailSend } from "@/hooks/useEmailSend";
@@ -499,29 +488,17 @@ export function ComposeForm() {
     setAttachments(attachments.filter((_, i) => i !== index));
   };
 
-  const stepMeta = {
-    recipients: {
-      label: "Recipients",
-      desc: "Choose who receives this campaign",
-      icon: <Users className="h-4 w-4" />,
-    },
-    compose: {
-      label: "Compose",
-      desc: "Write your subject and message",
-      icon: <Pen className="h-4 w-4" />,
-    },
-    preview: {
-      label: "Preview",
-      desc: "Check rendering and personalization",
-      icon: <Eye className="h-4 w-4" />,
-    },
-  } as const;
-
-  const activeStep = stepMeta[activeTab as keyof typeof stepMeta] ?? stepMeta.compose;
   const activeSection = activeTab as ComposeSectionId;
 
+  const steps = [
+    { id: "recipients", label: "Recipients", desc: "Who gets this?" },
+    { id: "compose", label: "Compose", desc: "Write your copy" },
+    { id: "preview", label: "Preview", desc: "Check and send" },
+  ] as const;
+  const currentStepIndex = steps.findIndex((s) => s.id === activeTab);
+
   return (
-    <div className="relative space-y-8 pb-32">
+    <div className="relative space-y-8">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 -top-8 h-64 -z-10 bg-primary/5"
@@ -533,7 +510,7 @@ export function ComposeForm() {
             <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-warning flex-shrink-0" />
             <div className="min-w-0">
               <p className="font-medium text-xs sm:text-sm">Incomplete Campaign Found</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
+              <p className="text-xs text-muted-foreground truncate">
                 {savedCampaignInfo.subject ? `"${savedCampaignInfo.subject}" - ` : ""}
                 {savedCampaignInfo.remaining} of {savedCampaignInfo.total} emails remaining
               </p>
@@ -568,7 +545,7 @@ export function ComposeForm() {
       )}
 
       <PageHeader
-        title="New Campaign"
+        title={searchParams.get("edit") === "draft" ? "Edit Campaign" : "New Campaign"}
         description={
           <div className="flex items-center gap-1.5 sm:gap-2 text-sm mt-1 sm:mt-0">
             {draftSyncStatus === "saving" || isSavingDraft ? (
@@ -627,26 +604,31 @@ export function ComposeForm() {
               <Save className="h-4 w-4 mr-2" />
               Save Draft
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                if (confirm("Are you sure you want to clear this draft? This cannot be undone.")) {
-                  setSubject("");
-                  setContent("");
-                  setRecipients([]);
-                  setAttachments([]);
-                  setManualEntries([]);
-                  setCsvData([]);
-                  setCsvHeaders([]);
-                  clearDraft();
-                  toast.success("Draft cleared");
-                }
+            <DeleteConfirmationDialog
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                >
+                  Discard
+                </Button>
+              }
+              title="Discard this campaign?"
+              description="The subject, message, recipients and attachments will be cleared. This cannot be undone."
+              confirmLabel="Discard"
+              onConfirm={() => {
+                setSubject("");
+                setContent("");
+                setRecipients([]);
+                setAttachments([]);
+                setManualEntries([]);
+                setCsvData([]);
+                setCsvHeaders([]);
+                clearDraft();
+                toast.success("Draft cleared");
               }}
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-            >
-              Discard
-            </Button>
+            />
           </div>
         }
       />
@@ -661,34 +643,21 @@ export function ComposeForm() {
             <div className="relative">
               <div className="absolute left-4 top-4 bottom-4 w-0.5 border-l border-dashed border-border/70 hidden md:block" />
               <div className="flex justify-between md:block space-y-0 md:space-y-6 relative z-10 overflow-x-auto overflow-y-hidden md:overflow-visible pb-2 md:pb-0 px-1">
-                {[
-                  {
-                    id: "recipients",
-                    label: "Recipients",
-                    desc: "Who gets this?",
-                  },
-                  { id: "compose", label: "Compose", desc: "Write your copy" },
-                  {
-                    id: "preview",
-                    label: "Preview",
-                    desc: "Check how it looks",
-                  },
-                ].map((s, i) => {
+                {steps.map((s, i) => {
                   const isActive = s.id === activeTab;
-                  const stepIndex = ["recipients", "compose", "preview"].indexOf(s.id);
-                  const currentIndex = ["recipients", "compose", "preview"].indexOf(activeTab);
-                  const isCompleted = stepIndex < currentIndex;
+                  const isCompleted = i < currentStepIndex;
                   return (
                     <button
                       key={s.id}
                       aria-label={`${i + 1} ${s.label}`}
+                      aria-current={isActive ? "step" : undefined}
                       onClick={() => setActiveTab(s.id)}
-                      className="flex items-center md:items-start gap-3 md:gap-4 md:w-full min-w-max pr-4 md:pr-0 pl-1 md:pl-0 text-left transition-all group outline-none"
+                      className="flex items-center md:items-start gap-3 md:gap-4 md:w-full min-w-max pr-4 md:pr-0 pl-1 md:pl-0 text-left transition-all group rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
                       <div
                         className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors shrink-0 ${
                           isActive
-                            ? "border-primary bg-primary text-primary-foreground shadow-[0_0_0_4px_hsl(var(--primary)/0.15)]"
+                            ? "border-primary bg-primary text-primary-foreground ring-4 ring-primary/15"
                             : isCompleted
                               ? "border-primary/50 bg-primary/10 text-primary"
                               : "border-muted-foreground/30 text-muted-foreground group-hover:border-muted-foreground/60"
@@ -723,32 +692,7 @@ export function ComposeForm() {
 
         {/* Main Panel Wrapper */}
         <div className="flex-1 min-w-0 flex flex-col w-full rounded-xl border bg-card shadow-sm overflow-hidden h-fit">
-          {/* Panel chrome */}
-          <div className="px-4 md:px-6 lg:px-8 py-3 border-b bg-muted/10">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <div className="inline-flex items-center justify-center h-8 w-8 rounded-lg border bg-background/60 text-primary">
-                    {activeStep.icon}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground truncate">
-                      {activeStep.label}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">{activeStep.desc}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="shrink-0 hidden sm:flex items-center gap-2">
-                <Badge variant="outline" className="bg-background/60">
-                  Step {["recipients", "compose", "preview"].indexOf(activeTab) + 1}
-                  /3
-                </Badge>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-4 md:p-6 lg:p-8 pb-28 flex-1 min-h-0 overflow-y-auto space-y-6">
+          <div className="p-4 md:p-6 lg:p-8 flex-1 min-h-0 overflow-y-auto space-y-6">
             {/* Recipients Tab */}
             <div className={activeTab === "recipients" ? "block" : "hidden"}>
               <RecipientsStep
@@ -827,20 +771,6 @@ export function ComposeForm() {
 
             {/* Preview Tab */}
             <div className={activeTab === "preview" ? "block space-y-4" : "hidden"}>
-              <ConnectionStatus quota={quotaInfo} />
-              <TeamCampaignReview
-                teamId={teamId}
-                setTeamId={setTeamId}
-                reviewId={approvalId}
-                requestReview={handleRequestReview}
-                busy={isPreparingSend}
-              />
-              <CampaignReview
-                input={reviewInput}
-                isMarketing={isMarketing}
-                onSendTest={sendTest}
-                isSendingTest={isSendingTest}
-              />
               <PreviewStep
                 previewMode={previewMode}
                 setPreviewMode={setPreviewMode}
@@ -861,11 +791,21 @@ export function ComposeForm() {
                 attachments={attachments}
                 pdfColumn={pdfColumn}
               />
+              <ConnectionStatus quota={quotaInfo} />
+              <TeamCampaignReview
+                teamId={teamId}
+                setTeamId={setTeamId}
+                reviewId={approvalId}
+                requestReview={handleRequestReview}
+                busy={isPreparingSend}
+              />
+              <CampaignReview
+                input={reviewInput}
+                isMarketing={isMarketing}
+                onSendTest={sendTest}
+                isSendingTest={isSendingTest}
+              />
             </div>
-
-            {/* Send step removed — Dispatch happens in Preview */}
-
-            {/* Main Form Next/Back Actions removed (replaced by StickyActionBar) */}
           </div>
         </div>
       </div>

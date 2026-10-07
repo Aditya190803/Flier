@@ -5,7 +5,7 @@ import * as React from "react";
 import { CalendarClock, ChevronLeft, ChevronRight, Loader2, Save, Send } from "lucide-react";
 import { createPortal } from "react-dom";
 
-import { Badge } from "@/components/ui/badge";
+import { APP_FOOTER_SLOT_ID } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -13,18 +13,12 @@ import type { DeliveryMode } from "./delivery-options";
 
 export type ComposeSectionId = "recipients" | "compose" | "preview";
 
-const sectionLabels: Record<ComposeSectionId, string> = {
-  recipients: "Recipients",
-  compose: "Editor",
-  preview: "Preview",
-};
-
 /** The primary button says what will actually happen, per delivery mode. */
 const dispatchLabels: Record<DeliveryMode, { idle: string; busy: string; icon: React.ReactNode }> =
   {
     now: {
-      idle: "Dispatch",
-      busy: "Dispatching…",
+      idle: "Send now",
+      busy: "Sending…",
       icon: <Send className="h-4 w-4 mr-2" />,
     },
     schedule: {
@@ -64,38 +58,31 @@ export function StickyActionBar({
   deliveryMode?: DeliveryMode;
   className?: string;
 }) {
-  const [mounted, setMounted] = React.useState(false);
+  const [slot, setSlot] = React.useState<HTMLElement | null>(null);
 
   React.useEffect(() => {
-    setMounted(true);
+    setSlot(document.getElementById(APP_FOOTER_SLOT_ID));
   }, []);
 
-  if (!mounted) {
+  if (!slot) {
     return null;
   }
 
-  // Portal to body so position:fixed is viewport-relative.
-  // App layout scrolls an inner pane; fixed inside that can stick to the pane
-  // and let page content paint under/below the bar.
+  // Rendered into the app layout's footer slot, which sits below the scrolling
+  // content pane and beside (not over) the sidebar.
   return createPortal(
-    <div
+    <section
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 border-t bg-background shadow-[0_-12px_30px_-20px_hsl(var(--foreground)/0.25)]",
+        "border-t bg-background shadow-[0_-12px_30px_-20px_color-mix(in_oklch,var(--foreground)_25%,transparent)]",
         className,
       )}
-      role="region"
       aria-label="Campaign actions"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <Badge variant="outline" className="bg-background/60">
-              {sectionLabels[activeSection]}
-            </Badge>
-            <span className="hidden sm:inline text-sm text-muted-foreground">
-              {recipientsCount} {recipientsCount === 1 ? "recipient" : "recipients"}
-            </span>
-          </div>
+          <span className="text-sm text-muted-foreground truncate">
+            {recipientsCount} {recipientsCount === 1 ? "recipient" : "recipients"}
+          </span>
 
           <div className="flex items-center gap-2 shrink-0">
             <Button
@@ -135,7 +122,7 @@ export function StickyActionBar({
           </div>
         </div>
       </div>
-    </div>,
-    document.body,
+    </section>,
+    slot,
   );
 }

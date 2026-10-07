@@ -27,7 +27,6 @@ Flier integrates with Gmail API to send personalized messages, manage contacts a
 - `/insights` — Campaign analytics
 - `/ab-testing` — A/B testing
 - `/draft` — Saved drafts
-- `/realtime-send` — Real-time sending
 - `/settings` — Settings
 - `/settings/teams` — Team management
 - `/settings/audit-logs` — Audit logs

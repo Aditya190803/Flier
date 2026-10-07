@@ -2,11 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 
-import { useRouter } from "next/navigation";
-
 import {
   Users,
-  ArrowLeft,
   Merge,
   Trash2,
   CheckCircle,
@@ -52,7 +49,6 @@ interface DuplicateGroup {
 
 export default function DuplicatesPage() {
   const { data: session, status } = useSession();
-  const router = useRouter();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [duplicates, setDuplicates] = useState<DuplicateGroup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -65,12 +61,6 @@ export default function DuplicatesPage() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/");
-    }
-  }, [status, router]);
 
   const fetchContacts = useCallback(async () => {
     if (!session?.user?.email) {
@@ -241,15 +231,9 @@ export default function DuplicatesPage() {
     <>
       <PageShell>
         <PageHeader
-          title={
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              Duplicate Detection
-            </div>
-          }
-          description="Find and merge duplicate contacts"
+          back={{ href: "/contacts", label: "Contacts" }}
+          title="Duplicate contacts"
+          description="Find and merge contacts that share an email address"
           actions={
             <Button variant="outline" onClick={fetchContacts} disabled={isLoading}>
               <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
@@ -275,7 +259,7 @@ export default function DuplicatesPage() {
         </div>
         {/* Auto Merge Button */}
         {duplicates.length > 0 && (
-          <Card className="mb-6 bg-warning/5 border-warning/20">
+          <Card className="bg-warning/5 border-warning/20">
             <CardContent className="p-4">
               <div className="flex items-center justify-between gap-4">
                 <div>

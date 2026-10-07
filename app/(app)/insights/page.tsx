@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -62,6 +62,20 @@ export default function HistoryPage() {
     useCampaignDetails(selectedCampaign);
   const [recipientSearch, setRecipientSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "success" | "failed">("all");
+
+  // Deep link from the dashboard: /insights?campaign=<id> opens that campaign's details once.
+  const deepLinkHandled = useRef(false);
+  useEffect(() => {
+    if (deepLinkHandled.current || !historyData) {
+      return;
+    }
+    deepLinkHandled.current = true;
+    const id = new URLSearchParams(window.location.search).get("campaign");
+    const match = id ? historyData.recentCampaigns.find((c) => c.$id === id) : undefined;
+    if (match) {
+      setSelectedCampaign(match);
+    }
+  }, [historyData]);
 
   const chartData = useMemo(() => buildCampaignChartData(insightsCampaigns), [insightsCampaigns]);
 
@@ -173,6 +187,10 @@ export default function HistoryPage() {
   if (!historyData || historyData.totalCampaigns === 0) {
     return (
       <PageShell>
+        <PageHeader
+          title="Insights"
+          description="Campaign performance, delivery results and sent history"
+        />
         <MeasurementNote
           trackingStatus={trackingStatus}
           loaded={allTrackingEvents.length}
@@ -181,7 +199,7 @@ export default function HistoryPage() {
         />
         <EmptyState
           icon={<History className="w-8 h-8" />}
-          title="No Emails Sent Yet"
+          title="No emails sent yet"
           description="Start sending campaigns to see your email history and performance insights here."
           action={
             <Button asChild>
@@ -200,8 +218,8 @@ export default function HistoryPage() {
     <>
       <PageShell>
         <PageHeader
-          title="Insights & History"
-          description="Track your campaign performance and delivery metrics"
+          title="Insights"
+          description="Campaign performance, delivery results and sent history"
           actions={
             <InsightsExportActions
               isExporting={isExporting}

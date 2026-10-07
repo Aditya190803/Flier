@@ -1,10 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import Link from "next/link";
 
-import { Users, Mail, Download, Upload, Tag, CloudDownload } from "lucide-react";
+import {
+  ChevronDown,
+  CloudDownload,
+  CopyCheck,
+  Download,
+  Mail,
+  MoreHorizontal,
+  Tag,
+  Upload,
+  Users,
+} from "lucide-react";
 
 import { ContactImportDialog } from "@/components/contacts/contact-import-dialog";
 import { ContactGroupsTab } from "@/components/contacts/contact-groups-tab";
@@ -13,6 +23,13 @@ import { ContactManagementDialogs } from "@/components/contacts/contact-manageme
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { PageHeader, PageShell } from "@/components/ui/page-shell";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useContactActions } from "@/hooks/useContactActions";
@@ -44,6 +61,7 @@ export default function ContactsPage() {
   const [selectedContactForGroup, setSelectedContactForGroup] = useState<Contact | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [activeTab, setActiveTab] = useState("contacts");
+  const csvInputRef = useRef<HTMLInputElement>(null);
   const [viewMode, setViewMode] = useState<"grid" | "virtual">("grid");
   const [newContact, setNewContact] = useState<NewContactState>({
     email: "",
@@ -225,59 +243,83 @@ export default function ContactsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <main className="flex-1 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Contacts</h1>
-            <p className="text-muted-foreground">Manage your email contacts and groups</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <AddContactDialog
-              open={showAddForm}
-              onOpenChange={setShowAddForm}
-              newContact={newContact}
-              setNewContact={setNewContact}
-              newTag={newTag}
-              setNewTag={setNewTag}
-              isLoading={isLoading}
-              onAddContact={handleAddContact}
-            />
+    <>
+      <PageShell>
+        <PageHeader
+          title="Contacts"
+          description="Manage your email contacts and groups"
+          actions={
+            <div className="flex flex-wrap gap-2">
+              <AddContactDialog
+                open={showAddForm}
+                onOpenChange={setShowAddForm}
+                newContact={newContact}
+                setNewContact={setNewContact}
+                newTag={newTag}
+                setNewTag={setNewTag}
+                isLoading={isLoading}
+                onAddContact={handleAddContact}
+              />
 
-            <CreateGroupDialog
-              open={showGroupForm}
-              onOpenChange={setShowGroupForm}
-              newGroup={newGroup}
-              setNewGroup={setNewGroup}
-              isLoading={isLoading}
-              onCreateGroup={handleCreateGroup}
-            />
+              <CreateGroupDialog
+                open={showGroupForm}
+                onOpenChange={setShowGroupForm}
+                newGroup={newGroup}
+                setNewGroup={setNewGroup}
+                isLoading={isLoading}
+                onCreateGroup={handleCreateGroup}
+              />
 
-            <Button variant="outline" onClick={exportContacts} disabled={contacts.length === 0}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-
-            <div className="relative">
-              <Button variant="outline">
-                <Upload className="h-4 w-4 mr-2" />
-                Import CSV
-              </Button>
               <input
+                ref={csvInputRef}
                 type="file"
                 accept=".csv"
                 onChange={handleFileImport}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                className="hidden"
+                aria-hidden="true"
+                tabIndex={-1}
               />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Import
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => csvInputRef.current?.click()}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Import CSV file
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={openGmailImportDialog}>
+                    <CloudDownload className="h-4 w-4 mr-2" />
+                    Import from Gmail
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" aria-label="More contact actions">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={exportContacts} disabled={contacts.length === 0}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export to CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/contacts/duplicates">
+                      <CopyCheck className="h-4 w-4 mr-2" />
+                      Find duplicates
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-
-            <Button variant="outline" onClick={openGmailImportDialog}>
-              <CloudDownload className="h-4 w-4 mr-2" />
-              Import from Gmail
-            </Button>
-          </div>
-        </div>
+          }
+        />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList>
@@ -345,7 +387,7 @@ export default function ContactsPage() {
 
         {/* Quick Action */}
         {contacts.length > 0 && (
-          <Card className="mt-8 bg-primary/5 border-primary/20">
+          <Card className="bg-primary/5 border-primary/20">
             <CardContent className="p-6">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
@@ -362,7 +404,7 @@ export default function ContactsPage() {
             </CardContent>
           </Card>
         )}
-      </main>
+      </PageShell>
 
       <ContactImportDialog importer={importer} />
       <ContactManagementDialogs
@@ -406,6 +448,6 @@ export default function ContactsPage() {
         onGmailToggleContact={toggleGmailContactSelection}
         onGmailImport={importSelectedGmailContacts}
       />
-    </div>
+    </>
   );
 }

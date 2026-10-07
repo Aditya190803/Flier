@@ -98,6 +98,8 @@ const nextConfig = {
         destination: "https://sendflier.tech/:path*",
         permanent: true,
       },
+      // Sent history moved into Insights.
+      { source: "/history", destination: "/insights", permanent: false },
     ];
   },
   // Add headers for CORS and content-type handling

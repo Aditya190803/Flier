@@ -51,10 +51,14 @@ test("maps custom CSV headers, previews updates and exports rejected rows", asyn
       ),
     });
   const dialog = page.getByRole("dialog", { name: "Review contact import" });
-  await dialog.getByLabel("Email column (required)").selectOption("Work Email");
-  await dialog.getByLabel("name column", { exact: true }).selectOption("Full Name");
-  await dialog.getByLabel("company column", { exact: true }).selectOption("Org");
-  await dialog.getByLabel("Existing contacts").selectOption("update");
+  const choose = async (label: string, option: string) => {
+    await dialog.getByLabel(label, { exact: true }).click();
+    await page.getByRole("option", { name: option, exact: true }).click();
+  };
+  await choose("Email column (required)", "Work Email");
+  await choose("name column", "Full Name");
+  await choose("company column", "Org");
+  await choose("Existing contacts", "Update existing email addresses");
   await expect(dialog.getByText("1 new · 1 updates · 0 skipped · 1 rejected")).toBeVisible();
   await expect(dialog.getByRole("cell", { name: "New, Person", exact: true })).toBeVisible();
   expect(writes).toHaveLength(0);
@@ -143,7 +147,7 @@ test("campaign search combines sources and duplicates an editable draft with per
   await page.goto("/campaigns");
   await expect(page.getByText("2 matching campaigns")).toBeVisible();
   await page.getByLabel("Search campaigns").fill("ADA");
-  await expect(page.getByText("1 matching campaigns")).toBeVisible();
+  await expect(page.getByText("1 matching campaign", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Duplicate and edit" }).click();
   await expect(page).toHaveURL(/\/compose\?edit=draft/);
   await page.getByRole("button", { name: "2 Compose", exact: true }).click();

@@ -2,13 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-import { useRouter } from "next/navigation";
-
-import { ArrowLeft, Globe } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
 import { PageShell, PageHeader } from "@/components/ui/page-shell";
 import { generateWebhookSecret } from "@/components/webhooks/event-types";
 import { useWebhooks } from "@/hooks/useWebhooks";
@@ -21,7 +17,6 @@ import { WebhookList } from "./_components/webhook-list";
 
 export default function WebhooksPage() {
   const { data: session, status } = useSession();
-  const router = useRouter();
   const {
     webhooks,
     isLoading,
@@ -44,12 +39,6 @@ export default function WebhooksPage() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/");
-    }
-  }, [status, router]);
 
   const createWebhook = async () => {
     if (!newWebhook.name.trim() || !newWebhook.url.trim() || newWebhook.events.length === 0) {
@@ -103,17 +92,8 @@ export default function WebhooksPage() {
     <>
       <PageShell className="max-w-7xl">
         <PageHeader
-          title={
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Globe className="h-6 w-6 text-primary" />
-              </div>
-              Webhooks
-            </div>
-          }
+          back={{ href: "/settings", label: "Settings" }}
+          title="Webhooks"
           description="Integrate Flier with your apps and services in real-time"
           actions={
             <CreateWebhookDialog

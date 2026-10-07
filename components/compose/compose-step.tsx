@@ -32,6 +32,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import type { EmailSignature, EmailTemplate } from "@/lib/appwrite";
 import { detectPdfColumn, isPdfUrl } from "@/lib/attachment-fetcher";
@@ -435,21 +442,20 @@ export function ComposeStep({
             ) : (
               <div className="space-y-2">
                 <Label htmlFor="attachment-column">Select Attachment Column</Label>
-                <select
-                  id="attachment-column"
-                  value={pdfColumn || ""}
-                  onChange={(e) => setPdfColumn(e.target.value || null)}
-                  className="w-full p-2 text-sm border rounded-md bg-background"
-                >
-                  <option value="">Select a column...</option>
-                  {csvHeaders.map((header) => (
-                    <option key={header} value={header}>
-                      {header} {isPdfUrl(csvData[0]?.[header]) ? "(Detected Link)" : ""}
-                    </option>
-                  ))}
-                </select>
+                <Select value={pdfColumn ?? undefined} onValueChange={setPdfColumn}>
+                  <SelectTrigger id="attachment-column">
+                    <SelectValue placeholder="Select a column..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {csvHeaders.map((header) => (
+                      <SelectItem key={header} value={header}>
+                        {header} {isPdfUrl(csvData[0]?.[header]) ? "(Detected Link)" : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {pdfColumn && (
-                  <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+                  <div className="flex items-center gap-2 text-xs text-success">
                     <CheckCircle className="h-3 w-3" />
                     <span>
                       {csvData.filter((row) => isPdfUrl(row[pdfColumn])).length} valid links found
