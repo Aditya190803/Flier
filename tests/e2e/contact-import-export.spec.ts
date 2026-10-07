@@ -95,11 +95,8 @@ test.describe("Contact Import/Export", () => {
   });
 
   test("should have export functionality", async ({ page }) => {
-    const exportButton = page
-      .getByRole("button", { name: /export/i })
-      .or(page.getByText(/export/i));
-
-    await expect(exportButton.first()).toBeVisible();
+    await page.getByRole("button", { name: /more contact actions/i }).click();
+    await expect(page.getByRole("menuitem", { name: /export to csv/i })).toBeVisible();
   });
 
   test("should have Google Contacts import option", async ({ page }) => {
