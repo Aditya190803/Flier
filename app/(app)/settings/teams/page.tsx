@@ -2,8 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 
-import { useRouter } from "next/navigation";
-
 import { format } from "date-fns";
 import {
   Users,
@@ -101,7 +99,6 @@ const roleColors = {
 
 export default function TeamsPage() {
   const { data: session, status } = useSession();
-  const router = useRouter();
   const [teams, setTeams] = useState<Team[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -115,12 +112,6 @@ export default function TeamsPage() {
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [inviteData, setInviteData] = useState({ email: "", role: "member" });
   const [isInviting, setIsInviting] = useState(false);
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/");
-    }
-  }, [status, router]);
 
   const fetchTeams = useCallback(async () => {
     try {
@@ -333,14 +324,8 @@ export default function TeamsPage() {
   return (
     <PageShell className="max-w-6xl">
       <PageHeader
-        title={
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Users className="h-6 w-6 text-primary" />
-            </div>
-            Teams
-          </div>
-        }
+        back={{ href: "/settings", label: "Settings" }}
+        title="Teams"
         description="Collaborate with your team on email campaigns"
       />
 

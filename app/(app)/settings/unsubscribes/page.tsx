@@ -2,20 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 
-import { useRouter } from "next/navigation";
-
 import { format } from "date-fns";
-import {
-  UserX,
-  Plus,
-  Search,
-  Mail,
-  Calendar,
-  Download,
-  Upload,
-  ArrowLeft,
-  UserCheck,
-} from "lucide-react";
+import { UserX, Plus, Search, Mail, Calendar, Download, Upload, UserCheck } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
@@ -48,7 +36,6 @@ import { componentLogger } from "@/lib/client-logger";
 
 export default function UnsubscribesPage() {
   const { data: session, status } = useSession();
-  const router = useRouter();
   const [unsubscribes, setUnsubscribes] = useState<Unsubscribe[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -60,12 +47,6 @@ export default function UnsubscribesPage() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/");
-    }
-  }, [status, router]);
 
   const fetchUnsubscribes = useCallback(async () => {
     if (!session?.user?.email) {
@@ -228,17 +209,8 @@ export default function UnsubscribesPage() {
   return (
     <PageShell className="max-w-7xl">
       <PageHeader
-        title={
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="p-2 bg-destructive/10 rounded-lg">
-              <UserX className="h-6 w-6 text-destructive" />
-            </div>
-            Unsubscribe Management
-          </div>
-        }
+        back={{ href: "/settings", label: "Settings" }}
+        title="Unsubscribes"
         description="Manage emails that have opted out of receiving your campaigns"
         actions={
           <div className="flex gap-2">

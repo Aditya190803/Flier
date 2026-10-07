@@ -2,8 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 
-import { useRouter } from "next/navigation";
-
 import { format } from "date-fns";
 import {
   FileText,
@@ -121,7 +119,6 @@ function formatAction(action: string): string {
 
 export default function AuditLogsPage() {
   const { data: session, status } = useSession();
-  const router = useRouter();
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [total, setTotal] = useState(0);
@@ -132,12 +129,6 @@ export default function AuditLogsPage() {
     search: "",
   });
   const limit = 20;
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/");
-    }
-  }, [status, router]);
 
   const fetchLogs = useCallback(async () => {
     setIsLoading(true);
@@ -211,14 +202,8 @@ export default function AuditLogsPage() {
   return (
     <PageShell className="max-w-6xl">
       <PageHeader
-        title={
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <FileText className="h-6 w-6 text-primary" />
-            </div>
-            Audit Logs
-          </div>
-        }
+        back={{ href: "/settings", label: "Settings" }}
+        title="Audit Logs"
         description="Track all actions performed on your account"
       />
 

@@ -56,7 +56,7 @@ test("does not dispatch when eligibility cannot be verified", async ({ page }) =
     await route.abort();
   });
   await compose(page);
-  await page.getByRole("button", { name: /Dispatch/i }).click();
+  await page.getByRole("button", { name: "Send now", exact: true }).click();
   await expect(page.getByText("Eligibility unavailable")).toBeVisible();
   expect(sendRequests).toBe(0);
 });

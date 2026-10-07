@@ -112,9 +112,9 @@ export function ActivityChart({ campaigns }: Props) {
           <Area
             type="monotone"
             dataKey="failed"
-            stroke="var(--color-chart-2)"
+            stroke="var(--color-destructive)"
             strokeWidth={1.5}
-            fill="var(--color-chart-2)"
+            fill="var(--color-destructive)"
             fillOpacity={0.1}
             name="Failed"
           />
@@ -127,7 +127,7 @@ export function ActivityChart({ campaigns }: Props) {
           Sent
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-chart-2 inline-block" />
+          <span className="h-2 w-2 rounded-full bg-destructive inline-block" />
           Failed
         </span>
       </div>

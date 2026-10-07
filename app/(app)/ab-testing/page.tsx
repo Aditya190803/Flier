@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import {
   Beaker,
@@ -44,9 +42,58 @@ import type { ABTest } from "@/lib/appwrite";
 import { abTestsService } from "@/lib/appwrite";
 import { componentLogger } from "@/lib/client-logger";
 
+function openRate(opens: number, sent: number) {
+  return sent > 0 ? (opens / sent) * 100 : 0;
+}
+
+/** One variant's results; the winner gets a label and its lead over the other variant. */
+function VariantSummary({ test, variant }: { test: ABTest; variant: "A" | "B" }) {
+  const key = variant === "A" ? "a" : "b";
+  const other = variant === "A" ? "b" : "a";
+  const sent = test[`variant_${key}_sent`] || 0;
+  const opens = test[`variant_${key}_opens`] || 0;
+  const rate = openRate(opens, sent);
+  const lead =
+    rate - openRate(test[`variant_${other}_opens`] || 0, test[`variant_${other}_sent`] || 0);
+  const isWinner = test.winner === variant;
+  return (
+    <div
+      className={`p-4 rounded-lg border-2 ${isWinner ? "border-success bg-success/5" : "border-border"}`}
+    >
+      <div className="flex items-center justify-between mb-3 gap-2">
+        <span className="font-medium">Variant {variant}</span>
+        {isWinner && (
+          <Badge variant="success" className="gap-1">
+            <Trophy className="h-3 w-3" />
+            Winner{lead > 0 ? ` · +${lead.toFixed(1)} pts` : ""}
+          </Badge>
+        )}
+      </div>
+      <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+        {test[`variant_${key}_subject`]}
+      </p>
+      <div className="grid grid-cols-3 gap-2 text-center">
+        <div>
+          <div className="text-lg font-semibold">
+            {test[`variant_${key}_recipients`]?.length || 0}
+          </div>
+          <div className="text-xs text-muted-foreground">Recipients</div>
+        </div>
+        <div>
+          <div className="text-lg font-semibold">{opens}</div>
+          <div className="text-xs text-muted-foreground">Opens</div>
+        </div>
+        <div>
+          <div className="text-lg font-semibold">{rate.toFixed(1)}%</div>
+          <div className="text-xs text-muted-foreground">Open rate</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ABTestingPage() {
   const { data: session, status } = useSession();
-  const router = useRouter();
   const { tests, loading, contacts, submitting, fetchTests, createTest, startTest } = useAbTests(
     session?.user?.email ?? undefined,
   );
@@ -62,12 +109,6 @@ export default function ABTestingPage() {
   const [variantAContent, setVariantAContent] = useState("");
   const [variantBContent, setVariantBContent] = useState("");
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/");
-    }
-  }, [status, router]);
 
   const resetForm = () => {
     setTestName("");
@@ -277,68 +318,10 @@ export default function ABTestingPage() {
                         </Badge>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-6 mt-4">
-                        {/* Variant A */}
-                        <div
-                          className={`p-4 rounded-lg border-2 ${test.winner === "A" ? "border-success bg-success/5" : "border-border"}`}
-                        >
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="font-medium">Variant A</span>
-                            {test.winner === "A" && <Trophy className="h-4 w-4 text-success" />}
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                            {test.variant_a_subject}
-                          </p>
-                          <div className="grid grid-cols-3 gap-2 text-center">
-                            <div>
-                              <div className="text-lg font-semibold">
-                                {test.variant_a_recipients?.length || 0}
-                              </div>
-                              <div className="text-xs text-muted-foreground">Recipients</div>
-                            </div>
-                            <div>
-                              <div className="text-lg font-semibold">{test.variant_a_opens}</div>
-                              <div className="text-xs text-muted-foreground">Opens</div>
-                            </div>
-                            <div>
-                              <div className="text-lg font-semibold">
-                                {calculateRate(test.variant_a_opens, test.variant_a_sent)}
-                              </div>
-                              <div className="text-xs text-muted-foreground">Rate</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Variant B */}
-                        <div
-                          className={`p-4 rounded-lg border-2 ${test.winner === "B" ? "border-success bg-success/5" : "border-border"}`}
-                        >
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="font-medium">Variant B</span>
-                            {test.winner === "B" && <Trophy className="h-4 w-4 text-success" />}
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                            {test.variant_b_subject}
-                          </p>
-                          <div className="grid grid-cols-3 gap-2 text-center">
-                            <div>
-                              <div className="text-lg font-semibold">
-                                {test.variant_b_recipients?.length || 0}
-                              </div>
-                              <div className="text-xs text-muted-foreground">Recipients</div>
-                            </div>
-                            <div>
-                              <div className="text-lg font-semibold">{test.variant_b_opens}</div>
-                              <div className="text-xs text-muted-foreground">Opens</div>
-                            </div>
-                            <div>
-                              <div className="text-lg font-semibold">
-                                {calculateRate(test.variant_b_opens, test.variant_b_sent)}
-                              </div>
-                              <div className="text-xs text-muted-foreground">Rate</div>
-                            </div>
-                          </div>
-                        </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        {(["A", "B"] as const).map((variant) => (
+                          <VariantSummary key={variant} test={test} variant={variant} />
+                        ))}
                       </div>
                     </div>
 
@@ -428,7 +411,7 @@ export default function ABTestingPage() {
             </div>
 
             {/* Variants */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Variant A */}
               <div className="space-y-3 p-4 border rounded-lg bg-primary/5">
                 <h4 className="font-medium flex items-center gap-2">
@@ -602,7 +585,7 @@ export default function ABTestingPage() {
               </div>
 
               {/* Comparison Cards */}
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Variant A */}
                 <Card className={selectedTest.winner === "A" ? "border-success border-2" : ""}>
                   <CardHeader className="pb-3">

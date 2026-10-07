@@ -1,6 +1,8 @@
 import React from "react";
 
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import Link from "next/link";
+
+import { ArrowLeft, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 /* ─────────────────────────────────────────────────────────── *
  *  PageShell — outermost constraint for every protected page  *
@@ -26,12 +28,23 @@ interface PageHeaderProps {
   title: React.ReactNode;
   description?: React.ReactNode;
   actions?: React.ReactNode;
+  /** Parent page link shown above the title, e.g. settings sub-pages. */
+  back?: { href: string; label: string };
   className?: string;
 }
-export function PageHeader({ title, description, actions, className = "" }: PageHeaderProps) {
+export function PageHeader({ title, description, actions, back, className = "" }: PageHeaderProps) {
   return (
     <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${className}`}>
       <div className="space-y-1 min-w-0">
+        {back && (
+          <Link
+            href={back.href}
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-1"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            {back.label}
+          </Link>
+        )}
         <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
         {description && <div className="text-sm text-muted-foreground">{description}</div>}
       </div>

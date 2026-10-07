@@ -9,6 +9,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { EmailTemplate } from "@/lib/appwrite";
 
 interface TemplateCategory {
@@ -69,23 +76,24 @@ export function TemplateEditorDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label>Category</Label>
-                <select
+                <Label htmlFor="edit-template-category">Category</Label>
+                <Select
                   value={editingTemplate.category || "other"}
-                  onChange={(e) =>
-                    onEditingTemplateChange({
-                      ...editingTemplate,
-                      category: e.target.value,
-                    })
+                  onValueChange={(category) =>
+                    onEditingTemplateChange({ ...editingTemplate, category })
                   }
-                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                 >
-                  {categories.map((cat) => (
-                    <option key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger id="edit-template-category">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="space-y-2">

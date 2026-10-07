@@ -28,48 +28,36 @@ const features = [
     title: "CSV Personalization",
     description:
       "Upload any CSV and auto-map columns to template variables. Unlimited custom fields, zero config.",
-    accent: "text-blue-500",
-    bg: "bg-blue-500/10",
   },
   {
     icon: Sparkles,
     title: "Rich Text Editor",
     description:
       "WYSIWYG editor with real-time personalization preview. Format, link, and embed images effortlessly.",
-    accent: "text-violet-500",
-    bg: "bg-violet-500/10",
   },
   {
     icon: Send,
     title: "Gmail Integration",
     description:
       "Send directly via your Gmail account through Google's official API. Protect your sender reputation.",
-    accent: "text-orange-500",
-    bg: "bg-orange-500/10",
   },
   {
     icon: Zap,
     title: "Bulk Sending",
     description:
       "Send personalized campaigns with live progress tracking, within your Gmail account limits.",
-    accent: "text-yellow-500",
-    bg: "bg-yellow-500/10",
   },
   {
     icon: Shield,
     title: "Secure & Private",
     description:
       "Connect with Google OAuth. Manage consent, export your data, or delete your account in settings.",
-    accent: "text-emerald-500",
-    bg: "bg-emerald-500/10",
   },
   {
     icon: BarChart3,
     title: "Real-time Analytics",
     description:
       "Track delivery, opens, and clicks live. Export detailed campaign reports anytime.",
-    accent: "text-pink-500",
-    bg: "bg-pink-500/10",
   },
 ];
 
@@ -148,7 +136,7 @@ export default function HomePage() {
                   {["No credit card required", "Free to start", "Google OAuth", "Open source"].map(
                     (t) => (
                       <div key={t} className="flex items-center gap-1.5">
-                        <CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                        <CheckCircle className="h-3.5 w-3.5 text-success shrink-0" />
                         {t}
                       </div>
                     ),
@@ -190,8 +178,8 @@ export default function HomePage() {
                 return (
                   <div key={i}>
                     <div className="h-full rounded-xl border bg-card p-6 hover:border-primary/40 hover:shadow-md transition-all duration-200">
-                      <div className={`inline-flex p-2.5 rounded-lg ${f.bg} mb-4`}>
-                        <Icon className={`h-5 w-5 ${f.accent}`} />
+                      <div className="inline-flex p-2.5 rounded-lg bg-primary/10 mb-4">
+                        <Icon className="h-5 w-5 text-primary" />
                       </div>
                       <h3 className="text-base font-semibold mb-2">{f.title}</h3>
                       <p className="text-muted-foreground text-sm leading-relaxed">
@@ -225,13 +213,13 @@ export default function HomePage() {
                   <div key={i}>
                     <div className="relative flex flex-col gap-4">
                       {i < steps.length - 1 && (
-                        <div className="hidden md:block absolute top-5 left-[calc(50%+3rem)] right-[-3rem] h-px border-t border-dashed border-border/60" />
+                        <div className="hidden md:block absolute top-5 left-28 -right-10 h-px border-t border-dashed border-border" />
                       )}
                       <div className="flex items-center gap-3">
                         <div className="flex items-center justify-center h-10 w-10 rounded-full border-2 border-primary/40 bg-primary/10 shrink-0">
                           <Icon className="h-4 w-4 text-primary" />
                         </div>
-                        <span className="text-4xl font-black text-muted/20 tabular-nums leading-none">
+                        <span className="text-4xl font-black text-muted-foreground/25 tabular-nums leading-none">
                           {item.step}
                         </span>
                       </div>
@@ -322,25 +310,8 @@ export default function HomePage() {
                   minutes.
                 </p>
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:[&>*]:flex-1">
-                  <AuthButton size="lg" className="w-full" />
-                  <Button variant="outline" size="lg" asChild>
-                    <Link
-                      href="#features"
-                      className="w-full flex items-center justify-center gap-2"
-                    >
-                      Explore features <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-
-                <div className="mt-8 flex flex-wrap items-center justify-center gap-5 text-sm text-muted-foreground">
-                  {["No credit card", "Free to start", "Open source"].map((t) => (
-                    <div key={t} className="flex items-center gap-1.5">
-                      <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
-                      {t}
-                    </div>
-                  ))}
+                <div className="flex justify-center">
+                  <AuthButton size="lg" className="w-full sm:w-auto sm:min-w-64" />
                 </div>
               </div>
             </div>

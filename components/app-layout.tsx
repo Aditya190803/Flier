@@ -2,16 +2,21 @@
 
 import { useEffect } from "react";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { useSession } from "next-auth/react";
 
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar, getNavTitle } from "@/components/app-sidebar";
+import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+
+/** Pages portal sticky footers (e.g. the compose action bar) into this element. */
+export const APP_FOOTER_SLOT_ID = "app-footer-slot";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const previousBodyOverflow = document.body.style.overflow;
@@ -59,8 +64,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <SidebarProvider className="h-svh overflow-hidden">
       <AppSidebar />
       <SidebarInset className="flex h-svh flex-col">
-        <SidebarTrigger className="absolute left-3 top-3 z-20 h-9 w-9 rounded-full border border-border/70 bg-background/90 shadow-md backdrop-blur transition-shadow hover:shadow-lg md:top-[55%] md:-translate-y-1/2" />
+        <header className="flex h-12 shrink-0 items-center gap-2 border-b px-3">
+          <SidebarTrigger className="h-8 w-8" />
+          <Separator orientation="vertical" className="h-4" />
+          <span className="truncate text-sm font-medium text-muted-foreground">
+            {getNavTitle(pathname)}
+          </span>
+        </header>
         <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden">{children}</div>
+        <div id={APP_FOOTER_SLOT_ID} className="shrink-0" />
       </SidebarInset>
     </SidebarProvider>
   );

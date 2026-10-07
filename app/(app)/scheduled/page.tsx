@@ -272,8 +272,8 @@ export default function ScheduledPage() {
     <>
       <PageShell>
         <PageHeader
-          title="Delivery & Recovery"
-          description="Background campaigns, progress, and recovery actions"
+          title="Delivery"
+          description="Scheduled and background campaigns, their progress, and recovery actions"
           actions={
             <Button asChild>
               <Link href="/compose">

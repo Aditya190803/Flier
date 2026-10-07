@@ -29,7 +29,7 @@ test.describe("Full Email Campaign Flow", () => {
     await expect(editor.first()).toBeVisible();
 
     await page.getByRole("button", { name: /3 Preview/i }).click();
-    await expect(page.getByRole("button", { name: /dispatch/i }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: "Send now", exact: true })).toBeVisible();
   });
 
   test("should validate empty form submission", async ({ page }) => {
@@ -222,7 +222,7 @@ test.describe("Dashboard Campaign Overview", () => {
 
     if (await viewAllLink.first().isVisible()) {
       await viewAllLink.first().click();
-      await expect(page).toHaveURL(/\/history/);
+      await expect(page).toHaveURL(/\/insights/);
     }
   });
 });

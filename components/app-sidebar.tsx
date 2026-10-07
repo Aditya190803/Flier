@@ -7,10 +7,12 @@ import {
   Mail,
   LayoutDashboard,
   Users,
+  BookUser,
   PenSquare,
   FileText,
+  FilePen,
   CalendarClock,
-  Clock,
+  ClipboardCheck,
   Settings,
   BarChart3,
   Beaker,
@@ -48,25 +50,41 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 
+// Nav labels double as page titles (see getNavTitle) — keep them in sync with each PageHeader.
 const mainNav = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Campaigns", href: "/campaigns", icon: Mail },
-  { name: "Compose", href: "/compose", icon: PenSquare },
-  { name: "Scheduled", href: "/scheduled", icon: CalendarClock },
-  { name: "Drafts", href: "/draft", icon: Clock },
+  { name: "New Campaign", href: "/compose", icon: PenSquare },
+  { name: "Delivery", href: "/scheduled", icon: CalendarClock },
+  { name: "Drafts", href: "/draft", icon: FilePen },
   { name: "Templates", href: "/templates", icon: FileText },
 ];
 
 const dataNav = [
-  { name: "Contacts", href: "/contacts", icon: Users },
+  { name: "Contacts", href: "/contacts", icon: BookUser },
   { name: "Insights", href: "/insights", icon: BarChart3 },
   { name: "A/B Tests", href: "/ab-testing", icon: Beaker },
 ];
 
 const workspaceNav = [
   { name: "Teams", href: "/settings/teams", icon: Users },
-  { name: "Reviews", href: "/reviews", icon: FileText },
+  { name: "Reviews", href: "/reviews", icon: ClipboardCheck },
 ];
+
+const titledRoutes = [
+  ...mainNav,
+  ...dataNav,
+  ...workspaceNav,
+  { name: "Settings", href: "/settings" },
+];
+
+/** Section name for the app top bar: the longest nav href that prefixes the path. */
+export function getNavTitle(pathname: string): string {
+  const match = titledRoutes
+    .filter((route) => pathname === route.href || pathname.startsWith(route.href + "/"))
+    .sort((a, b) => b.href.length - a.href.length)[0];
+  return match?.name ?? "";
+}
 
 function NavGroup({
   label,

@@ -16,7 +16,6 @@ import {
   MoreVertical,
   CheckCircle,
   XCircle,
-  AlertCircle,
   Send,
   Eye,
   RefreshCw,
@@ -26,6 +25,7 @@ import {
   User,
   Copy,
   Paperclip,
+  Plus,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -55,7 +55,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { PageShell, PageHeader, EmptyState, StatCard } from "@/components/ui/page-shell";
+import { PageShell, PageHeader, EmptyState } from "@/components/ui/page-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { draftEmailsService, type DraftEmail } from "@/lib/appwrite";
@@ -349,36 +349,6 @@ export default function DraftPage() {
           </div>
         </div>
 
-        {/* Info Banner Skeleton */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <Skeleton className="h-5 w-5 rounded-full" />
-              <div className="flex-1">
-                <Skeleton className="h-4 w-48 mb-1" />
-                <Skeleton className="h-4 w-80" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Stats Grid Skeleton */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, idx) => (
-            <Card key={idx}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Skeleton className="h-9 w-9 rounded-lg" />
-                  <div>
-                    <Skeleton className="h-7 w-8 mb-1" />
-                    <Skeleton className="h-4 w-16" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-4">
             <Skeleton className="h-5 w-5 rounded-full" />
@@ -422,66 +392,25 @@ export default function DraftPage() {
     <>
       <PageShell>
         <PageHeader
-          title="Draft Emails"
-          description="Save emails for later and send when ready"
+          title="Drafts"
+          description="Saved campaigns wait here until you send them yourself"
           actions={
             <Button asChild>
               <Link href="/compose">
-                <Send className="h-4 w-4 mr-2" />
-                Create New Email
+                <Plus className="h-4 w-4 mr-2" />
+                New Campaign
               </Link>
             </Button>
           }
         />
-
-        {/* Info Banner */}
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-primary mt-0.5" />
-              <div>
-                <p className="font-medium text-sm">Manual Sending Required</p>
-                <p className="text-sm text-muted-foreground">
-                  Drafts need to be sent manually. Click "Send Now" when you're ready to send.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard
-            label="Pending"
-            value={pendingEmails.length}
-            icon={<Clock className="h-5 w-5 text-primary" />}
-            accentClass="border-primary/20 bg-primary/5"
-          />
-          <StatCard
-            label="Sent"
-            value={draftEmails.filter((e) => e.status === "sent").length}
-            icon={<CheckCircle className="h-5 w-5 text-success" />}
-            accentClass="border-success/20 bg-success/5"
-          />
-          <StatCard
-            label="Failed"
-            value={draftEmails.filter((e) => e.status === "failed").length}
-            icon={<XCircle className="h-5 w-5 text-destructive" />}
-            accentClass="border-destructive/20 bg-destructive/5"
-          />
-          <StatCard
-            label="Cancelled"
-            value={draftEmails.filter((e) => e.status === "cancelled").length}
-            icon={<Pause className="h-5 w-5 text-muted-foreground" />}
-          />
-        </div>
 
         {/* Pending Emails */}
         {pendingEmails.length > 0 && (
           <div className="mb-8">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Clock className="h-5 w-5 text-primary" />
-              Ready to Send
+              Ready to send
+              <Badge variant="secondary">{pendingEmails.length}</Badge>
             </h2>
             <div className="space-y-4">
               {pendingEmails.map((email) => (
@@ -545,7 +474,7 @@ export default function DraftPage() {
                         </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon-sm">
+                            <Button variant="ghost" size="icon-sm" aria-label="More actions">
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -604,7 +533,8 @@ export default function DraftPage() {
           <div>
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-success" />
-              History
+              Sent and closed
+              <Badge variant="secondary">{completedEmails.length}</Badge>
             </h2>
             <div className="space-y-3">
               {completedEmails.map((email) => (
@@ -640,7 +570,7 @@ export default function DraftPage() {
                         </span>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon-sm">
+                            <Button variant="ghost" size="icon-sm" aria-label="More actions">
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>

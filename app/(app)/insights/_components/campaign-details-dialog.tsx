@@ -141,7 +141,7 @@ export function CampaignDetailsDialog({
                     }))}
                     dataKey="opens"
                     label="Opens"
-                    color="hsl(var(--primary))"
+                    color="var(--color-primary)"
                     size="small"
                     className="border-0 shadow-none p-0"
                   />

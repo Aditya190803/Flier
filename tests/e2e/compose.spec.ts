@@ -38,10 +38,10 @@ test.describe("Compose Email", () => {
     }
   });
 
-  test("should have dispatch button", async ({ page }) => {
+  test("should have send button", async ({ page }) => {
     await page.getByRole("button", { name: /3 Preview/i }).click();
-    const dispatchButton = page.getByRole("button", { name: /dispatch/i });
-    await expect(dispatchButton).toBeVisible();
+    const sendButton = page.getByRole("button", { name: "Send now", exact: true });
+    await expect(sendButton).toBeVisible();
   });
 
   test("should validate empty form submission", async ({ page }) => {
